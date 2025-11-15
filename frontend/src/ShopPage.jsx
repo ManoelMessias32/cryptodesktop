@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { connectWallet } from './wallet'
 import { ethers } from 'ethers'
 
-const SHOP_ADDRESS = '0xeD266DC6Fd8b5124eec783c58BB351E0Bc3C7d59'
+const SHOP_ADDRESS = '0x35878269EF4051Df5f82593b4819E518bA8903A3'
 const SHOP_ABI = [
   'function nextItemId() view returns (uint256)',
   'function items(uint256) view returns (uint256,string,uint256,uint256)',
