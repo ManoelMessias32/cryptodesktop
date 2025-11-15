@@ -4,37 +4,23 @@ import { ethers } from 'ethers'
 
 const TOKEN_ADDRESS = '0xcB2e51011e60841B56e278291831E8A4b0D301B2'
 
+// Helper to get date string in a consistent format
+const getTodayString = () => new Date().toISOString().split('T')[0];
+
 export default function MiningPage() {
-        // Energia máxima e tempo de uso para cada slot
+        // Game state
         const MAX_ENERGY = 100
         const REPAIR_COST = 50
-        const REPAIR_TIME = 60 // segundos para exemplo
+        const REPAIR_TIME = 60 // seconds for example
         const [slotEnergy, setSlotEnergy] = useState([MAX_ENERGY, MAX_ENERGY, MAX_ENERGY, MAX_ENERGY, MAX_ENERGY, MAX_ENERGY])
         const [slotTimers, setSlotTimers] = useState([REPAIR_TIME, REPAIR_TIME, REPAIR_TIME, REPAIR_TIME, REPAIR_TIME, REPAIR_TIME])
         const [needsRepair, setNeedsRepair] = useState([false, false, false, false, false, false])
 
-        // Simula consumo de energia e tempo de uso
-        React.useEffect(() => {
-          const interval = setInterval(() => {
-            setSlotTimers((prev) => prev.map((t, i) => {
-              if (needsRepair[i] || slotEnergy[i] <= 0) return t
-              return t > 0 ? t - 1 : 0
-            }))
-            setSlotEnergy((prev) => prev.map((e, i) => {
-              if (needsRepair[i] || e <= 0) return e
-              return slotTimers[i] > 0 ? e - 1 : 0
-            }))
-            setNeedsRepair((prev) => prev.map((r, i) => slotEnergy[i] <= 0 || slotTimers[i] <= 0))
-          }, 1000)
-          return () => clearInterval(interval)
-        }, [slotEnergy, slotTimers, needsRepair])
+        // Ad Boost State
+        const [adBoostTime, setAdBoostTime] = useState(() => Number(localStorage.getItem('adBoostTime_v2')) || 0);
+        const [adSessionsLeft, setAdSessionsLeft] = useState(3);
+        const [lastAdSessionDate, setLastAdSessionDate] = useState(() => localStorage.getItem('lastAdSessionDate_v2') || '');
 
-        function handleRepairSlot(idx) {
-          setSlotEnergy((prev) => prev.map((e, i) => i === idx ? MAX_ENERGY : e))
-          setSlotTimers((prev) => prev.map((t, i) => i === idx ? REPAIR_TIME : t))
-          setNeedsRepair((prev) => prev.map((r, i) => i === idx ? false : r))
-          setStatus(`Slot ${idx + 1} reparado! (-${REPAIR_COST} Coin BDG)`)
-        }
       const monthlyBDG = {
         free: '200',
         1: '400–500',
@@ -64,6 +50,89 @@ export default function MiningPage() {
       2: '0.090', // Intermediário
       3: '0.170'  // Avançado
     }
+
+    // Effect for initializing and resetting ad sessions daily
+    React.useEffect(() => {
+        const today = getTodayString();
+        const savedDate = localStorage.getItem('lastAdSessionDate_v2') || '';
+        const savedSessions = localStorage.getItem('adSessionsLeft_v2');
+
+        if (savedDate !== today) {
+            // It's a new day, reset sessions
+            setAdSessionsLeft(3);
+            localStorage.setItem('adSessionsLeft_v2', '3');
+            localStorage.setItem('lastAdSessionDate_v2', today);
+            setLastAdSessionDate(today);
+        } else {
+            // It's the same day, load saved sessions
+            if (savedSessions !== null) {
+                setAdSessionsLeft(Number(savedSessions));
+            }
+        }
+    }, []); // Runs once on mount
+
+    // Effect to save boost time to localStorage whenever it changes
+    React.useEffect(() => {
+        localStorage.setItem('adBoostTime_v2', adBoostTime);
+    }, [adBoostTime]);
+
+    // Main game loop
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            let isBoostActive = false;
+            setAdBoostTime(prev => {
+                if (prev > 0) {
+                    isBoostActive = true;
+                    return prev - 1;
+                }
+                return 0;
+            });
+
+            // If boost is active, skip energy/time consumption
+            if (isBoostActive) {
+                return;
+            }
+
+            setSlotTimers((prev) => prev.map((t, i) => {
+                if (needsRepair[i] || slotEnergy[i] <= 0) return t;
+                return t > 0 ? t - 1 : 0;
+            }));
+            setSlotEnergy((prev) => prev.map((e, i) => {
+                if (needsRepair[i] || e <= 0) return e;
+                // This check is slightly modified to prevent energy loss on the last second of a timer
+                return slotTimers[i] > 0 ? e - 1 : 0;
+            }));
+            setNeedsRepair((prev) => prev.map((r, i) => slotEnergy[i] <= 0 || slotTimers[i] <= 0));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [slotEnergy, slotTimers, needsRepair]); // This dependency array is correct
+
+
+  function handleRepairSlot(idx) {
+    setSlotEnergy((prev) => prev.map((e, i) => i === idx ? MAX_ENERGY : e))
+    setSlotTimers((prev) => prev.map((t, i) => i === idx ? REPAIR_TIME : t))
+    setNeedsRepair((prev) => prev.map((r, i) => i === idx ? false : r))
+    setStatus(`Slot ${idx + 1} reparado! (-${REPAIR_COST} Coin BDG)`)
+  }
+
+  function handleAdSessionClick() {
+    if (adSessionsLeft > 0 && adBoostTime <= 0) {
+        const BOOST_DURATION = 3600; // 60 minutes (3 ads * 20 min)
+        setAdBoostTime(BOOST_DURATION);
+
+        const newSessionsLeft = adSessionsLeft - 1;
+        setAdSessionsLeft(newSessionsLeft);
+        localStorage.setItem('adSessionsLeft_v2', newSessionsLeft);
+        
+        const today = getTodayString();
+        setLastAdSessionDate(today);
+        localStorage.setItem('lastAdSessionDate_v2', today);
+
+        setStatus(`Boost de 60 minutos ativado! Sessões restantes hoje: ${newSessionsLeft}`);
+    }
+  }
+
   // Simula mineração automática
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -153,6 +222,36 @@ export default function MiningPage() {
         <div>Minado localmente: {mined} Coin BDG</div>
         <button onClick={claim} disabled={mined === 0}>Reivindicar</button>
       </div>
+
+      {/* Ad Boost Section */}
+      <div style={{ marginTop: 24, padding: 12, border: '1px solid #4CAF50', borderRadius: 8, background: '#e8f5e9', maxWidth: 420 }}>
+        <h4 style={{ color: '#4CAF50', marginBottom: 8 }}>Boost de Anúncio</h4>
+        <div style={{ fontSize: '1em', marginBottom: 8 }}>
+          Tempo de Boost restante: <span style={{ fontWeight: 'bold' }}>{Math.floor(adBoostTime / 60)}:{(adBoostTime % 60).toString().padStart(2, '0')}</span>
+        </div>
+        <div style={{ fontSize: '1em', marginBottom: 8 }}>
+          Sessões de anúncio hoje: <span style={{ fontWeight: 'bold' }}>{adSessionsLeft} / 3</span>
+        </div>
+        <button
+          onClick={handleAdSessionClick}
+          disabled={adSessionsLeft <= 0 || adBoostTime > 0}
+          style={{
+            fontSize: '0.95em',
+            background: (adSessionsLeft <= 0 || adBoostTime > 0) ? '#ccc' : '#4CAF50',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '6px',
+            cursor: (adSessionsLeft <= 0 || adBoostTime > 0) ? 'not-allowed' : 'pointer',
+          }}
+        >
+          Ativar 60 min de Boost
+        </button>
+        <div style={{ fontSize: '0.9em', color: '#555', marginTop: 8 }}>
+          Durante o boost, seus slots não consomem energia ou tempo de uso.
+        </div>
+      </div>
+
       <div style={{ marginTop: 24, padding: 12, border: '1px solid #eee', borderRadius: 8, background: '#fafafa', maxWidth: 420 }}>
         <h4 style={{ color: '#444', marginBottom: 8 }}>Usos da Coin BDG</h4>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
