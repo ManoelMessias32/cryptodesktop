@@ -15,12 +15,15 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/claim",
       "dest": "/api/claim.js"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/frontend/dist/$1"
+      "dest": "/index.html"
     }
   ]
 }
