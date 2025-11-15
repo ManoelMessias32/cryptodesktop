@@ -2,7 +2,7 @@
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@openzeppelin/contracts": "^5.4.0",
-    "hardhat": "^3.0.14"
+    "hardhat": "^2.19.4"
   },
   "name": "jogo-web3",
   "version": "1.0.0",
