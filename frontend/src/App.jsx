@@ -39,25 +39,25 @@ export default function App() {
   const [route, setRoute] = useState('mine');
   const [address, setAddress] = useState('');
   const [status, setStatus] = useState('Conecte sua carteira para começar.');
-  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem('cryptoDesktopMined_v6')) || 0);
+  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem('cryptoDesktopMined_v7')) || 0);
   const [tokenBdg, setTokenBdg] = useState('0');
   const [slots, setSlots] = useState(() => {
     try {
-      const savedSlots = localStorage.getItem('cryptoDesktopSlots_v6');
+      const savedSlots = localStorage.getItem('cryptoDesktopSlots_v7');
       return savedSlots ? JSON.parse(savedSlots) : initialSlots;
     } catch (e) { return initialSlots; }
   });
-  const [adBoostTime, setAdBoostTime] = useState(() => Number(localStorage.getItem('adBoostTime_v4')) || 0);
-  const [paidBoostTime, setPaidBoostTime] = useState(() => Number(localStorage.getItem('paidBoostTime_v3')) || 0);
+  const [adBoostTime, setAdBoostTime] = useState(() => Number(localStorage.getItem('adBoostTime_v5')) || 0);
+  const [paidBoostTime, setPaidBoostTime] = useState(() => Number(localStorage.getItem('paidBoostTime_v4')) || 0);
   const [adSessionsLeft, setAdSessionsLeft] = useState(3);
-  const [lastAdSessionDate, setLastAdSessionDate] = useState(() => localStorage.getItem('lastAdSessionDate_v4') || '');
+  const [lastAdSessionDate, setLastAdSessionDate] = useState(() => localStorage.getItem('lastAdSessionDate_v5') || '');
 
   const tierPrices = { 1: '0.10', 2: '0.20', 3: '0.30' };
 
-  useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v6', JSON.stringify(slots)); }, [slots]);
-  useEffect(() => { localStorage.setItem('cryptoDesktopMined_v6', coinBdg); }, [coinBdg]);
-  useEffect(() => { localStorage.setItem('adBoostTime_v4', adBoostTime); }, [adBoostTime]);
-  useEffect(() => { localStorage.setItem('paidBoostTime_v3', paidBoostTime); }, [paidBoostTime]);
+  useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v7', JSON.stringify(slots)); }, [slots]);
+  useEffect(() => { localStorage.setItem('cryptoDesktopMined_v7', coinBdg); }, [coinBdg]);
+  useEffect(() => { localStorage.setItem('adBoostTime_v5', adBoostTime); }, [adBoostTime]);
+  useEffect(() => { localStorage.setItem('paidBoostTime_v4', paidBoostTime); }, [paidBoostTime]);
 
   useEffect(() => { /* ... Efeito de reset diário ... */ }, [lastAdSessionDate]);
 
@@ -70,7 +70,7 @@ export default function App() {
             setAddress(accounts[0]);
             setStatus('Carteira reconectada.');
           }
-        } catch (error) {}
+        } catch (error) { console.error("Falha ao reconectar automaticamente."); }
       }
     };
     autoConnect();
@@ -88,15 +88,15 @@ export default function App() {
       if (!slot.filled || slot.isBroken) return slot;
 
       let econKey;
-      if(slot.type === 'free') econKey = 'free';
-      else if(slot.type === 'standard') econKey = slot.tier;
-      else {
-        const specialKey = Object.keys(economyData).find(k => economyData[k].tier === slot.tier && k.length === 1);
-        econKey = specialKey;
+      if (slot.type === 'free') econKey = 'free';
+      else if (slot.type === 'standard') econKey = slot.tier;
+      else if (slot.type === 'special') {
+          econKey = Object.keys(economyData).find(k => economyData[k].tier === slot.tier && k.length === 1);
+      } else {
+          return slot; // Proteção: Se o slot não tem tipo, não faz nada com ele.
       }
-      
-      const slotEcon = economyData[econKey];
 
+      const slotEcon = economyData[econKey];
       if (slotEcon) {
         totalGainPerHour += slotEcon.gain;
         if (!isBoostActive) {
@@ -133,24 +133,86 @@ export default function App() {
       setStatus(`Falha ao conectar: ${e.message}`);
     }
   };
-  
-  const handlePurchase = async (tierToBuy, purchaseType) => { /* ... */ };
-  const addNewSlot = () => { /* ... */ };
+
+  const handlePurchase = async (tierToBuy, purchaseType) => {
+    const emptySlotIndex = slots.findIndex(slot => !slot.filled && !slot.free);
+    if (emptySlotIndex === -1) {
+      setStatus('❌ Você precisa de um gabinete vazio! Compre um na página de Mineração.');
+      return;
+    }
+    try {
+      const { signer } = await connectWallet();
+      const price = tierPrices[tierToBuy];
+      const shopContract = new ethers.Contract(SHOP_ADDRESS, SHOP_ABI, signer);
+      setStatus(`Enviando ${price} BNB... Confirme na MetaMask.`);
+      const value = ethers.utils.parseEther(price);
+      const tx = await shopContract.buyWithBNB(tierToBuy, ethers.constants.AddressZero, { value });
+      await tx.wait();
+      setSlots(prev => prev.map((slot, i) => (i === emptySlotIndex ? { ...slot, filled: true, type: purchaseType, tier: tierToBuy, name: `Gabinete ${emptySlotIndex+1}` } : slot)));
+      setStatus(`✅ Compra realizada! CPU instalada no Gabinete ${emptySlotIndex + 1}.`);
+    } catch (e) {
+      setStatus(`❌ Erro na compra: ${e.message || 'Transação cancelada.'}`);
+    }
+  };
+
+  const addNewSlot = () => {
+    if (slots.length < MAX_SLOTS) {
+      setSlots(prev => [...prev, { name: `Gabinete ${prev.length + 1}`, filled: false, free: false, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS, isBroken: false, type: 'empty', tier: 1 }]);
+    } else {
+      setStatus('Máximo de gabinetes atingido.');
+    }
+  };
 
   const renderPage = () => {
-    // ... (render page logic)
+    const pageProps = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, economyData, REPAIR_TIME };
+    switch (route) {
+      case 'user': return <UserPage address={address} />;
+      case 'shop': return <ShopPage onPurchase={handlePurchase} />;
+      case 'mine': return <MiningPage {...pageProps} />;
+      case 'rank': return <RankingsPage />;
+      default: return <MiningPage {...pageProps} />;
+    }
+  };
+
+  const styles = {
+    appContainer: { fontFamily: 'Arial, sans-serif', background: '#1a1a2e', color: '#e0e0e0', minHeight: '100vh', padding: '16px' },
+    header: { display: 'flex', justifyContent: 'space-around', padding: '12px', background: '#162447', borderRadius: '8px', marginBottom: '16px' },
+    balanceBox: { textAlign: 'center' },
+    balanceLabel: { fontSize: '0.8em', color: '#a0a0a0', margin: 0 },
+    balanceAmount: { fontSize: '1.2em', fontWeight: 'bold', margin: '4px 0 0 0', color: '#fff' },
+    statusBar: { textAlign: 'center', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', marginBottom: '16px', minHeight: '24px' },
+    nav: { position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', background: '#162447', padding: '10px 0' },
+    navButton: { background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', color: '#e0e0e0', fontSize: '0.8em' },
+    connectContainer: { textAlign: 'center', paddingTop: '50px' }
   };
 
   if (!address) {
     return (
-        <div style={{ fontFamily: 'Arial, sans-serif', background: '#1a1a2e', color: '#e0e0e0', minHeight: '100vh', padding: '16px', textAlign: 'center', paddingTop: '50px' }}>
-            <h2>Bem-vindo ao CryptoDesktop</h2>
-            <p>Conecte sua carteira MetaMask para começar a jogar.</p>
-            <button onClick={handleConnect} style={{fontSize: '1.2em', padding: '15px 30px', cursor: 'pointer'}}>Conectar MetaMask</button>
-            <p style={{marginTop: '20px'}}>{status}</p>
+      <div style={styles.appContainer}>
+        <div style={styles.connectContainer}>
+          <h2>Bem-vindo ao CryptoDesktop</h2>
+          <p>Conecte sua carteira MetaMask para começar a jogar.</p>
+          <button onClick={handleConnect} style={{fontSize: '1.2em', padding: '15px 30px', cursor: 'pointer'}}>Conectar MetaMask</button>
+          <p style={{marginTop: '20px'}}>{status}</p>
         </div>
+      </div>
     );
   }
 
-  return ( <div className="App"> {/* ... */} </div> );
+  return (
+    <div style={styles.appContainer}>
+      <header style={styles.header}>
+        <div style={styles.balanceBox}><p style={styles.balanceLabel}>Coin BDG (Jogo)</p><p style={styles.balanceAmount}>{Math.floor(coinBdg)}</p></div>
+        <div style={styles.balanceBox}><p style={styles.balanceLabel}>Token BDG (Carteira)</p><p style={styles.balanceAmount}>{parseFloat(tokenBdg).toFixed(4)}</p></div>
+      </header>
+      <div style={styles.statusBar}>{status}</div>
+      <main style={{ paddingBottom: '80px' }}>{renderPage()}</main>
+      <nav style={styles.nav}>
+        <button onClick={() => setRoute('user')} style={{...styles.navButton, color: route === 'user' ? '#007bff' : '#e0e0e0'}}>Usuário</button>
+        <button onClick={() => setRoute('shop')} style={{...styles.navButton, color: route === 'shop' ? '#007bff' : '#e0e0e0'}}>Loja</button>
+        <button onClick={() => setRoute('mine')} style={{...styles.navButton, color: route === 'mine' ? '#007bff' : '#e0e0e0'}}>Mineração</button>
+        <button onClick={() => setRoute('rank')} style={{...styles.navButton, color: route === 'rank' ? '#007bff' : '#e0e0e0'}}>Ranques</button>
+      </nav>
+    </div>
+  );
 }
