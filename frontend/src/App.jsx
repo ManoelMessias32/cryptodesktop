@@ -26,9 +26,8 @@ export default function App() {
   const [slots, setSlots] = useState(() => {
     try {
       const savedSlots = localStorage.getItem('cryptoDesktopSlots_v4');
-      // Simple validation to ensure slots have the new properties
       const parsed = savedSlots ? JSON.parse(savedSlots) : initialSlots;
-      return parsed.map(s => ({ ...s, energy: s.energy || MAX_ENERGY, timer: s.timer || REPAIR_TIME }));
+      return parsed.map(s => ({ ...s, energy: s.energy || MAX_ENERGY, timer: s.timer || REPAIR_TIME, needsRepair: s.needsRepair || false }));
     } catch (e) { return initialSlots; }
   });
   const [adBoostTime, setAdBoostTime] = useState(() => Number(localStorage.getItem('adBoostTime_v3')) || 0);
@@ -51,11 +50,11 @@ export default function App() {
       if (isAdBoostActive) setAdBoostTime(prev => prev - 1);
       if (isPaidBoostActive) setPaidBoostTime(prev => prev - 1);
 
-      if (isAdBoostActive || isPaidBoostActive) return; // Skip consumption if any boost is active
+      if (isAdBoostActive || isPaidBoostActive) return;
 
       setSlots(currentSlots => 
         currentSlots.map(slot => {
-          if (!slot.filled || slot.energy <= 0) return slot;
+          if (!slot.filled || slot.needsRepair) return slot;
 
           const newTimer = slot.timer > 0 ? slot.timer - 1 : 0;
           const newEnergy = newTimer > 0 ? slot.energy - 1 : slot.energy;
@@ -68,31 +67,27 @@ export default function App() {
 
     return () => clearInterval(gameLoop);
   }, [adBoostTime, paidBoostTime]);
-
+  
   const handleConnect = async () => { /* ... */ };
   const handlePurchase = async (tierToBuy, purchaseType) => { /* ... */ };
 
   const addNewSlot = () => {
     if (slots.length < MAX_SLOTS) {
-      setSlots(prev => [...prev, { name: `Gabinete ${prev.length + 1}`, filled: false, free: false, energy: MAX_ENERGY, timer: REPAIR_TIME }]);
+      setSlots(prev => [...prev, { name: `Gabinete ${prev.length + 1}`, filled: false, free: false, energy: MAX_ENERGY, timer: REPAIR_TIME, needsRepair: false }]);
     } else {
       setStatus('Máximo de gabinetes atingido.');
     }
   };
 
   const renderPage = () => {
-    // Pass all necessary state and functions to MiningPage
-    return <MiningPage 
-      coinBdg={coinBdg} 
-      setCoinBdg={setCoinBdg} 
-      slots={slots} 
-      setSlots={setSlots} 
-      addNewSlot={addNewSlot} 
-      setStatus={setStatus} 
-      adBoostTime={adBoostTime}
-      paidBoostTime={paidBoostTime}
-      setPaidBoostTime={setPaidBoostTime}
-    />;
+    const pageProps = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, adBoostTime, paidBoostTime, setPaidBoostTime, MAX_ENERGY, REPAIR_TIME };
+    switch (route) {
+      case 'user': return <UserPage address={address} />;
+      case 'shop': return <ShopPage onPurchase={handlePurchase} />;
+      case 'mine': return <MiningPage {...pageProps} />;
+      case 'rank': return <RankingsPage />;
+      default: return <MiningPage {...pageProps} />;
+    }
   };
 
   // --- Render ---

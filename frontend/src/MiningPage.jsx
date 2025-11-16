@@ -3,11 +3,12 @@ import React from 'react';
 const ENERGY_REFILL_COST = 20;
 const PAID_BOOST_COST = 80;
 const PAID_BOOST_DURATION = 1800; // 30 minutos
-const MAX_ENERGY = 100;
-
 const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
 
-export default function MiningPage({ coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, adBoostTime, paidBoostTime, setPaidBoostTime }) {
+export default function MiningPage({ 
+  coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, 
+  adBoostTime, paidBoostTime, setPaidBoostTime, MAX_ENERGY, REPAIR_TIME 
+}) {
 
   const doMine = () => setCoinBdg(prev => prev + 1);
 
@@ -40,13 +41,22 @@ export default function MiningPage({ coinBdg, setCoinBdg, slots, setSlots, addNe
     }
   };
 
+  const handleRepairSlot = (idx) => {
+      setSlots(prevSlots => prevSlots.map((slot, i) => {
+          if (i === idx) {
+              return { ...slot, energy: MAX_ENERGY, timer: REPAIR_TIME, needsRepair: false };
+          }
+          return slot;
+      }));
+      setStatus(`✅ Slot ${idx + 1} reparado e pronto para minerar!`);
+  };
+
   return (
     <div>
       <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <button onClick={doMine} style={{ padding: '10px 20px', fontSize: '1em' }}>Simular Mineração</button>
       </div>
 
-      {/* Itens Consumíveis Section */}
       <div style={{ marginTop: 24, padding: 12, border: '1px solid #ffc107', borderRadius: 8, background: '#2a2a3e', maxWidth: 420, margin: '24px auto' }}>
         <h4 style={{ color: '#ffc107', marginBottom: 16, textAlign: 'center' }}>Itens Consumíveis (Coin BDG)</h4>
         <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
@@ -80,30 +90,23 @@ export default function MiningPage({ coinBdg, setCoinBdg, slots, setSlots, addNe
             let title = 'Gabinete Vazio';
 
             if (slot.filled) {
-              if (slot.type === 'free') {
-                imageUrl = '/tier1.png'; 
-                title = 'CPU Grátis';
-              } else if (slot.type === 'standard') {
-                imageUrl = `/tier${slot.tier}.png`;
-                title = `Padrão Tier ${slot.tier}`;
-              } else { // special
-                const specialKey = specialCpuMap[slot.tier];
-                imageUrl = `/special_${specialKey.toLowerCase()}.png`;
-                title = `Especial CPU ${specialKey}`;
-              }
+              if (slot.type === 'free') { imageUrl = '/tier1.png'; title = 'CPU Grátis'; }
+              else if (slot.type === 'standard') { imageUrl = `/tier${slot.tier}.png`; title = `Padrão Tier ${slot.tier}`; }
+              else { const key = specialCpuMap[slot.tier]; imageUrl = `/special_${key.toLowerCase()}.png`; title = `Especial CPU ${key}`; }
             }
 
             return (
-              <div key={idx} style={{ border: '2px dashed #aaa', borderRadius: 8, padding: '12px', width: 220, height: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#162447' }}>
-                <div style={{ fontWeight: 'bold', marginBottom: 8, height: '20px' }}>{slot.name}</div>
+              <div key={idx} style={{ border: '2px dashed #aaa', borderRadius: 8, padding: '12px', width: 220, height: 280, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', background: '#162447' }}>
+                <div style={{ fontWeight: 'bold', height: '20px' }}>{slot.name}</div>
                 {slot.filled ? (
                   <div style={{ textAlign: 'center' }}>
                     <img src={imageUrl} alt={title} style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
-                    <p style={{ margin: '8px 0 0 0', fontWeight: 'bold' }}>{title}</p>
-                    <div style={{width: '90%', height: 18, background: '#1a1a2e', borderRadius: 8, marginTop: 8}}>
-                       <div style={{ width: `${slot.energy || 0}%`, height: '100%', background: '#4CAF50', borderRadius: 8 }}></div>
+                    <p style={{ margin: '8px 0', fontWeight: 'bold' }}>{title}</p>
+                    <div style={{width: '90%', height: 18, background: '#1a1a2e', borderRadius: 8}}>
+                       <div style={{ width: `${slot.energy || 0}%`, height: '100%', background: slot.energy > 30 ? '#4CAF50' : '#f44336', borderRadius: 8 }}></div>
                     </div>
-                    <p style={{fontSize: '0.8em'}}>Energia: {slot.energy || 0}%</p>
+                    <p style={{fontSize: '0.8em'}}>Energia: {slot.energy || 0}% | Reparo em: {slot.timer}s</p>
+                    {slot.needsRepair && <button onClick={() => handleRepairSlot(idx)} style={{marginTop: '8px', background:'#f44336', color:'white'}}>Reparar</button>}
                   </div>
                 ) : slot.free ? (
                   <button style={{ fontSize: '1em', padding: '10px' }} onClick={() => handleMountFree(idx)}>Montar CPU Grátis</button>
