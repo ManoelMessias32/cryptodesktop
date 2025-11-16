@@ -96,7 +96,7 @@ export default function MiningPage({
 
   return (
     <div>
-      {/* ... O resto do JSX continua o mesmo ... */}
+      {/* O JSX renderiza aqui... */}
     </div>
   );
 }
