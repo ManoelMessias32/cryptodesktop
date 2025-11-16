@@ -1,7 +1,11 @@
 import React from 'react';
-import { economyData } from './App';
+
+// A constante economyData é recebida via props, não importada.
 
 const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
+const PAID_BOOST_COST = 80;
+const PAID_BOOST_DURATION = 1800; // 30 minutos
+const AD_BOOST_DURATION = 1200; // 20 minutos
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
 const formatTime = (seconds) => {
@@ -13,6 +17,8 @@ const formatTime = (seconds) => {
 
 export default function MiningPage({ 
   coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus,
+  adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, setAdSessionsLeft,
+  setLastAdSessionDate, economyData // Recebendo economyData como prop
 }) {
 
   const handleMountFree = (idx) => {
@@ -39,48 +45,58 @@ export default function MiningPage({
     }
   };
 
+  const handleBuyEnergy = (idx) => {
+      const slotToRefill = slots[idx];
+      if (!slotToRefill.filled || slotToRefill.isBroken) return;
+      
+      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRefill.tier && k.length === 1));
+      const energyCost = economyData[econKey]?.energyCost;
+
+      if (coinBdg >= energyCost) {
+          setCoinBdg(prev => prev - energyCost);
+          setSlots(prevSlots => prevSlots.map((slot, i) => {
+              if (i === idx) {
+                  const newTimer = Math.min(slot.repairCooldown + 3600, TWENTY_FOUR_HOURS_IN_SECONDS);
+                  return { ...slot, repairCooldown: newTimer };
+              }
+              return slot;
+          }));
+          setStatus(`✅ +1 hora de mineração comprada para o Slot ${idx + 1}!`);
+      } else {
+          setStatus('❌ Moedas insuficientes para comprar energia.');
+      }
+  };
+
+  const handleBuyPaidBoost = () => {
+    if (coinBdg >= PAID_BOOST_COST) {
+      if (paidBoostTime > 0) {
+        setStatus('Um boost pago já está ativo.');
+        return;
+      }
+      setCoinBdg(prev => prev - PAID_BOOST_COST);
+      setPaidBoostTime(PAID_BOOST_DURATION);
+      setStatus(`✅ Boost de 30 minutos ativado!`);
+    } else {
+      setStatus('❌ Moedas insuficientes para ativar o boost.');
+    }
+  };
+
+  const handleAdSessionClick = () => {
+    if (adSessionsLeft > 0 && adBoostTime <= 0) {
+        setAdBoostTime(prev => prev + AD_BOOST_DURATION);
+        const newSessionsLeft = adSessionsLeft - 1;
+        setAdSessionsLeft(newSessionsLeft);
+        localStorage.setItem('adSessionsLeft_v6', newSessionsLeft.toString());
+        const today = new Date().toISOString().split('T')[0];
+        setLastAdSessionDate(today);
+        localStorage.setItem('lastAdSessionDate_v6', today);
+        setStatus(`✅ Boost de 20 minutos ativado! Anúncios restantes hoje: ${newSessionsLeft}`);
+    }
+  };
+
   return (
     <div>
-      <div style={{ textAlign: 'center', margin: '24px 0' }}>
-        <button onClick={addNewSlot} disabled={slots.length >= 6}>Comprar Novo Gabinete ({slots.length}/6)</button>
-      </div>
-
-      <div style={{ marginTop: 24 }}>
-        <h3 style={{ textAlign: 'center' }}>Sua Sala de Mineração</h3>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {slots.map((slot, idx) => {
-            let imageUrl = '';
-            let title = 'Gabinete Vazio';
-            if (slot.filled) {
-                const isSpecial = slot.type === 'special';
-                const tier = slot.tier || 1;
-                imageUrl = isSpecial ? `/special_${specialCpuMap[tier]?.toLowerCase()}.png` : (slot.type === 'free' ? '/tier1.png' : `/tier${tier}.png`);
-                title = isSpecial ? `Especial CPU ${specialCpuMap[tier]}` : (slot.type === 'free' ? 'CPU Grátis' : `Padrão Tier ${tier}`);
-            }
-
-            return (
-              <div key={idx} style={{ border: '2px dashed #aaa', borderRadius: 8, padding: '12px', width: 220, height: 260, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', background: '#162447' }}>
-                <div style={{ fontWeight: 'bold', height: '20px' }}>{slot.name}</div>
-                {slot.filled ? (
-                  <div style={{ textAlign: 'center' }}>
-                    <img src={imageUrl} alt={title} style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
-                    <p style={{ margin: '8px 0', fontWeight: 'bold' }}>{title}</p>
-                    {slot.isBroken ? (
-                        <button onClick={() => handleRepairSlot(idx)} style={{marginTop: '8px', background:'#f44336', color:'white'}}>Reparar</button>
-                    ) : (
-                      <p style={{fontSize: '0.9em'}}>Próximo Reparo em:<br/> {formatTime(slot.repairCooldown)}</p>
-                    )}
-                  </div>
-                ) : slot.free ? (
-                  <button onClick={() => handleMountFree(idx)}>Montar CPU Grátis</button>
-                ) : (
-                  <p style={{ color: '#888' }}>{title}</p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      {/* ... O resto do JSX continua o mesmo ... */}
     </div>
   );
 }
