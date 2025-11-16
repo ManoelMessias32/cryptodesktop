@@ -14,15 +14,12 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/claim",
-      "dest": "/api/claim.js"
-    },
+    { "src": "/api/claim", "dest": "/api/claim.js" },
     {
       "handle": "filesystem"
     },
     {
-      "src": "/(.*)",
+      "src": "/.*",
       "dest": "/index.html"
     }
   ]
