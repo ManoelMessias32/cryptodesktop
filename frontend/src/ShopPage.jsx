@@ -28,43 +28,39 @@ export default function ShopPage({ onPurchase }) {
   return (
     <div style={styles.shopContainer}>
       <h1>Loja</h1>
-      <p>Compre uma CPU para instalar em um gabinete vazio.</p>
+      <p>Compre uma CPU para instalar em um gabinete vazio na sua Sala de Mineração.</p>
       
       <h2 style={styles.sectionTitle}>CPUs Especiais</h2>
       <div style={styles.cardContainer}>
-        {Object.keys(specialCpuData).map(key => {
-            const item = specialCpuData[key];
-            return (
-              <div key={key} style={styles.card}>
-                <div>
-                  <img src={item.image} alt={item.name} style={styles.cardImage} />
-                  <h3 style={styles.cardTitle}>{item.name}</h3>
-                  <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
-                  <p style={styles.cardText}><strong>Ganho Mensal:</strong> {item.gain} BDG</p>
-                </div>
-                <button onClick={() => onPurchase(item.tier, item.type)} style={styles.buyButton}>Comprar</button>
-              </div>
-            )
-        })}
+        {Object.values(specialCpuData).map(item => (
+          <div key={item.name} style={styles.card}>
+            <div>
+              <img src={item.image} alt={item.name} style={styles.cardImage} />
+              <h3 style={styles.cardTitle}>{item.name}</h3>
+              <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
+              <p style={styles.cardText}><strong>Ganho Mensal:</strong> {item.gain} BDG</p>
+            </div>
+            <button onClick={() => onPurchase(item.tier, item.type)} style={styles.buyButton}>Comprar</button>
+          </div>
+        ))}
       </div>
 
       <h2 style={styles.sectionTitle}>Componentes Padrão</h2>
       <div style={styles.cardContainer}>
         {Object.keys(standardCpuData).map(key => {
-            const item = standardCpuData[key];
-            return(
-              <div key={key} style={styles.card}>
-                <div>
-                  <img src={item.image} alt={item.name} style={styles.cardImage} />
-                  <h3 style={styles.cardTitle}>{item.name}</h3>
-                  <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
-                </div>
-                <button onClick={() => onPurchase(Number(key), item.type)} style={styles.buyButton}>Comprar</button>
+          const item = standardCpuData[key];
+          return (
+            <div key={item.name} style={styles.card}>
+              <div>
+                <img src={item.image} alt={item.name} style={styles.cardImage} />
+                <h3 style={styles.cardTitle}>{item.name}</h3>
+                <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
               </div>
-            )
+              <button onClick={() => onPurchase(Number(key), item.type)} style={styles.buyButton}>Comprar</button>
+            </div>
+          )
         })}
       </div>
-
     </div>
   );
 }
