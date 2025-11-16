@@ -1,10 +1,7 @@
 import React from 'react';
-import { economyData } from './App'; // Importa a tabela de economia
+import { economyData } from './App';
 
 const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
-const PAID_BOOST_COST = 80;
-const PAID_BOOST_DURATION = 1800; // 30 minutos
-const AD_BOOST_DURATION = 1200; // 20 minutos
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
 const formatTime = (seconds) => {
@@ -16,8 +13,6 @@ const formatTime = (seconds) => {
 
 export default function MiningPage({ 
   coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus,
-  adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, setAdSessionsLeft,
-  setLastAdSessionDate
 }) {
 
   const handleMountFree = (idx) => {
@@ -44,75 +39,8 @@ export default function MiningPage({
     }
   };
 
-  const handleBuyEnergy = (idx) => {
-      const slotToRefill = slots[idx];
-      if (!slotToRefill.filled || slotToRefill.isBroken) return;
-      
-      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRefill.tier && k.length === 1));
-      const energyCost = economyData[econKey]?.energyCost;
-
-      if (coinBdg >= energyCost) {
-          setCoinBdg(prev => prev - energyCost);
-          setSlots(prevSlots => prevSlots.map((slot, i) => {
-              if (i === idx) {
-                  const newTimer = Math.min(slot.repairCooldown + 3600, TWENTY_FOUR_HOURS_IN_SECONDS);
-                  return { ...slot, repairCooldown: newTimer };
-              }
-              return slot;
-          }));
-          setStatus(`✅ +1 hora de mineração comprada para o Slot ${idx + 1}!`);
-      } else {
-          setStatus('❌ Moedas insuficientes para comprar energia.');
-      }
-  };
-
-  const handleBuyPaidBoost = () => {
-    if (coinBdg >= PAID_BOOST_COST) {
-      if (paidBoostTime > 0) {
-        setStatus('Um boost pago já está ativo.');
-        return;
-      }
-      setCoinBdg(prev => prev - PAID_BOOST_COST);
-      setPaidBoostTime(PAID_BOOST_DURATION);
-      setStatus(`✅ Boost de 30 minutos ativado!`);
-    } else {
-      setStatus('❌ Moedas insuficientes para ativar o boost.');
-    }
-  };
-
-  const handleAdSessionClick = () => {
-    if (adSessionsLeft > 0 && adBoostTime <= 0) {
-        setAdBoostTime(prev => prev + AD_BOOST_DURATION);
-        const newSessionsLeft = adSessionsLeft - 1;
-        setAdSessionsLeft(newSessionsLeft);
-        localStorage.setItem('adSessionsLeft_v6', newSessionsLeft.toString());
-        const today = new Date().toISOString().split('T')[0];
-        setLastAdSessionDate(today);
-        localStorage.setItem('lastAdSessionDate_v6', today);
-        setStatus(`✅ Boost de 20 minutos ativado! Anúncios restantes hoje: ${newSessionsLeft}`);
-    }
-  };
-
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginTop: 24, padding: 12, border: '1px solid #007bff', borderRadius: 8, background: '#2a2a3e', maxWidth: 600, margin: '24px auto' }}>
-        <div>
-            <h4>Boost de Anúncio</h4>
-            <button onClick={handleAdSessionClick} disabled={adSessionsLeft <= 0 || adBoostTime > 0}>Usar Anúncio (+20 min)</button>
-            <p style={{textAlign: 'center'}}>{adSessionsLeft}/3 restantes</p>
-        </div>
-        <div>
-            <h4>Boost Pago</h4>
-            <button onClick={handleBuyPaidBoost} disabled={coinBdg < PAID_BOOST_COST || paidBoostTime > 0}>Ativar (+30 min)</button>
-            <p style={{textAlign: 'center'}}>Custo: {PAID_BOOST_COST} Coin BDG</p>
-        </div>
-      </div>
-
-       <div style={{textAlign: 'center', marginTop: '12px', minHeight: '40px'}}>
-        {adBoostTime > 0 && <p>Boost de Anúncio: {formatTime(adBoostTime)}</p>}
-        {paidBoostTime > 0 && <p>Boost Pago: {formatTime(paidBoostTime)}</p>}
-      </div>
-
       <div style={{ textAlign: 'center', margin: '24px 0' }}>
         <button onClick={addNewSlot} disabled={slots.length >= 6}>Comprar Novo Gabinete ({slots.length}/6)</button>
       </div>
@@ -124,13 +52,14 @@ export default function MiningPage({
             let imageUrl = '';
             let title = 'Gabinete Vazio';
             if (slot.filled) {
-              const econKey = slot.type === 'free' ? 'free' : (slot.type === 'standard' ? slot.tier : Object.keys(specialCpuMap).find(k => specialCpuMap[k] === slot.tier));
-              imageUrl = slot.type === 'free' ? '/tier1.png' : (slot.type === 'standard' ? `/tier${slot.tier}.png` : `/special_${specialCpuMap[slot.tier]?.toLowerCase()}.png`);
-              title = slot.type === 'free' ? 'CPU Grátis' : (slot.type === 'standard' ? `Padrão Tier ${slot.tier}` : `Especial CPU ${specialCpuMap[slot.tier]}`);
+                const isSpecial = slot.type === 'special';
+                const tier = slot.tier || 1;
+                imageUrl = isSpecial ? `/special_${specialCpuMap[tier]?.toLowerCase()}.png` : (slot.type === 'free' ? '/tier1.png' : `/tier${tier}.png`);
+                title = isSpecial ? `Especial CPU ${specialCpuMap[tier]}` : (slot.type === 'free' ? 'CPU Grátis' : `Padrão Tier ${tier}`);
             }
 
             return (
-              <div key={idx} style={{ border: '2px dashed #aaa', borderRadius: 8, padding: '12px', width: 220, height: 280, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', background: '#162447' }}>
+              <div key={idx} style={{ border: '2px dashed #aaa', borderRadius: 8, padding: '12px', width: 220, height: 260, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', background: '#162447' }}>
                 <div style={{ fontWeight: 'bold', height: '20px' }}>{slot.name}</div>
                 {slot.filled ? (
                   <div style={{ textAlign: 'center' }}>
@@ -139,10 +68,7 @@ export default function MiningPage({
                     {slot.isBroken ? (
                         <button onClick={() => handleRepairSlot(idx)} style={{marginTop: '8px', background:'#f44336', color:'white'}}>Reparar</button>
                     ) : (
-                      <div>
-                        <p style={{fontSize: '0.9em'}}>Tempo Restante: {formatTime(slot.repairCooldown)}</p>
-                        <button onClick={() => handleBuyEnergy(idx)}>+1h de Energia</button>
-                      </div>
+                      <p style={{fontSize: '0.9em'}}>Próximo Reparo em:<br/> {formatTime(slot.repairCooldown)}</p>
                     )}
                   </div>
                 ) : slot.free ? (
