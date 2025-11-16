@@ -2,27 +2,34 @@ import React from 'react';
 
 export default function ShopPage() {
 
+  const standardCpuData = {
+    1: { price: '0.10', image: '/tier1.png' },
+    2: { price: '0.20', image: '/tier2.png' },
+    3: { price: '0.30', image: '/tier3.png' },
+  };
+
   const specialCpuData = {
-    A: { price: '0.10', gain: '1.300', image: '/special_a.png', energy: '3 horas', cost: '20.000', maintenance: '30.000', limit: 1 },
-    B: { price: '0.20', gain: '1.500', image: '/special_b.png', energy: '4 horas', cost: '30.000', maintenance: '40.000', limit: 2 },
-    C: { price: '0.30', gain: '1.800', image: '/special_c.png', energy: '5 horas', cost: '40.000', maintenance: '50.000', limit: 2 },
+    A: { price: '0.10', gain: '1.300', image: '/special_a.png' },
+    B: { price: '0.20', gain: '1.500', image: '/special_b.png' },
+    C: { price: '0.30', gain: '1.800', image: '/special_c.png' },
   };
 
   const styles = {
     shopContainer: { textAlign: 'center' },
-    cardContainer: { display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center', marginTop: '24px' },
+    sectionTitle: { color: '#fff', borderBottom: '2px solid #1f4068', paddingBottom: '10px', marginBottom: '20px' },
+    cardContainer: { display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center', marginBottom: '40px' },
     card: {
       background: '#162447',
       padding: '16px',
       borderRadius: '8px',
       boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
-      width: '220px',
+      width: '200px',
       textAlign: 'center',
       border: '1px solid #1f4068'
     },
     cardImage: { 
-      width: '120px', 
-      height: '120px', 
+      width: '100px', 
+      height: '100px', 
       objectFit: 'contain',
       marginBottom: '12px',
       background: 'rgba(255,255,255,0.1)',
@@ -34,9 +41,11 @@ export default function ShopPage() {
 
   return (
     <div style={styles.shopContainer}>
-      <h2>Loja de CPUs Especiais</h2>
-      <p>Confira os itens especiais disponíveis. As compras são feitas na página de Mineração.</p>
+      <h1>Loja</h1>
+      <p>Confira os itens disponíveis. As compras são feitas na página de Mineração.</p>
       
+      {/* Seção de CPUs Especiais */}
+      <h2 style={styles.sectionTitle}>CPUs Especiais</h2>
       <div style={styles.cardContainer}>
         {Object.keys(specialCpuData).map(key => (
           <div key={key} style={styles.card}>
@@ -44,11 +53,22 @@ export default function ShopPage() {
             <h3 style={styles.cardTitle}>CPU {key}</h3>
             <p style={styles.cardText}><strong>Preço:</strong> {specialCpuData[key].price} BNB</p>
             <p style={styles.cardText}><strong>Ganho Mensal:</strong> {specialCpuData[key].gain} BDG</p>
-            <p style={styles.cardText}><strong>Carga de Energia:</strong> {specialCpuData[key].energy}</p>
-            <p style={styles.cardText}><strong>Limite por Jogador:</strong> {specialCpuData[key].limit}</p>
           </div>
         ))}
       </div>
+
+      {/* Seção de Componentes Padrão */}
+      <h2 style={styles.sectionTitle}>Componentes Padrão</h2>
+      <div style={styles.cardContainer}>
+        {Object.keys(standardCpuData).map(key => (
+          <div key={key} style={styles.card}>
+            <img src={standardCpuData[key].image} alt={`Tier ${key}`} style={styles.cardImage} />
+            <h3 style={styles.cardTitle}>Tier {key}</h3>
+            <p style={styles.cardText}><strong>Preço:</strong> {standardCpuData[key].price} BNB</p>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }
