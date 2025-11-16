@@ -172,8 +172,8 @@ export default function MiningPage({ setCoinBdg }) {
                   </>
                 )}
               </div>
-            )
-          }}
+            );
+          })}
         </div>
       </div>
     </div>
