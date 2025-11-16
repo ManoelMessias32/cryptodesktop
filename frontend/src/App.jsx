@@ -21,6 +21,7 @@ export default function App() {
 
   // Função para buscar o saldo do token BDG
   const fetchTokenBalance = async (userAddress) => {
+    if (!userAddress) return;
     try {
       const { provider } = await connectWallet();
       const tokenContract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, provider);
@@ -74,21 +75,20 @@ export default function App() {
     }
   };
 
-  // Estilos da nova interface
   const styles = {
-    appContainer: { fontFamily: 'Arial, sans-serif', padding: '16px', background: '#f0f2f5', minHeight: '100vh' },
+    appContainer: { fontFamily: 'Arial, sans-serif', background: '#1a1a2e', color: '#e0e0e0', minHeight: '100vh', padding: '16px' },
     header: {
       display: 'flex', 
       justifyContent: 'space-around', 
       padding: '12px', 
-      background: 'white', 
+      background: '#162447',
       borderRadius: '8px',
       marginBottom: '16px',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
     },
     balanceBox: { textAlign: 'center' },
-    balanceLabel: { fontSize: '0.8em', color: '#666', margin: 0 },
-    balanceAmount: { fontSize: '1.2em', fontWeight: 'bold', margin: '4px 0 0 0' },
+    balanceLabel: { fontSize: '0.8em', color: '#a0a0a0', margin: 0 },
+    balanceAmount: { fontSize: '1.2em', fontWeight: 'bold', margin: '4px 0 0 0', color: '#fff' },
     nav: {
       position: 'fixed',
       bottom: 0,
@@ -96,28 +96,26 @@ export default function App() {
       right: 0,
       display: 'flex',
       justifyContent: 'space-around',
-      background: 'white',
+      background: '#162447',
       padding: '10px 0',
-      boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
-      borderTop: '1px solid #eee'
+      boxShadow: '0 -2px 5px rgba(0,0,0,0.3)'
     },
     navButton: {
       background: 'none',
       border: 'none',
       cursor: 'pointer',
       textAlign: 'center',
-      color: '#333',
+      color: '#e0e0e0',
       fontSize: '0.8em'
     },
     navButtonActive: {
-      color: '#007bff', // Cor de destaque para o botão ativo
+      color: '#1f4068', // Cor de destaque para o botão ativo
       fontWeight: 'bold'
     }
   };
 
   return (
     <div style={styles.appContainer}>
-      {/* Novo Cabeçalho com os dois saldos */}
       <header style={styles.header}>
         <div style={styles.balanceBox}>
           <p style={styles.balanceLabel}>Coin BDG (Jogo)</p>
@@ -129,12 +127,10 @@ export default function App() {
         </div>
       </header>
 
-      {/* Conteúdo da Página */}
       <main style={{ paddingBottom: '80px' }}>
         {renderPage()}
       </main>
 
-      {/* Nova Barra de Navegação */}
       <nav style={styles.nav}>
         <button onClick={() => setRoute('user')} style={{...styles.navButton, ...(route === 'user' && styles.navButtonActive)}}>Usuário</button>
         <button onClick={() => setRoute('shop')} style={{...styles.navButton, ...(route === 'shop' && styles.navButtonActive)}}>Loja</button>
