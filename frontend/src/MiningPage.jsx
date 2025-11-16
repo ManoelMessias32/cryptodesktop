@@ -16,12 +16,12 @@ const formatTime = (seconds) => {
 
 export default function MiningPage({ 
   coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus,
-  adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, lastAdSessionDate,
-  setAdSessionsLeft, setLastAdSessionDate, REPAIR_TIME
+  adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, setAdSessionsLeft,
+  setLastAdSessionDate
 }) {
 
   const handleMountFree = (idx) => {
-    setSlots(prev => prev.map((s, i) => (i === idx ? { ...s, filled: true } : s)));
+    setSlots(prev => prev.map((s, i) => (i === idx ? { ...s, filled: true, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS } : s)));
     setStatus('✅ CPU Grátis montado e pronto para minerar!');
   };
 
@@ -85,10 +85,10 @@ export default function MiningPage({
         setAdBoostTime(prev => prev + AD_BOOST_DURATION);
         const newSessionsLeft = adSessionsLeft - 1;
         setAdSessionsLeft(newSessionsLeft);
-        localStorage.setItem('adSessionsLeft_v3', newSessionsLeft.toString());
+        localStorage.setItem('adSessionsLeft_v6', newSessionsLeft.toString());
         const today = new Date().toISOString().split('T')[0];
         setLastAdSessionDate(today);
-        localStorage.setItem('lastAdSessionDate_v4', today);
+        localStorage.setItem('lastAdSessionDate_v6', today);
         setStatus(`✅ Boost de 20 minutos ativado! Anúncios restantes hoje: ${newSessionsLeft}`);
     }
   };
@@ -125,7 +125,7 @@ export default function MiningPage({
             let title = 'Gabinete Vazio';
             if (slot.filled) {
               const econKey = slot.type === 'free' ? 'free' : (slot.type === 'standard' ? slot.tier : Object.keys(specialCpuMap).find(k => specialCpuMap[k] === slot.tier));
-              imageUrl = slot.type === 'free' ? '/tier1.png' : (slot.type === 'standard' ? `/tier${slot.tier}.png` : `/special_${specialCpuMap[slot.tier].toLowerCase()}.png`);
+              imageUrl = slot.type === 'free' ? '/tier1.png' : (slot.type === 'standard' ? `/tier${slot.tier}.png` : `/special_${specialCpuMap[slot.tier]?.toLowerCase()}.png`);
               title = slot.type === 'free' ? 'CPU Grátis' : (slot.type === 'standard' ? `Padrão Tier ${slot.tier}` : `Especial CPU ${specialCpuMap[slot.tier]}`);
             }
 

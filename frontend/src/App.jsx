@@ -14,15 +14,6 @@ const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
 const MAX_SLOTS = 6;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
-const initialSlots = [{
-  name: 'CPU 1 (Grátis)',
-  filled: false,
-  free: true,
-  type: 'free',
-  repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS,
-  isBroken: false
-}];
-
 export const economyData = {
   free: { tier: 0, gain: 12000, energyCost: 10000, coolerCost: 1250, repairCost: 30000 },
   1: { tier: 1, gain: 16000, energyCost: 12000, coolerCost: 1667, repairCost: 50000 },
@@ -35,31 +26,52 @@ export const economyData = {
 
 const getTodayString = () => new Date().toISOString().split('T')[0];
 
+const initialSlots = [{
+  name: 'CPU 1 (Grátis)',
+  filled: false,
+  free: true,
+  type: 'free',
+  repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS,
+  isBroken: false
+}];
+
 export default function App() {
   const [route, setRoute] = useState('mine');
   const [address, setAddress] = useState('');
   const [status, setStatus] = useState('Conecte sua carteira para começar.');
-  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem('cryptoDesktopMined_v7')) || 0);
+  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem('cryptoDesktopMined_v8')) || 0);
   const [tokenBdg, setTokenBdg] = useState('0');
   const [slots, setSlots] = useState(() => {
     try {
-      const savedSlots = localStorage.getItem('cryptoDesktopSlots_v7');
+      const savedSlots = localStorage.getItem('cryptoDesktopSlots_v8');
       return savedSlots ? JSON.parse(savedSlots) : initialSlots;
     } catch (e) { return initialSlots; }
   });
-  const [adBoostTime, setAdBoostTime] = useState(() => Number(localStorage.getItem('adBoostTime_v5')) || 0);
-  const [paidBoostTime, setPaidBoostTime] = useState(() => Number(localStorage.getItem('paidBoostTime_v4')) || 0);
+  const [adBoostTime, setAdBoostTime] = useState(() => Number(localStorage.getItem('adBoostTime_v6')) || 0);
+  const [paidBoostTime, setPaidBoostTime] = useState(() => Number(localStorage.getItem('paidBoostTime_v5')) || 0);
   const [adSessionsLeft, setAdSessionsLeft] = useState(3);
-  const [lastAdSessionDate, setLastAdSessionDate] = useState(() => localStorage.getItem('lastAdSessionDate_v5') || '');
+  const [lastAdSessionDate, setLastAdSessionDate] = useState(() => localStorage.getItem('lastAdSessionDate_v6') || '');
 
   const tierPrices = { 1: '0.10', 2: '0.20', 3: '0.30' };
 
-  useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v7', JSON.stringify(slots)); }, [slots]);
-  useEffect(() => { localStorage.setItem('cryptoDesktopMined_v7', coinBdg); }, [coinBdg]);
-  useEffect(() => { localStorage.setItem('adBoostTime_v5', adBoostTime); }, [adBoostTime]);
-  useEffect(() => { localStorage.setItem('paidBoostTime_v4', paidBoostTime); }, [paidBoostTime]);
+  useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v8', JSON.stringify(slots)); }, [slots]);
+  useEffect(() => { localStorage.setItem('cryptoDesktopMined_v8', coinBdg); }, [coinBdg]);
+  useEffect(() => { localStorage.setItem('adBoostTime_v6', adBoostTime); }, [adBoostTime]);
+  useEffect(() => { localStorage.setItem('paidBoostTime_v5', paidBoostTime); }, [paidBoostTime]);
 
-  useEffect(() => { /* ... Efeito de reset diário ... */ }, [lastAdSessionDate]);
+  useEffect(() => {
+    const today = getTodayString();
+    if (lastAdSessionDate !== today) {
+      const newSessions = 3;
+      setAdSessionsLeft(newSessions);
+      localStorage.setItem('adSessionsLeft_v6', newSessions.toString());
+      setLastAdSessionDate(today);
+      localStorage.setItem('lastAdSessionDate_v6', today);
+    } else {
+      const savedSessions = localStorage.getItem('adSessionsLeft_v6');
+      if (savedSessions !== null) setAdSessionsLeft(Number(savedSessions));
+    }
+  }, [lastAdSessionDate]);
 
   useEffect(() => {
     const autoConnect = async () => {
@@ -87,16 +99,9 @@ export default function App() {
     const newSlots = slots.map(slot => {
       if (!slot.filled || slot.isBroken) return slot;
 
-      let econKey;
-      if (slot.type === 'free') econKey = 'free';
-      else if (slot.type === 'standard') econKey = slot.tier;
-      else if (slot.type === 'special') {
-          econKey = Object.keys(economyData).find(k => economyData[k].tier === slot.tier && k.length === 1);
-      } else {
-          return slot; // Proteção: Se o slot não tem tipo, não faz nada com ele.
-      }
-
+      const econKey = slot.type === 'free' ? 'free' : (slot.type === 'standard' ? slot.tier : Object.keys(economyData).find(k => economyData[k].tier === slot.tier && k.length === 1));
       const slotEcon = economyData[econKey];
+      
       if (slotEcon) {
         totalGainPerHour += slotEcon.gain;
         if (!isBoostActive) {
@@ -116,7 +121,7 @@ export default function App() {
     if (netChangePerSecond !== 0) {
       setCoinBdg(prevCoins => Math.max(0, prevCoins + netChangePerSecond));
     }
-  }, [adBoostTime, paidBoostTime, slots]);
+  }, [slots, adBoostTime, paidBoostTime]);
 
   useEffect(() => {
     if (!address) return;
@@ -148,7 +153,7 @@ export default function App() {
       const value = ethers.utils.parseEther(price);
       const tx = await shopContract.buyWithBNB(tierToBuy, ethers.constants.AddressZero, { value });
       await tx.wait();
-      setSlots(prev => prev.map((slot, i) => (i === emptySlotIndex ? { ...slot, filled: true, type: purchaseType, tier: tierToBuy, name: `Gabinete ${emptySlotIndex+1}` } : slot)));
+      setSlots(prev => prev.map((slot, i) => (i === emptySlotIndex ? { ...slot, filled: true, type: purchaseType, tier: tierToBuy, name: `Gabinete ${emptySlotIndex+1}`, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS, isBroken: false } : slot)));
       setStatus(`✅ Compra realizada! CPU instalada no Gabinete ${emptySlotIndex + 1}.`);
     } catch (e) {
       setStatus(`❌ Erro na compra: ${e.message || 'Transação cancelada.'}`);
@@ -157,14 +162,14 @@ export default function App() {
 
   const addNewSlot = () => {
     if (slots.length < MAX_SLOTS) {
-      setSlots(prev => [...prev, { name: `Gabinete ${prev.length + 1}`, filled: false, free: false, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS, isBroken: false, type: 'empty', tier: 1 }]);
+      setSlots(prev => [...prev, { name: `Gabinete ${prev.length + 1}`, filled: false, free: false, repairCooldown: 0, isBroken: true, type: 'empty' }]);
     } else {
       setStatus('Máximo de gabinetes atingido.');
     }
   };
 
   const renderPage = () => {
-    const pageProps = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, economyData, REPAIR_TIME };
+    const pageProps = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, setAdSessionsLeft, economyData };
     switch (route) {
       case 'user': return <UserPage address={address} />;
       case 'shop': return <ShopPage onPurchase={handlePurchase} />;
