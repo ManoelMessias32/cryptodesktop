@@ -12,24 +12,17 @@ const TOKEN_ABI = ['function balanceOf(address owner) view returns (uint256)', '
 const SHOP_ADDRESS = '0x35878269EF4051Df5f82593b4819E518bA8903A3';
 const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
 const MAX_SLOTS = 6;
+const MAX_ENERGY = 100;
+const REPAIR_TIME = 300; // 5 minutos
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
+const initialSlots = [{ name: 'CPU 1 (Grátis)', filled: false, free: true, type: 'free', repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS, isBroken: false }];
 
-const initialSlots = [{
-  name: 'CPU 1 (Grátis)',
-  filled: false,
-  free: true,
-  type: 'free',
-  repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS,
-  isBroken: false
-}];
-
-// Nova tabela de economia
 const economyData = {
   free: { tier: 0, gain: 12000, energyCost: 10000, coolerCost: 1250, repairCost: 30000 },
   1: { tier: 1, gain: 16000, energyCost: 12000, coolerCost: 1667, repairCost: 50000 },
   2: { tier: 2, gain: 21000, energyCost: 15000, coolerCost: 2083, repairCost: 80000 },
   3: { tier: 3, gain: 26000, energyCost: 18000, coolerCost: 2083, repairCost: 120000 },
-  A: { tier: 1, repairCost: 150000 }, // Ganho e custo/h ainda indefinidos
+  A: { tier: 1, repairCost: 150000 },
   B: { tier: 2, repairCost: 200000 },
   C: { tier: 3, repairCost: 250000 },
 };
@@ -55,7 +48,27 @@ export default function App() {
   // --- Effects ---
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v5', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v5', coinBdg); }, [coinBdg]);
-  // ... (outros effects)
+  useEffect(() => { localStorage.setItem('adBoostTime_v3', adBoostTime); }, [adBoostTime]);
+  useEffect(() => { localStorage.setItem('paidBoostTime_v2', paidBoostTime); }, [paidBoostTime]);
+
+  // Auto-reconnect wallet on page load
+  useEffect(() => {
+    const autoConnect = async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            setAddress(accounts[0]);
+            setStatus('Carteira reconectada.');
+            // fetch balances if needed
+          }
+        } catch (error) {
+          console.error("Falha ao reconectar automaticamente.");
+        }
+      }
+    };
+    autoConnect();
+  }, []);
 
   // Main Game Loop
   useEffect(() => {
@@ -63,41 +76,53 @@ export default function App() {
       let totalGainPerHour = 0;
       let totalCostPerHour = 0;
 
+      const isAdBoostActive = adBoostTime > 0;
+      const isPaidBoostActive = paidBoostTime > 0;
+
+      if (isAdBoostActive) setAdBoostTime(prev => prev - 1);
+      if (isPaidBoostActive) setPaidBoostTime(prev => prev - 1);
+
       const newSlots = slots.map(slot => {
         if (!slot.filled || slot.isBroken) return slot;
 
-        // Determina os dados econômicos para o slot
         let slotEcon = economyData[slot.tier] || economyData.free;
+        if (slot.type === 'free') slotEcon = economyData.free;
+
         if (slot.type === 'special') {
-            // Temporário: usa a economia do tier padrão pois o ganho da CPU especial é desconhecido
-            slotEcon = economyData[slot.tier]; 
+            slotEcon = economyData[slot.tier];
         }
 
         totalGainPerHour += slotEcon.gain;
         totalCostPerHour += slotEcon.energyCost + slotEcon.coolerCost;
 
-        // Lógica de reparo
         const newRepairCooldown = slot.repairCooldown > 0 ? slot.repairCooldown - 1 : 0;
         const isBroken = newRepairCooldown <= 0;
 
         return { ...slot, repairCooldown: newRepairCooldown, isBroken };
       });
-
-      setSlots(newSlots);
-
-      // Calcula a mudança de moedas por segundo
-      const netChangePerSecond = (totalGainPerHour - totalCostPerHour) / 3600;
       
-      if (netChangePerSecond > 0 || coinBdg > 0) {
-        setCoinBdg(prevCoins => prevCoins + netChangePerSecond);
+      setSlots(newSlots);
+      
+      const netChangePerSecond = (totalGainPerHour - totalCostPerHour) / 3600;
+      if (netChangePerSecond !== 0) {
+        setCoinBdg(prevCoins => Math.max(0, prevCoins + netChangePerSecond));
       }
 
     }, 1000);
 
     return () => clearInterval(gameLoop);
-  }, [slots]);
+  }, [slots, adBoostTime, paidBoostTime]);
+  
+  const handleConnect = async () => {
+    try {
+      const { address: userAddress } = await connectWallet();
+      setAddress(userAddress);
+      setStatus('Carteira conectada com sucesso!');
+    } catch (e) {
+      setStatus(`Falha ao conectar: ${e.message}`);
+    }
+  };
 
-  const handleConnect = async () => { /* ... */ };
   const handlePurchase = async (tierToBuy, purchaseType) => { /* ... */ };
 
   const addNewSlot = () => {
@@ -109,7 +134,7 @@ export default function App() {
   };
 
   const renderPage = () => {
-    const pageProps = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, economyData };
+    const pageProps = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, economyData, adBoostTime, paidBoostTime, setPaidBoostTime, REPAIR_TIME };
     switch (route) {
       case 'user': return <UserPage address={address} />;
       case 'shop': return <ShopPage onPurchase={handlePurchase} />;
@@ -119,5 +144,32 @@ export default function App() {
     }
   };
 
-  // ... (código de renderização)
+  // --- Render ---
+  if (!address) {
+    return (
+      <div style={{ fontFamily: 'Arial, sans-serif', background: '#1a1a2e', color: '#e0e0e0', minHeight: '100vh', padding: '16px', textAlign: 'center', paddingTop: '50px' }}>
+        <h2>Bem-vindo ao CryptoDesktop</h2>
+        <p>Conecte sua carteira MetaMask para começar a jogar.</p>
+        <button onClick={handleConnect} style={{fontSize: '1.2em', padding: '15px 30px', cursor: 'pointer'}}>Conectar MetaMask</button>
+        <p style={{marginTop: '20px'}}>{status}</p>
+      </div>
+    );
+  }
+
+  return (
+      <div style={{ fontFamily: 'Arial, sans-serif', background: '#1a1a2e', color: '#e0e0e0', minHeight: '100vh', padding: '16px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-around', padding: '12px', background: '#162447', borderRadius: '8px', marginBottom: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+        <div style={{ textAlign: 'center' }}><p style={{ fontSize: '0.8em', color: '#a0a0a0', margin: 0 }}>Coin BDG (Jogo)</p><p style={{ fontSize: '1.2em', fontWeight: 'bold', margin: '4px 0 0 0', color: '#fff' }}>{Math.floor(coinBdg)}</p></div>
+        <div style={{ textAlign: 'center' }}><p style={{ fontSize: '0.8em', color: '#a0a0a0', margin: 0 }}>Token BDG (Carteira)</p><p style={{ fontSize: '1.2em', fontWeight: 'bold', margin: '4px 0 0 0', color: '#fff' }}>{parseFloat(tokenBdg).toFixed(4)}</p></div>
+      </header>
+      <div style={{ textAlign: 'center', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', marginBottom: '16px', minHeight: '24px' }}>{status}</div>
+      <main style={{ paddingBottom: '80px' }}>{renderPage()}</main>
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', background: '#162447', padding: '10px 0', boxShadow: '0 -2px 5px rgba(0,0,0,0.3)' }}>
+        <button onClick={() => setRoute('user')} style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', color: route === 'user' ? '#007bff' : '#e0e0e0', fontSize: '0.8em', fontWeight: route === 'user' ? 'bold' : 'normal' }}>Usuário</button>
+        <button onClick={() => setRoute('shop')} style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', color: route === 'shop' ? '#007bff' : '#e0e0e0', fontSize: '0.8em', fontWeight: route === 'shop' ? 'bold' : 'normal' }}>Loja</button>
+        <button onClick={() => setRoute('mine')} style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', color: route === 'mine' ? '#007bff' : '#e0e0e0', fontSize: '0.8em', fontWeight: route === 'mine' ? 'bold' : 'normal' }}>Mineração</button>
+        <button onClick={() => setRoute('rank')} style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', color: route === 'rank' ? '#007bff' : '#e0e0e0', fontSize: '0.8em', fontWeight: route === 'rank' ? 'bold' : 'normal' }}>Ranques</button>
+      </nav>
+    </div>
+  );
 }
