@@ -5,7 +5,6 @@ import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
 import { connectWallet } from './wallet';
-import AdComponent from './AdComponent'; // Importa o componente de anúncio
 
 // --- Constants for BNB MAINNET ---
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
@@ -43,7 +42,6 @@ export default function App() {
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
-  // CORREÇÃO DO GAMELOOP
   const gameLoop = useCallback(() => {
     const boostMultiplier = paidBoostTime > 0 ? 2 : 1;
     const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
@@ -169,7 +167,6 @@ export default function App() {
       <main style={{ flex: 1, padding: '0 20px' }}>
         {address ? (
           <>
-            <AdComponent adKey="aa5093526197a9f66731eaa5facb698f" width={728} height={90} />
             {renderPage()}
           </>
         ) : (
