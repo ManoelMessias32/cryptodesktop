@@ -13,14 +13,16 @@ const MAX_SLOTS = 6;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
 export const economyData = {
-    free: { repairCost: 10, energyCost: 5 },
-    1: { repairCost: 20, energyCost: 10 },
-    2: { repairCost: 40, energyCost: 20 },
-    3: { repairCost: 60, energyCost: 30 },
+    free: { repairCost: 10, energyCost: 5, gainRate: 0.01 }, // Ganho por segundo
+    1: { repairCost: 20, energyCost: 10, gainRate: 0.05 },
+    2: { repairCost: 40, energyCost: 20, gainRate: 0.1 },
+    3: { repairCost: 60, energyCost: 30, gainRate: 0.2 },
+    A: { repairCost: 0, energyCost: 0, gainRate: 0.3 }, // Special CPUs might have different rules
+    B: { repairCost: 0, energyCost: 0, gainRate: 0.4 },
+    C: { repairCost: 0, energyCost: 0, gainRate: 0.5 },
 };
 
-const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true });
-
+const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0, isBroken: false });
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -44,7 +46,33 @@ export default function App() {
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
   const gameLoop = useCallback(() => {
-    // Game loop logic to be implemented
+    let generatedCoins = 0;
+    const boostMultiplier = (adBoostTime > 0 ? 1.5 : 1) * (paidBoostTime > 0 ? 2 : 1);
+
+    setSlots(prevSlots => prevSlots.map(slot => {
+      if (slot.filled && !slot.isBroken && slot.repairCooldown > 0) {
+        const newCooldown = slot.repairCooldown - 1;
+        
+        // Determine gain rate
+        let econKey = slot.type === 'free' ? 'free' : (slot.type === 'standard' ? slot.tier : slot.type.charAt(0).toUpperCase());
+        const gainRate = economyData[econKey]?.gainRate || 0;
+        generatedCoins += gainRate * boostMultiplier;
+
+        if (newCooldown <= 0) {
+          return { ...slot, repairCooldown: 0, isBroken: true };
+        }
+        return { ...slot, repairCooldown: newCooldown };
+      }
+      return slot;
+    }));
+
+    if (generatedCoins > 0) {
+      setCoinBdg(prev => prev + generatedCoins);
+    }
+
+    if (adBoostTime > 0) setAdBoostTime(prev => Math.max(0, prev - 1));
+    if (paidBoostTime > 0) setPaidBoostTime(prev => Math.max(0, prev - 1));
+
   }, [slots, adBoostTime, paidBoostTime]);
 
   useEffect(() => {
@@ -86,7 +114,7 @@ export default function App() {
       const tx = await shopContract.buyWithBNB(tierToBuy, '0x35878269EF4051Df5f82593b4819E518bA8903A3', { value });
       
       await tx.wait();
-      setSlots(prev => prev.map((slot, i) => (i === emptySlotIndex ? { ...slot, filled: true, type: purchaseType, tier: tierToBuy } : slot)));
+      setSlots(prev => prev.map((slot, i) => (i === emptySlotIndex ? { ...slot, filled: true, type: purchaseType, tier: tierToBuy, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS, isBroken: false } : slot)));
       setStatus(`✅ Compra realizada!`);
     } catch (e) {
       setStatus(`❌ Erro na compra: ${e.message || 'Transação cancelada.'}`);
@@ -95,14 +123,13 @@ export default function App() {
 
   const addNewSlot = () => {
      if (slots.length < MAX_SLOTS) {
-      setSlots(prev => [...prev, { name: `Slot ${prev.length + 1}`, filled: false, free: false }]);
+      setSlots(prev => [...prev, { name: `Slot ${prev.length + 1}`, filled: false, free: false, repairCooldown: 0, isBroken: false }]);
       setStatus('Gabinete adicionado! Vá para a loja para comprar uma CPU.');
     } else {
       setStatus('Número máximo de gabinetes atingido.');
     }
   };
 
-  // Simulates an ad view to grant the boost without using external scripts
   const handleAdSessionClick = () => {
     if (adSessionsLeft > 0 && adBoostTime <= 0) {
       setStatus('Carregando anúncio...');
