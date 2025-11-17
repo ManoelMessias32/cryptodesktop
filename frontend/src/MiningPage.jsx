@@ -1,5 +1,4 @@
 import React from 'react';
-import AdComponent from './AdComponent'; // Importa o componente de anúncio
 
 const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
 const PAID_BOOST_COST = 80;
@@ -47,7 +46,7 @@ export default function MiningPage({
       const slotToRefill = slots[idx];
       if (!slotToRefill.filled || slotToRefill.isBroken) return;
       
-      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRefill.tier && k.length === 1));
+      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRepair.tier && k.length === 1));
       const energyCost = economyData[econKey]?.energyCost;
 
       if (coinBdg >= energyCost) {
@@ -114,12 +113,9 @@ export default function MiningPage({
         </div>
       </div>
 
-      <div style={{textAlign: 'center', marginTop: '12px', minHeight: '40px'}}>
+       <div style={{textAlign: 'center', marginTop: '12px', minHeight: '40px'}}>
         {paidBoostTime > 0 && <p>Boost Pago: {formatTime(paidBoostTime)}</p>}
       </div>
-      
-      {/* Segundo anúncio (300x250) */}
-      <AdComponent adKey="76c30e6631e256ef38ab65c1ce40cee8" width={300} height={250} />
 
       <div style={{ textAlign: 'center', margin: '24px 0' }}>
         <button onClick={addNewSlot} disabled={slots.length >= 6}>Comprar Novo Gabinete ({slots.length}/6)</button>
