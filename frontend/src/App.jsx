@@ -43,6 +43,29 @@ export default function App() {
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
+  // Check for existing connection on page load
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            setAddress(accounts[0]);
+            const savedUser = localStorage.getItem('cryptoDesktopUsername');
+            if(savedUser) {
+              setInputUsername(savedUser);
+            }
+            setStatus('✅ Bem-vindo de volta!');
+          }
+        } catch (error) {
+          console.error("Erro ao verificar conexão da carteira:", error);
+          setStatus("❌ Erro ao verificar conexão.");
+        }
+      }
+    };
+    checkConnection();
+  }, []);
+
   const gameLoop = useCallback(() => {
     const boostMultiplier = paidBoostTime > 0 ? 2 : 1;
     const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
@@ -90,7 +113,6 @@ export default function App() {
         return;
     }
 
-    // Save username to localStorage before connecting
     localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
 
     try {
@@ -159,17 +181,17 @@ export default function App() {
     background: 'transparent',
     border: 'none',
     color: route === page ? '#ffffff' : '#71717a', // white vs zinc-500
-    padding: '4px 8px', // Reduced padding
+    padding: '4px 8px',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '0.65em', // Reduced font size
+    fontSize: '0.65em',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '2px', // Reduced gap
-    borderTop: route === page ? '2px solid #818cf8' : '2px solid transparent', // indigo-400
+    gap: '2px',
+    borderTop: route === page ? '2px solid #818cf8' : '2px solid transparent',
     transition: 'color 0.2s, border-color 0.2s',
-    flex: 1, // Allow buttons to take up equal space
+    flex: 1,
   });
 
   return (
