@@ -1,12 +1,10 @@
 import React from 'react';
 
-// A constante economyData é recebida via props, NÃO importada.
-
 const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
 const PAID_BOOST_COST = 80;
 const PAID_BOOST_DURATION = 1800; 
-const AD_BOOST_DURATION = 1200; 
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
+const ENERGY_REFILL_ALL_COST = 50; // Novo custo para reabastecer todos
 
 const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
@@ -17,7 +15,7 @@ const formatTime = (seconds) => {
 
 export default function MiningPage({ 
   coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus,
-  adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, handleAdSessionClick, economyData 
+  paidBoostTime, setPaidBoostTime, economyData 
 }) {
 
   const handleMountFree = (idx) => {
@@ -48,7 +46,7 @@ export default function MiningPage({
       const slotToRefill = slots[idx];
       if (!slotToRefill.filled || slotToRefill.isBroken) return;
       
-      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRepair.tier && k.length === 1));
+      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRefill.tier && k.length === 1));
       const energyCost = economyData[econKey]?.energyCost;
 
       if (coinBdg >= energyCost) {
@@ -80,30 +78,44 @@ export default function MiningPage({
     }
   };
 
+  // Nova função para comprar energia para todos os slots
+  const handleBuyEnergyForAll = () => {
+    if (coinBdg >= ENERGY_REFILL_ALL_COST) {
+      setCoinBdg(prev => prev - ENERGY_REFILL_ALL_COST);
+      setSlots(prevSlots => prevSlots.map(slot => {
+        if (slot.filled && !slot.isBroken) {
+          return { ...slot, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS };
+        }
+        return slot;
+      }));
+      setStatus(`✅ Energia de todos os slots reabastecida!`);
+    } else {
+      setStatus(`❌ Moedas insuficientes! Custo: ${ENERGY_REFILL_ALL_COST} BDG`);
+    }
+  };
+
   return (
     <div>
-      {/* AdComponent is disabled due to CSP errors on Vercel */}
-      
       <div style={{ textAlign: 'center', margin: '20px 0' }}>
         <h2 style={{ fontSize: '1.8em', margin: 0, color: '#facc15' }}>🪙 {coinBdg.toFixed(2)} BDG</h2>
         <p style={{ margin: '5px 0 20px 0', color: '#9ca3af' }}>Sua moeda para usar no jogo</p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: 12, border: '1px solid #374151', borderRadius: 8, background: '#1f2937', maxWidth: 450, margin: '24px auto' }}>
+      {/* Seção de Ações Globais */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 12, border: '1px solid #374151', borderRadius: 8, background: '#1f2937', maxWidth: 500, margin: '24px auto', gap: '20px' }}>
         <div>
-            <h4>Boost de Anúncio</h4>
-            <button onClick={handleAdSessionClick} disabled={adSessionsLeft <= 0 || adBoostTime > 0}>Usar Anúncio (+20 min)</button>
-            <p style={{textAlign: 'center'}}>{adSessionsLeft}/3 restantes</p>
+            <h4>Recarga Global</h4>
+            <button onClick={handleBuyEnergyForAll}>Reabastecer Todos</button>
+            <p style={{textAlign: 'center', fontSize: '0.9em'}}>Custo: {ENERGY_REFILL_ALL_COST} BDG</p>
         </div>
         <div>
             <h4>Boost Pago</h4>
             <button onClick={handleBuyPaidBoost} disabled={coinBdg < PAID_BOOST_COST || paidBoostTime > 0}>Ativar (+30 min)</button>
-            <p style={{textAlign: 'center'}}>Custo: {PAID_BOOST_COST} Coin BDG</p>
+            <p style={{textAlign: 'center', fontSize: '0.9em'}}>Custo: {PAID_BOOST_COST} BDG</p>
         </div>
       </div>
 
        <div style={{textAlign: 'center', marginTop: '12px', minHeight: '40px'}}>
-        {adBoostTime > 0 && <p>Boost de Anúncio: {formatTime(adBoostTime)}</p>}
         {paidBoostTime > 0 && <p>Boost Pago: {formatTime(paidBoostTime)}</p>}
       </div>
 

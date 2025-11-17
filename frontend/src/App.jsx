@@ -36,9 +36,7 @@ export default function App() {
     } catch (e) { return initialSlots; }
   });
 
-  const [adBoostTime, setAdBoostTime] = useState(0);
   const [paidBoostTime, setPaidBoostTime] = useState(0);
-  const [adSessionsLeft, setAdSessionsLeft] = useState(3);
 
   const tierPrices = { 1: '0.10', 2: '0.20', 3: '0.30' };
 
@@ -47,13 +45,12 @@ export default function App() {
 
   const gameLoop = useCallback(() => {
     let generatedCoins = 0;
-    const boostMultiplier = (adBoostTime > 0 ? 1.5 : 1) * (paidBoostTime > 0 ? 2 : 1);
+    const boostMultiplier = paidBoostTime > 0 ? 2 : 1;
 
     setSlots(prevSlots => prevSlots.map(slot => {
       if (slot.filled && !slot.isBroken && slot.repairCooldown > 0) {
         const newCooldown = slot.repairCooldown - 1;
         
-        // Determine gain rate
         let econKey = slot.type === 'free' ? 'free' : (slot.type === 'standard' ? slot.tier : slot.type.charAt(0).toUpperCase());
         const gainRate = economyData[econKey]?.gainRate || 0;
         generatedCoins += gainRate * boostMultiplier;
@@ -70,10 +67,9 @@ export default function App() {
       setCoinBdg(prev => prev + generatedCoins);
     }
 
-    if (adBoostTime > 0) setAdBoostTime(prev => Math.max(0, prev - 1));
     if (paidBoostTime > 0) setPaidBoostTime(prev => Math.max(0, prev - 1));
 
-  }, [slots, adBoostTime, paidBoostTime]);
+  }, [slots, paidBoostTime]);
 
   useEffect(() => {
     const interval = setInterval(gameLoop, 1000);
@@ -130,19 +126,8 @@ export default function App() {
     }
   };
 
-  const handleAdSessionClick = () => {
-    if (adSessionsLeft > 0 && adBoostTime <= 0) {
-      setStatus('Carregando anúncio...');
-      setTimeout(() => {
-        setAdSessionsLeft(prev => prev - 1);
-        setAdBoostTime(1200); // 20 minutes
-        setStatus('✅ Boost de anúncio ativado por 20 minutos!');
-      }, 3000); // Simulate a 3-second ad view
-    }
-  };
-
   const renderPage = () => {
-    const props = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, handleAdSessionClick, economyData };
+    const props = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, paidBoostTime, setPaidBoostTime, economyData };
     switch (route) {
       case 'mine': return <MiningPage {...props} />;
       case 'shop': return <ShopPage handlePurchase={handlePurchase} />;
