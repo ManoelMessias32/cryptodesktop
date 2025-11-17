@@ -1,31 +1,33 @@
 import React, { useEffect, useRef } from 'react';
 
-const AdComponent = () => {
+const AdComponent = ({ adKey, width, height }) => {
   const adRef = useRef(null);
 
   useEffect(() => {
+    // Prevent re-injecting the script
     if (adRef.current && adRef.current.children.length === 0) {
       const configScript = document.createElement('script');
       configScript.type = 'text/javascript';
       configScript.innerHTML = `
         atOptions = {
-          'key' : '76c30e6631e256ef38ab65c1ce40cee8',
+          'key' : '${adKey}',
           'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
+          'height' : ${height},
+          'width' : ${width},
           'params' : {}
         };
       `;
+
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = `//www.highperformanceformat.com/${adKey}/invoke.js`;
+      
       adRef.current.appendChild(configScript);
-
-      const adScript = document.createElement('script');
-      adScript.type = 'text/javascript';
-      adScript.src = '//www.highperformanceformat.com/76c30e6631e256ef38ab65c1ce40cee8/invoke.js';
-      adRef.current.appendChild(adScript);
+      adRef.current.appendChild(invokeScript);
     }
-  }, []);
+  }, [adKey, width, height]);
 
-  return <div ref={adRef} style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }} />;
+  return <div ref={adRef} style={{ display: 'flex', justifyContent: 'center', margin: '20px auto' }} />;
 };
 
 export default AdComponent;

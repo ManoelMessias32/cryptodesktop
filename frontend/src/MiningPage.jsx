@@ -1,10 +1,11 @@
 import React from 'react';
+import AdComponent from './AdComponent'; // Importa o componente de anúncio
 
 const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
 const PAID_BOOST_COST = 80;
 const PAID_BOOST_DURATION = 1800; 
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
-const ENERGY_REFILL_ALL_COST = 50; // Novo custo para reabastecer todos
+const ENERGY_REFILL_ALL_COST = 50;
 
 const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
@@ -78,7 +79,6 @@ export default function MiningPage({
     }
   };
 
-  // Nova função para comprar energia para todos os slots
   const handleBuyEnergyForAll = () => {
     if (coinBdg >= ENERGY_REFILL_ALL_COST) {
       setCoinBdg(prev => prev - ENERGY_REFILL_ALL_COST);
@@ -101,7 +101,6 @@ export default function MiningPage({
         <p style={{ margin: '5px 0 20px 0', color: '#9ca3af' }}>Sua moeda para usar no jogo</p>
       </div>
 
-      {/* Seção de Ações Globais */}
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 12, border: '1px solid #374151', borderRadius: 8, background: '#1f2937', maxWidth: 500, margin: '24px auto', gap: '20px' }}>
         <div>
             <h4>Recarga Global</h4>
@@ -115,9 +114,12 @@ export default function MiningPage({
         </div>
       </div>
 
-       <div style={{textAlign: 'center', marginTop: '12px', minHeight: '40px'}}>
+      <div style={{textAlign: 'center', marginTop: '12px', minHeight: '40px'}}>
         {paidBoostTime > 0 && <p>Boost Pago: {formatTime(paidBoostTime)}</p>}
       </div>
+      
+      {/* Segundo anúncio (300x250) */}
+      <AdComponent adKey="76c30e6631e256ef38ab65c1ce40cee8" width={300} height={250} />
 
       <div style={{ textAlign: 'center', margin: '24px 0' }}>
         <button onClick={addNewSlot} disabled={slots.length >= 6}>Comprar Novo Gabinete ({slots.length}/6)</button>
