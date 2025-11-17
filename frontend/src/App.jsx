@@ -12,7 +12,6 @@ const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
 const MAX_SLOTS = 6;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
-// Updated Economy Data
 export const economyData = {
     free: { repairCost: 10, energyCost: 5, gainRate: 0.01 },
     1: { repairCost: 20, energyCost: 10, gainRate: 0.000135 }, // ~350 BDG/month
@@ -28,7 +27,7 @@ const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, 
 export default function App() {
   const [route, setRoute] = useState('mine');
   const [address, setAddress] = useState('');
-  const [status, setStatus] = useState('Conecte sua carteira para começar.');
+  const [status, setStatus] = useState('Crie um nome e conecte sua carteira para jogar.');
   const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem('cryptoDesktopMined_v14')) || 0);
   const [slots, setSlots] = useState(() => {
     try {
@@ -38,7 +37,7 @@ export default function App() {
   });
 
   const [paidBoostTime, setPaidBoostTime] = useState(0);
-  // Updated Tier Prices
+  const [inputUsername, setInputUsername] = useState(''); // State for onboarding username
   const tierPrices = { 1: '0.035', 2: '0.090', 3: '0.170' };
 
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
@@ -86,6 +85,14 @@ export default function App() {
 
 
   const handleConnect = async () => {
+    if (!inputUsername.trim()) {
+        setStatus('❌ Por favor, insira um nome de usuário para continuar.');
+        return;
+    }
+
+    // Save username to localStorage before connecting
+    localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
+
     try {
       await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
       const { address: userAddress } = await connectWallet();
@@ -135,7 +142,7 @@ export default function App() {
     switch (route) {
       case 'mine': return <MiningPage {...props} />;
       case 'shop': return <ShopPage handlePurchase={handlePurchase} />;
-      case 'user': return <UserPage address={address} coinBdg={coinBdg} />;
+      case 'user': return <UserPage address={address} />;
       case 'rankings': return <RankingsPage />;
       default: return <MiningPage {...props} />;
     }
@@ -167,35 +174,52 @@ export default function App() {
 
   return (
     <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '60px' /* Add padding to avoid overlap with nav */ }}>
-        <header style={{ padding: '15px 20px', background: '#27272a', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3f3f46' }}>
-          <h1 style={{ fontSize: '1.5em', margin: 0, color: '#e4e4e7' }}>Cryptodesk</h1>
-          {address ? (
-            <p style={{ margin: 0, fontSize: '0.9em', background: '#3f3f46', padding: '8px 12px', borderRadius: '999px' }}>
-              {`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}
-            </p>
-          ) : (
-            <button onClick={handleConnect} style={{ background: '#6366f1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Conectar Carteira</button>
-          )}
-        </header>
+      <div style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: address ? '60px' : '0' }}>
         
-        <p style={{ textAlign: 'center', minHeight: '24px', margin: '20px 0', ...getStatusStyle() }}>{status}</p>
+        {!address ? (
+          // ONBOARDING SCREEN
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px' }}>
+            <h1 style={{ fontSize: '2.5em', margin: 0, color: '#e4e4e7' }}>Cryptodesk</h1>
+            <p style={{color: '#a1a1aa', marginBottom: '40px' }}>Seu jogo de mineração Web3</p>
+            
+            <input
+              type="text"
+              placeholder="Crie seu nome de usuário"
+              value={inputUsername}
+              onChange={(e) => setInputUsername(e.target.value)}
+              style={{ padding: '12px', fontSize: '1em', borderRadius: '8px', border: '1px solid #3f3f46', background: '#27272a', color: 'white', width: '90%', maxWidth: '350px', textAlign: 'center' }}
+            />
+            <button 
+              onClick={handleConnect} 
+              style={{ background: '#6366f1', color: 'white', border: 'none', padding: '15px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', marginTop: '20px', width: '90%', maxWidth: '350px', fontSize: '1.1em' }}
+            >
+              Conectar Carteira e Jogar
+            </button>
+            <p style={{ textAlign: 'center', minHeight: '24px', marginTop: '20px', ...getStatusStyle() }}>{status}</p>
+          </div>
+        ) : (
+          // MAIN APP SCREEN
+          <>
+            <header style={{ padding: '15px 20px', background: '#27272a', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3f3f46' }}>
+              <h1 style={{ fontSize: '1.5em', margin: 0, color: '#e4e4e7' }}>Cryptodesk</h1>
+              <p style={{ margin: 0, fontSize: '0.9em', background: '#3f3f46', padding: '8px 12px', borderRadius: '999px' }}>
+                {`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}
+              </p>
+            </header>
+            
+            <p style={{ textAlign: 'center', minHeight: '24px', margin: '20px 0', ...getStatusStyle() }}>{status}</p>
 
-        <main style={{ padding: '0 20px' }}>
-          {address ? renderPage() : (
-            <div style={{ textAlign: 'center', paddingTop: '50px' }}>
-              <h2 style={{ fontSize: '1.2em', color: '#a1a1aa' }}>Por favor, conecte sua carteira para começar.</h2>
-            </div>
-          )}
-        </main>
+            <main style={{ padding: '0 20px' }}>
+              {renderPage()}
+            </main>
 
-        {address && (
-          <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#27272a', display: 'flex', justifyContent: 'space-around', borderTop: '1px solid #3f3f46', paddingTop: '5px', paddingBottom: '5px' }}>
-            <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}><span style={{fontSize: '1.4em'}}>⛏️</span><span>Mineração</span></button>
-            <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}><span style={{fontSize: '1.4em'}}>🛒</span><span>Loja</span></button>
-            <button onClick={() => setRoute('user')} style={navButtonStyle('user')}><span style={{fontSize: '1.4em'}}>👤</span><span>Usuário</span></button>
-            <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}><span style={{fontSize: '1.4em'}}>🏆</span><span>Rankings</span></button>
-          </nav>
+            <nav style={{ position: 'fixed', bottom: 0, width: '100%', maxWidth: '800px', background: '#27272a', display: 'flex', justifyContent: 'space-around', borderTop: '1px solid #3f3f46', paddingTop: '5px', paddingBottom: '5px' }}>
+                <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}><span style={{fontSize: '1.4em'}}>⛏️</span><span>Mineração</span></button>
+                <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}><span style={{fontSize: '1.4em'}}>🛒</span><span>Loja</span></button>
+                <button onClick={() => setRoute('user')} style={navButtonStyle('user')}><span style={{fontSize: '1.4em'}}>👤</span><span>Usuário</span></button>
+                <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}><span style={{fontSize: '1.4em'}}>🏆</span><span>Rankings</span></button>
+            </nav>
+          </>
         )}
       </div>
     </div>
