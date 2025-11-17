@@ -1,5 +1,4 @@
 import React from 'react';
-// import AdComponent from './AdComponent';
 
 // A constante economyData é recebida via props, NÃO importada.
 
@@ -83,9 +82,14 @@ export default function MiningPage({
 
   return (
     <div>
-      {/* <AdComponent /> */}
+      {/* AdComponent is disabled due to CSP errors on Vercel */}
+      
+      <div style={{ textAlign: 'center', margin: '20px 0' }}>
+        <h2 style={{ fontSize: '1.8em', margin: 0, color: '#facc15' }}>🪙 {coinBdg.toFixed(2)} BDG</h2>
+        <p style={{ margin: '5px 0 20px 0', color: '#9ca3af' }}>Sua moeda para usar no jogo</p>
+      </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginTop: 24, padding: 12, border: '1px solid #007bff', borderRadius: 8, background: '#2a2a3e', maxWidth: 600, margin: '24px auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: 12, border: '1px solid #374151', borderRadius: 8, background: '#1f2937', maxWidth: 450, margin: '24px auto' }}>
         <div>
             <h4>Boost de Anúncio</h4>
             <button onClick={handleAdSessionClick} disabled={adSessionsLeft <= 0 || adBoostTime > 0}>Usar Anúncio (+20 min)</button>

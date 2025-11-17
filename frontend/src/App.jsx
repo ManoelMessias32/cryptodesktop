@@ -12,7 +12,6 @@ const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
 const MAX_SLOTS = 6;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
-// Placeholder data - you should expand this with your actual game economy
 export const economyData = {
     free: { repairCost: 10, energyCost: 5 },
     1: { repairCost: 20, energyCost: 10 },
@@ -20,7 +19,6 @@ export const economyData = {
     3: { repairCost: 60, energyCost: 30 },
 };
 
-// Initial state for slots
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true });
 
 
@@ -36,28 +34,23 @@ export default function App() {
     } catch (e) { return initialSlots; }
   });
 
-  // --- States required by MiningPage ---
   const [adBoostTime, setAdBoostTime] = useState(0);
   const [paidBoostTime, setPaidBoostTime] = useState(0);
   const [adSessionsLeft, setAdSessionsLeft] = useState(3);
-  // ---
 
   const tierPrices = { 1: '0.10', 2: '0.20', 3: '0.30' };
 
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
-  // --- Main Game Loop (Placeholder) ---
   const gameLoop = useCallback(() => {
-    // This is where you would decrease timers, check for broken slots, and generate coins.
-    // This is a complex piece of logic that needs to be implemented.
+    // Game loop logic to be implemented
   }, [slots, adBoostTime, paidBoostTime]);
 
   useEffect(() => {
     const interval = setInterval(gameLoop, 1000);
     return () => clearInterval(interval);
   }, [gameLoop]);
-  // ---
 
   const handleConnect = async () => {
     try {
@@ -100,7 +93,6 @@ export default function App() {
     }
   };
 
-  // --- Functions required by MiningPage (Placeholders) ---
   const addNewSlot = () => {
      if (slots.length < MAX_SLOTS) {
       setSlots(prev => [...prev, { name: `Slot ${prev.length + 1}`, filled: false, free: false }]);
@@ -113,57 +105,48 @@ export default function App() {
   const handleAdSessionClick = () => {
     if (adSessionsLeft > 0 && adBoostTime <= 0) {
       setAdSessionsLeft(prev => prev - 1);
-      setAdBoostTime(1200); // 20 minutes
+      setAdBoostTime(1200);
       setStatus('Boost de anúncio ativado!');
     }
   };
-  // ---
 
   const renderPage = () => {
-    const props = {
-      coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus,
-      adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, handleAdSessionClick, economyData
-    };
-
+    const props = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, handleAdSessionClick, economyData };
     switch (route) {
-      case 'mine':
-        return <MiningPage {...props} />;
-      case 'shop':
-        return <ShopPage handlePurchase={handlePurchase} />;
-      case 'user':
-        return <UserPage address={address} coinBdg={coinBdg} />;
-      case 'rankings':
-        return <RankingsPage />;
-      default:
-        return <MiningPage {...props} />;
+      case 'mine': return <MiningPage {...props} />;
+      case 'shop': return <ShopPage handlePurchase={handlePurchase} />;
+      case 'user': return <UserPage address={address} coinBdg={coinBdg} />;
+      case 'rankings': return <RankingsPage />;
+      default: return <MiningPage {...props} />;
     }
   };
 
+  const navButtonStyle = (page) => ({
+    background: route === page ? '#4f46e5' : '#374151',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '1em'
+  });
+
   return (
-    <div style={{ padding: '20px', background: '#0f172a', color: 'white', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <h1 style={{ fontSize: '1.5em' }}>Jogo Mineração Web3</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', background: '#0f172a', color: 'white', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+      <header style={{ padding: '10px 20px', background: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+        <h1 style={{ fontSize: '1.5em', margin: 0 }}>JMW3</h1>
         {address ? (
-          <p style={{ background: '#27272a', padding: '8px 12px', borderRadius: '8px', fontSize: '0.9em' }}>
-            Conectado: {`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}
+          <p style={{ margin: 0, fontSize: '0.9em', background: '#27272a', padding: '8px 12px', borderRadius: '8px' }}>
+            {`Conectado: ${address.substring(0, 6)}...${address.substring(address.length - 4)}`}
           </p>
         ) : (
-          <button onClick={handleConnect}>Conectar Carteira</button>
+          <button onClick={handleConnect} style={navButtonStyle('connect')}>Conectar Carteira</button>
         )}
       </header>
       
-      <p style={{ textAlign: 'center', minHeight: '24px', color: '#94a3b8', marginBottom: '20px' }}>{status}</p>
+      <p style={{ textAlign: 'center', minHeight: '24px', color: '#94a3b8', margin: '20px 0' }}>{status}</p>
 
-      {address && (
-        <nav style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-          <button onClick={() => setRoute('mine')}>Mineração</button>
-          <button onClick={() => setRoute('shop')}>Loja</button>
-          <button onClick={() => setRoute('user')}>Usuário</button>
-          <button onClick={() => setRoute('rankings')}>Rankings</button>
-        </nav>
-      )}
-
-      <main>
+      <main style={{ flex: 1, padding: '0 20px' }}>
         {address ? renderPage() : (
           <div style={{ textAlign: 'center', paddingTop: '50px' }}>
             <h2 style={{ fontSize: '1.2em' }}>Por favor, conecte sua carteira para começar.</h2>
@@ -171,9 +154,14 @@ export default function App() {
         )}
       </main>
 
-      <footer style={{ textAlign: 'center', marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #334155', color: '#64748b' }}>
-        <p>Demonstração de Jogo Web3</p>
-      </footer>
+      {address && (
+        <nav style={{ display: 'flex', justifyContent: 'space-around', padding: '10px', background: '#1e293b', borderTop: '1px solid #334155' }}>
+          <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>Mineração</button>
+          <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>Loja</button>
+          <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>Usuário</button>
+          <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>Rankings</button>
+        </nav>
+      )}
     </div>
   );
 }
