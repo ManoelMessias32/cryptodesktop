@@ -19,7 +19,7 @@ export default function MiningPage({
 }) {
 
   const handleMountFree = (idx) => {
-    setSlots(prev => prev.map((s, i) => (i === idx ? { ...s, filled: true, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS } : s)));
+    setSlots(prev => prev.map((s, i) => (i === idx ? { ...s, filled: true, type: 'free', repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS } : s)));
     setStatus('✅ CPU Grátis montado e pronto para minerar!');
   };
 
