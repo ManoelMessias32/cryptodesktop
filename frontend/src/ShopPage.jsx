@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ShopPage({ handlePurchase }) { // Corrigido de onPurchase para handlePurchase
+export default function ShopPage({ handlePurchase }) {
 
   const standardCpuData = {
     1: { name: 'Tier 1', price: '0.10', image: '/tier1.png', type: 'standard' },
@@ -15,20 +15,20 @@ export default function ShopPage({ handlePurchase }) { // Corrigido de onPurchas
   };
 
   const styles = {
-    shopContainer: { textAlign: 'center' },
-    sectionTitle: { color: '#fff', borderBottom: '2px solid #1f4068', paddingBottom: '10px', marginBottom: '20px' },
-    cardContainer: { display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center', marginBottom: '40px' },
-    card: { background: '#162447', padding: '16px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0,0,0,0.4)', width: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' },
-    cardImage: { width: '100px', height: '100px', objectFit: 'contain', marginBottom: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', alignSelf: 'center' },
-    cardTitle: { margin: '0 0 10px 0', color: '#fff', fontSize: '1.2em' },
-    cardText: { margin: '4px 0', fontSize: '0.9em', color: '#ccc' },
-    buyButton: { background: '#007bff', color: 'white', border: 'none', padding: '10px', borderRadius: '4px', cursor: 'pointer', marginTop: '10px' }
+    shopContainer: { textAlign: 'center', paddingBottom: '20px' },
+    sectionTitle: { color: '#e4e4e7', borderBottom: '1px solid #3f3f46', paddingBottom: '10px', marginBottom: '20px' },
+    cardContainer: { display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'center', marginBottom: '30px' },
+    card: { background: '#27272a', padding: '12px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)', width: '150px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' },
+    cardImage: { width: '70px', height: '70px', objectFit: 'contain', marginBottom: '10px', alignSelf: 'center' },
+    cardTitle: { margin: '0 0 8px 0', color: '#e4e4e7', fontSize: '1em' },
+    cardText: { margin: '4px 0', fontSize: '0.8em', color: '#a1a1aa' },
+    buyButton: { background: '#6366f1', color: 'white', border: 'none', padding: '8px', borderRadius: '6px', cursor: 'pointer', marginTop: '10px', width: '100%' }
   };
 
   return (
     <div style={styles.shopContainer}>
       <h1>Loja</h1>
-      <p>Compre uma CPU para instalar em um gabinete vazio na sua Sala de Mineração.</p>
+      <p style={{color: '#a1a1aa', marginTop: '-10px'}}>Compre uma CPU para seu gabinete.</p>
       
       <h2 style={styles.sectionTitle}>CPUs Especiais</h2>
       <div style={styles.cardContainer}>
@@ -38,9 +38,9 @@ export default function ShopPage({ handlePurchase }) { // Corrigido de onPurchas
               <img src={item.image} alt={item.name} style={styles.cardImage} />
               <h3 style={styles.cardTitle}>{item.name}</h3>
               <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
-              <p style={styles.cardText}><strong>Ganho Mensal:</strong> {item.gain} BDG</p>
+              <p style={styles.cardText}><strong>Ganho/Mês:</strong> {item.gain} BDG</p>
             </div>
-            <button onClick={() => handlePurchase(item.tier, item.type)} style={styles.buyButton}>Comprar</button> 
+            <button onClick={() => handlePurchase(item.tier, 'special')} style={styles.buyButton}>Comprar</button>
           </div>
         ))}
       </div>
@@ -56,7 +56,7 @@ export default function ShopPage({ handlePurchase }) { // Corrigido de onPurchas
                 <h3 style={styles.cardTitle}>{item.name}</h3>
                 <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
               </div>
-              <button onClick={() => handlePurchase(Number(key), item.type)} style={styles.buyButton}>Comprar</button> 
+              <button onClick={() => handlePurchase(Number(key), item.type)} style={styles.buyButton}>Comprar</button>
             </div>
           )
         })}

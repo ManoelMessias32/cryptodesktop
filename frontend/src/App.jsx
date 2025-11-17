@@ -150,21 +150,22 @@ export default function App() {
     background: 'transparent',
     border: 'none',
     color: route === page ? '#ffffff' : '#71717a', // white vs zinc-500
-    padding: '10px',
+    padding: '4px 8px', // Reduced padding
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '0.8em', // Smaller font for nav
+    fontSize: '0.65em', // Reduced font size
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '4px',
-    borderBottom: route === page ? '2px solid #818cf8' : '2px solid transparent', // indigo-400
-    transition: 'color 0.2s, border-color 0.2s'
+    gap: '2px', // Reduced gap
+    borderTop: route === page ? '2px solid #818cf8' : '2px solid transparent', // indigo-400
+    transition: 'color 0.2s, border-color 0.2s',
+    flex: 1, // Allow buttons to take up equal space
   });
 
   return (
     <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '60px' /* Add padding to avoid overlap with nav */ }}>
         <header style={{ padding: '15px 20px', background: '#27272a', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3f3f46' }}>
           <h1 style={{ fontSize: '1.5em', margin: 0, color: '#e4e4e7' }}>Cryptodesk</h1>
           {address ? (
@@ -187,11 +188,11 @@ export default function App() {
         </main>
 
         {address && (
-          <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#27272a', display: 'flex', justifyContent: 'space-around', borderTop: '1px solid #3f3f46', padding: '5px 0' }}>
-            <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}><span>⛏️</span><span>Mineração</span></button>
-            <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}><span>🛒</span><span>Loja</span></button>
-            <button onClick={() => setRoute('user')} style={navButtonStyle('user')}><span>👤</span><span>Usuário</span></button>
-            <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}><span>🏆</span><span>Rankings</span></button>
+          <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#27272a', display: 'flex', justifyContent: 'space-around', borderTop: '1px solid #3f3f46', paddingTop: '5px', paddingBottom: '5px' }}>
+            <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}><span style={{fontSize: '1.4em'}}>⛏️</span><span>Mineração</span></button>
+            <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}><span style={{fontSize: '1.4em'}}>🛒</span><span>Loja</span></button>
+            <button onClick={() => setRoute('user')} style={navButtonStyle('user')}><span style={{fontSize: '1.4em'}}>👤</span><span>Usuário</span></button>
+            <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}><span style={{fontSize: '1.4em'}}>🏆</span><span>Rankings</span></button>
           </nav>
         )}
       </div>

@@ -46,7 +46,7 @@ export default function MiningPage({
       const slotToRefill = slots[idx];
       if (!slotToRefill.filled || slotToRefill.isBroken) return;
       
-      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRepair.tier && k.length === 1));
+      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRefill.tier && k.length === 1));
       const energyCost = economyData[econKey]?.energyCost;
 
       if (coinBdg >= energyCost) {
@@ -93,37 +93,39 @@ export default function MiningPage({
     }
   };
 
+  const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', width: '100%' };
+
   return (
-    <div>
-      <div style={{ textAlign: 'center', margin: '20px 0' }}>
+    <div style={{paddingBottom: '20px'}}>
+      <div style={{ textAlign: 'center', margin: '0 0 20px 0' }}>
         <h2 style={{ fontSize: '1.8em', margin: 0, color: '#facc15' }}>🪙 {coinBdg.toFixed(2)} BDG</h2>
-        <p style={{ margin: '5px 0 20px 0', color: '#9ca3af' }}>Sua moeda para usar no jogo</p>
+        <p style={{ margin: '5px 0', color: '#a1a1aa' }}>Sua moeda para usar no jogo</p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 12, border: '1px solid #374151', borderRadius: 8, background: '#1f2937', maxWidth: 500, margin: '24px auto', gap: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 12, border: '1px solid #3f3f46', borderRadius: 8, background: '#27272a', maxWidth: 400, margin: '24px auto', gap: '20px' }}>
         <div>
             <h4>Recarga Global</h4>
-            <button onClick={handleBuyEnergyForAll}>Reabastecer Todos</button>
-            <p style={{textAlign: 'center', fontSize: '0.9em'}}>Custo: {ENERGY_REFILL_ALL_COST} BDG</p>
+            <button onClick={handleBuyEnergyForAll} style={buttonStyle}>Reabastecer</button>
+            <p style={{textAlign: 'center', fontSize: '0.8em', color: '#a1a1aa'}}>Custo: {ENERGY_REFILL_ALL_COST} BDG</p>
         </div>
         <div>
             <h4>Boost Pago</h4>
-            <button onClick={handleBuyPaidBoost} disabled={coinBdg < PAID_BOOST_COST || paidBoostTime > 0}>Ativar (+30 min)</button>
-            <p style={{textAlign: 'center', fontSize: '0.9em'}}>Custo: {PAID_BOOST_COST} BDG</p>
+            <button onClick={handleBuyPaidBoost} disabled={coinBdg < PAID_BOOST_COST || paidBoostTime > 0} style={buttonStyle}>Ativar (+30 min)</button>
+            <p style={{textAlign: 'center', fontSize: '0.8em', color: '#a1a1aa'}}>Custo: {PAID_BOOST_COST} BDG</p>
         </div>
       </div>
 
-       <div style={{textAlign: 'center', marginTop: '12px', minHeight: '40px'}}>
+       <div style={{textAlign: 'center', marginTop: '12px', minHeight: '20px'}}>
         {paidBoostTime > 0 && <p>Boost Pago: {formatTime(paidBoostTime)}</p>}
       </div>
 
       <div style={{ textAlign: 'center', margin: '24px 0' }}>
-        <button onClick={addNewSlot} disabled={slots.length >= 6}>Comprar Novo Gabinete ({slots.length}/6)</button>
+        <button onClick={addNewSlot} disabled={slots.length >= 6} style={buttonStyle}>Comprar Novo Gabinete ({slots.length}/6)</button>
       </div>
 
       <div style={{ marginTop: 24 }}>
-        <h3 style={{ textAlign: 'center' }}>Sua Sala de Mineração</h3>
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <h3 style={{ textAlign: 'center', color: '#e4e4e7' }}>Sua Sala de Mineração</h3>
+        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '20px' }}>
           {slots.map((slot, idx) => {
             let imageUrl = '';
             let title = 'Gabinete Vazio';
@@ -143,25 +145,25 @@ export default function MiningPage({
             }
 
             return (
-              <div key={idx} style={{ border: '2px dashed #aaa', borderRadius: '16px', padding: '10px', width: '180px', height: '280px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', background: '#162447' }}>
-                <div style={{ fontWeight: 'bold', height: '20px' }}>{slot.name}</div>
+              <div key={idx} style={{ border: '1px solid #3f3f46', borderRadius: '8px', padding: '10px', width: '140px', height: '240px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', background: '#27272a' }}>
+                <div style={{ fontWeight: 'bold', fontSize: '0.9em', color: '#a1a1aa' }}>{slot.name}</div>
                 {slot.filled ? (
                   <div style={{ textAlign: 'center' }}>
-                    <img src={imageUrl} alt={title} style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                    <img src={imageUrl} alt={title} style={{ width: '60px', height: '60px', objectFit: 'contain', margin: '10px 0' }} />
                     <p style={{ margin: '8px 0', fontWeight: 'bold' }}>{title}</p>
                     {slot.isBroken ? (
-                        <button onClick={() => handleRepairSlot(idx)} style={{marginTop: '8px', background:'#f44336', color:'white'}}>Reparar</button>
+                        <button onClick={() => handleRepairSlot(idx)} style={{...buttonStyle, background:'#ef4444'}}>Reparar</button>
                     ) : (
                       <div>
-                        <p style={{fontSize: '0.9em'}}>Tempo Restante: {formatTime(slot.repairCooldown)}</p>
-                        <button onClick={() => handleBuyEnergy(idx)}>+1h de Energia</button>
+                        <p style={{fontSize: '0.8em'}}>Tempo: {formatTime(slot.repairCooldown)}</p>
+                        <button onClick={() => handleBuyEnergy(idx)} style={{...buttonStyle, padding: '6px 10px', fontSize: '0.9em'}}>+1h Energia</button>
                       </div>
                     )}
                   </div>
                 ) : slot.free ? (
-                  <button onClick={() => handleMountFree(idx)}>Montar CPU Grátis</button>
+                  <button onClick={() => handleMountFree(idx)} style={buttonStyle}>Montar CPU Grátis</button>
                 ) : (
-                  <p style={{ color: '#888' }}>{title}</p>
+                  <p style={{ color: '#a1a1aa' }}>{title}</p>
                 )}
               </div>
             );
