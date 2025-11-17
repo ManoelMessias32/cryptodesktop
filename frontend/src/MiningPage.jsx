@@ -49,7 +49,7 @@ export default function MiningPage({
       const slotToRefill = slots[idx];
       if (!slotToRefill.filled || slotToRefill.isBroken) return;
       
-      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRefill.tier && k.length === 1));
+      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRepair.tier && k.length === 1));
       const energyCost = economyData[econKey]?.energyCost;
 
       if (coinBdg >= energyCost) {
