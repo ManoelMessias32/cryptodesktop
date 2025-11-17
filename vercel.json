@@ -4,15 +4,10 @@
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    },
-    {
-      "src": "api/claim.js",
-      "use": "@vercel/node"
+      "config": { "distDir": "frontend/dist" }
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/claim.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
