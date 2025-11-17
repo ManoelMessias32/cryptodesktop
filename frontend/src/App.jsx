@@ -42,32 +42,47 @@ export default function App() {
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
+  // CORREÇÃO DO GAMELOOP
   const gameLoop = useCallback(() => {
-    let generatedCoins = 0;
     const boostMultiplier = paidBoostTime > 0 ? 2 : 1;
-    setSlots(prevSlots => prevSlots.map(slot => {
-      if (slot.filled && !slot.isBroken && slot.repairCooldown > 0) {
-        const newCooldown = slot.repairCooldown - 1;
-        let econKey = slot.type === 'free' ? 'free' : (slot.type === 'standard' ? slot.tier : slot.type.charAt(0).toUpperCase());
-        const gainRate = economyData[econKey]?.gainRate || 0;
-        generatedCoins += gainRate * boostMultiplier;
-        if (newCooldown <= 0) {
-          return { ...slot, repairCooldown: 0, isBroken: true };
+    const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
+    
+    setSlots(prevSlots => {
+        let totalGain = 0;
+        const updatedSlots = prevSlots.map(slot => {
+            if (slot.filled && !slot.isBroken && slot.repairCooldown > 0) {
+                const newCooldown = slot.repairCooldown - 1;
+                let econKey;
+
+                if (slot.type === 'free') econKey = 'free';
+                else if (slot.type === 'standard') econKey = slot.tier;
+                else if (slot.type === 'special') econKey = specialCpuMap[slot.tier];
+                
+                const gainRate = economyData[econKey]?.gainRate || 0;
+                totalGain += gainRate * boostMultiplier;
+
+                if (newCooldown <= 0) {
+                    return { ...slot, repairCooldown: 0, isBroken: true };
+                }
+                return { ...slot, repairCooldown: newCooldown };
+            }
+            return slot;
+        });
+
+        if (totalGain > 0) {
+            setCoinBdg(prev => prev + totalGain);
         }
-        return { ...slot, repairCooldown: newCooldown };
-      }
-      return slot;
-    }));
-    if (generatedCoins > 0) {
-      setCoinBdg(prev => prev + generatedCoins);
-    }
-    if (paidBoostTime > 0) setPaidBoostTime(prev => Math.max(0, prev - 1));
-  }, [slots, paidBoostTime]);
+        return updatedSlots;
+    });
+
+    setPaidBoostTime(prev => Math.max(0, prev - 1));
+  }, [paidBoostTime]);
 
   useEffect(() => {
     const interval = setInterval(gameLoop, 1000);
     return () => clearInterval(interval);
   }, [gameLoop]);
+
 
   const handleConnect = async () => {
     try {
