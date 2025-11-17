@@ -88,12 +88,12 @@ export default function App() {
       await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
       const { address: userAddress } = await connectWallet();
       setAddress(userAddress);
-      setStatus('Carteira conectada na BNB Mainnet!');
+      setStatus('✅ Carteira conectada na BNB Mainnet!');
     } catch (e) {
       if (e.code === 4902) {
-        setStatus('Por favor, adicione a rede BNB Mainnet à sua MetaMask.');
+        setStatus('❌ Por favor, adicione a rede BNB Mainnet à sua MetaMask.');
       } else {
-        setStatus(`Falha ao conectar: ${e.message}`);
+        setStatus(`❌ Falha ao conectar: ${e.message}`);
       }
     }
   };
@@ -124,7 +124,7 @@ export default function App() {
       setSlots(prev => [...prev, { name: `Slot ${prev.length + 1}`, filled: false, free: false, repairCooldown: 0, isBroken: false }]);
       setStatus('Gabinete adicionado! Vá para a loja para comprar uma CPU.');
     } else {
-      setStatus('Número máximo de gabinetes atingido.');
+      setStatus('❌ Número máximo de gabinetes atingido.');
     }
   };
 
@@ -139,51 +139,62 @@ export default function App() {
     }
   };
 
+  // --- STYLES ---
+  const getStatusStyle = () => {
+    if (status.includes('✅')) return { color: '#22c55e' }; // green-500
+    if (status.includes('❌')) return { color: '#ef4444' }; // red-500
+    return { color: '#a1a1aa' }; // zinc-400
+  };
+
   const navButtonStyle = (page) => ({
-    background: route === page ? '#4f46e5' : '#374151',
-    color: 'white',
+    background: 'transparent',
     border: 'none',
-    padding: '10px 20px',
+    color: route === page ? '#ffffff' : '#71717a', // white vs zinc-500
+    padding: '10px',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '1em'
+    fontSize: '0.8em', // Smaller font for nav
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '4px',
+    borderBottom: route === page ? '2px solid #818cf8' : '2px solid transparent', // indigo-400
+    transition: 'color 0.2s, border-color 0.2s'
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', background: '#0f172a', color: 'white', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-      <header style={{ padding: '10px 20px', background: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <h1 style={{ fontSize: '1.5em', margin: 0 }}>Cryptodesk</h1>
-        {address ? (
-          <p style={{ margin: 0, fontSize: '0.9em', background: '#27272a', padding: '8px 12px', borderRadius: '8px' }}>
-            {`Conectado: ${address.substring(0, 6)}...${address.substring(address.length - 4)}`}
-          </p>
-        ) : (
-          <button onClick={handleConnect} style={navButtonStyle('connect')}>Conectar Carteira</button>
-        )}
-      </header>
-      
-      <p style={{ textAlign: 'center', minHeight: '24px', color: '#94a3b8', margin: '20px 0' }}>{status}</p>
+    <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <header style={{ padding: '15px 20px', background: '#27272a', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3f3f46' }}>
+          <h1 style={{ fontSize: '1.5em', margin: 0, color: '#e4e4e7' }}>Cryptodesk</h1>
+          {address ? (
+            <p style={{ margin: 0, fontSize: '0.9em', background: '#3f3f46', padding: '8px 12px', borderRadius: '999px' }}>
+              {`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}
+            </p>
+          ) : (
+            <button onClick={handleConnect} style={{ background: '#6366f1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Conectar Carteira</button>
+          )}
+        </header>
+        
+        <p style={{ textAlign: 'center', minHeight: '24px', margin: '20px 0', ...getStatusStyle() }}>{status}</p>
 
-      <main style={{ flex: 1, padding: '0 20px' }}>
-        {address ? (
-          <>
-            {renderPage()}
-          </>
-        ) : (
-          <div style={{ textAlign: 'center', paddingTop: '50px' }}>
-            <h2 style={{ fontSize: '1.2em' }}>Por favor, conecte sua carteira para começar.</h2>
-          </div>
-        )}
-      </main>
+        <main style={{ padding: '0 20px' }}>
+          {address ? renderPage() : (
+            <div style={{ textAlign: 'center', paddingTop: '50px' }}>
+              <h2 style={{ fontSize: '1.2em', color: '#a1a1aa' }}>Por favor, conecte sua carteira para começar.</h2>
+            </div>
+          )}
+        </main>
 
-      {address && (
-        <nav style={{ display: 'flex', justifyContent: 'space-around', padding: '10px', background: '#1e293b', borderTop: '1px solid #334155' }}>
-          <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>Mineração</button>
-          <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>Loja</button>
-          <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>Usuário</button>
-          <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>Rankings</button>
-        </nav>
-      )}
+        {address && (
+          <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#27272a', display: 'flex', justifyContent: 'space-around', borderTop: '1px solid #3f3f46', padding: '5px 0' }}>
+            <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}><span>⛏️</span><span>Mineração</span></button>
+            <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}><span>🛒</span><span>Loja</span></button>
+            <button onClick={() => setRoute('user')} style={navButtonStyle('user')}><span>👤</span><span>Usuário</span></button>
+            <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}><span>🏆</span><span>Rankings</span></button>
+          </nav>
+        )}
+      </div>
     </div>
   );
 }
