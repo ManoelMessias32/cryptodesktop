@@ -1,5 +1,5 @@
 import React from 'react';
-import AdComponent from './AdComponent';
+// import AdComponent from './AdComponent';
 
 // A constante economyData é recebida via props, NÃO importada.
 
@@ -83,7 +83,7 @@ export default function MiningPage({
 
   return (
     <div>
-      <AdComponent />
+      {/* <AdComponent /> */}
 
       <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginTop: 24, padding: 12, border: '1px solid #007bff', borderRadius: 8, background: '#2a2a3e', maxWidth: 600, margin: '24px auto' }}>
         <div>

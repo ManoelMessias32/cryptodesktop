@@ -8,9 +8,6 @@ import { connectWallet } from './wallet';
 
 // --- Constants for BNB MAINNET ---
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
-const TOKEN_ADDRESS = 'COLOQUE_O_ENDERECO_DO_TOKEN_BDG_NA_MAINNET_AQUI'; // Lembre-se de atualizar quando tiver
-
-const TOKEN_ABI = ['function balanceOf(address owner) view returns (uint256)', 'function decimals() view returns (uint8)'];
 const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
 const MAX_SLOTS = 6;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
