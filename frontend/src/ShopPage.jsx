@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ShopPage({ onPurchase }) {
+export default function ShopPage({ handlePurchase }) { // Corrigido de onPurchase para handlePurchase
 
   const standardCpuData = {
     1: { name: 'Tier 1', price: '0.10', image: '/tier1.png', type: 'standard' },
@@ -40,7 +40,7 @@ export default function ShopPage({ onPurchase }) {
               <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
               <p style={styles.cardText}><strong>Ganho Mensal:</strong> {item.gain} BDG</p>
             </div>
-            <button onClick={() => onPurchase(item.tier, item.type)} style={styles.buyButton}>Comprar</button>
+            <button onClick={() => handlePurchase(item.tier, item.type)} style={styles.buyButton}>Comprar</button> 
           </div>
         ))}
       </div>
@@ -56,7 +56,7 @@ export default function ShopPage({ onPurchase }) {
                 <h3 style={styles.cardTitle}>{item.name}</h3>
                 <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
               </div>
-              <button onClick={() => onPurchase(Number(key), item.type)} style={styles.buyButton}>Comprar</button>
+              <button onClick={() => handlePurchase(Number(key), item.type)} style={styles.buyButton}>Comprar</button> 
             </div>
           )
         })}
