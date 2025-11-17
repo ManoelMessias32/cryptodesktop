@@ -102,11 +102,15 @@ export default function App() {
     }
   };
 
+  // Simulates an ad view to grant the boost without using external scripts
   const handleAdSessionClick = () => {
     if (adSessionsLeft > 0 && adBoostTime <= 0) {
-      setAdSessionsLeft(prev => prev - 1);
-      setAdBoostTime(1200);
-      setStatus('Boost de anúncio ativado!');
+      setStatus('Carregando anúncio...');
+      setTimeout(() => {
+        setAdSessionsLeft(prev => prev - 1);
+        setAdBoostTime(1200); // 20 minutes
+        setStatus('✅ Boost de anúncio ativado por 20 minutos!');
+      }, 3000); // Simulate a 3-second ad view
     }
   };
 
@@ -134,7 +138,7 @@ export default function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', background: '#0f172a', color: 'white', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <header style={{ padding: '10px 20px', background: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <h1 style={{ fontSize: '1.5em', margin: 0 }}>JMW3</h1>
+        <h1 style={{ fontSize: '1.5em', margin: 0 }}>Cryptodesk</h1>
         {address ? (
           <p style={{ margin: 0, fontSize: '0.9em', background: '#27272a', padding: '8px 12px', borderRadius: '8px' }}>
             {`Conectado: ${address.substring(0, 6)}...${address.substring(address.length - 4)}`}
