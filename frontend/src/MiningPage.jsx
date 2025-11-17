@@ -1,4 +1,5 @@
 import React from 'react';
+import AdComponent from './AdComponent'; // Importa o componente de anúncio
 
 const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
 const PAID_BOOST_COST = 80;
@@ -116,6 +117,8 @@ export default function MiningPage({
        <div style={{textAlign: 'center', marginTop: '12px', minHeight: '40px'}}>
         {paidBoostTime > 0 && <p>Boost Pago: {formatTime(paidBoostTime)}</p>}
       </div>
+
+      <AdComponent adKey="76c30e6631e256ef38ab65c1ce40cee8" width={300} height={250} />
 
       <div style={{ textAlign: 'center', margin: '24px 0' }}>
         <button onClick={addNewSlot} disabled={slots.length >= 6}>Comprar Novo Gabinete ({slots.length}/6)</button>
