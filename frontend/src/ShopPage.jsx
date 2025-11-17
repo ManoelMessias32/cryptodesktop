@@ -3,9 +3,9 @@ import React from 'react';
 export default function ShopPage({ handlePurchase }) {
 
   const standardCpuData = {
-    1: { name: 'Tier 1', price: '0.10', image: '/tier1.png', type: 'standard' },
-    2: { name: 'Tier 2', price: '0.20', image: '/tier2.png', type: 'standard' },
-    3: { name: 'Tier 3', price: '0.30', image: '/tier3.png', type: 'standard' },
+    1: { name: 'Tier 1', price: '0.035', gain: '350', image: '/tier1.png', type: 'standard' },
+    2: { name: 'Tier 2', price: '0.090', gain: '650', image: '/tier2.png', type: 'standard' },
+    3: { name: 'Tier 3', price: '0.170', gain: '950', image: '/tier3.png', type: 'standard' },
   };
 
   const specialCpuData = {
@@ -55,6 +55,7 @@ export default function ShopPage({ handlePurchase }) {
                 <img src={item.image} alt={item.name} style={styles.cardImage} />
                 <h3 style={styles.cardTitle}>{item.name}</h3>
                 <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
+                <p style={styles.cardText}><strong>Ganho/Mês:</strong> {item.gain} BDG</p> 
               </div>
               <button onClick={() => handlePurchase(Number(key), item.type)} style={styles.buyButton}>Comprar</button>
             </div>

@@ -12,11 +12,12 @@ const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
 const MAX_SLOTS = 6;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
+// Updated Economy Data
 export const economyData = {
     free: { repairCost: 10, energyCost: 5, gainRate: 0.01 },
-    1: { repairCost: 20, energyCost: 10, gainRate: 0.05 },
-    2: { repairCost: 40, energyCost: 20, gainRate: 0.1 },
-    3: { repairCost: 60, energyCost: 30, gainRate: 0.2 },
+    1: { repairCost: 20, energyCost: 10, gainRate: 0.000135 }, // ~350 BDG/month
+    2: { repairCost: 40, energyCost: 20, gainRate: 0.00025 },  // ~650 BDG/month
+    3: { repairCost: 60, energyCost: 30, gainRate: 0.000367 }, // ~950 BDG/month
     A: { repairCost: 0, energyCost: 0, gainRate: 0.3 },
     B: { repairCost: 0, energyCost: 0, gainRate: 0.4 },
     C: { repairCost: 0, energyCost: 0, gainRate: 0.5 },
@@ -37,7 +38,8 @@ export default function App() {
   });
 
   const [paidBoostTime, setPaidBoostTime] = useState(0);
-  const tierPrices = { 1: '0.10', 2: '0.20', 3: '0.30' };
+  // Updated Tier Prices
+  const tierPrices = { 1: '0.035', 2: '0.090', 3: '0.170' };
 
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
