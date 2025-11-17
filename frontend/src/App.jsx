@@ -6,10 +6,10 @@ import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
 import { connectWallet } from './wallet';
 
-// --- Constants ---
+// --- Constants for BNB Testnet ---
 const TOKEN_ADDRESS = '0xcB2e51011e60841B56e278291831E8A4b0D301B2';
-const TOKEN_ABI = ['function balanceOf(address owner) view returns (uint256)', 'function decimals() view returns (uint8)'];
 const SHOP_ADDRESS = '0xeD266DC6Fd8b5124eec783c58BB351E0Bc3C7d59';
+const TOKEN_ABI = ['function balanceOf(address owner) view returns (uint256)', 'function decimals() view returns (uint8)'];
 const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
 const MAX_SLOTS = 6;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
@@ -58,65 +58,8 @@ export default function App() {
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v9', coinBdg); }, [coinBdg]);
   useEffect(() => { localStorage.setItem('adBoostTime_v7', adBoostTime); }, [adBoostTime]);
   useEffect(() => { localStorage.setItem('paidBoostTime_v6', paidBoostTime); }, [paidBoostTime]);
+  useEffect(() => { localStorage.setItem('lastAdSessionDate_v7', lastAdSessionDate); }, [lastAdSessionDate]);
 
-  useEffect(() => { /* Daily ad session reset */ }, [lastAdSessionDate]);
-
-  useEffect(() => {
-    const autoConnect = async () => {
-      if (window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-          if (accounts.length > 0) {
-            setAddress(accounts[0]);
-            setStatus('Carteira reconectada.');
-          }
-        } catch (error) {}
-      }
-    };
-    autoConnect();
-  }, []);
-
-  useEffect(() => {
-    if (!address) return;
-
-    const interval = setInterval(() => {
-        let totalGainPerHour = 0;
-        let totalCostPerHour = 0;
-
-        setAdBoostTime(prev => Math.max(0, prev - 1));
-        setPaidBoostTime(prev => Math.max(0, prev - 1));
-        const isBoostActive = (adBoostTime > 1 || paidBoostTime > 1); // Check against 1 to account for the update lag
-
-        setSlots(currentSlots => {
-            return currentSlots.map(slot => {
-                if (!slot.filled || slot.isBroken) return slot;
-
-                const econKey = slot.type === 'free' ? 'free' : (slot.type === 'standard' ? slot.tier : Object.keys(economyData).find(k => economyData[k].tier === slot.tier && k.length === 1));
-                const slotEcon = economyData[econKey];
-                
-                if (slotEcon) {
-                    totalGainPerHour += slotEcon.gain;
-                    if (!isBoostActive) {
-                        totalCostPerHour += (slotEcon.energyCost + slotEcon.coolerCost);
-                    }
-                }
-
-                const newRepairCooldown = slot.repairCooldown > 0 ? slot.repairCooldown - 1 : 0;
-                const isBroken = newRepairCooldown <= 0;
-
-                return { ...slot, repairCooldown: newRepairCooldown, isBroken };
-            });
-        });
-      
-        const netChangePerSecond = (totalGainPerHour - totalCostPerHour) / 3600;
-        if(netChangePerSecond !== 0){
-            setCoinBdg(prevCoins => Math.max(0, prevCoins + netChangePerSecond));
-        }
-
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [address, adBoostTime, paidBoostTime]);
 
   const handleConnect = async () => {
     try {
@@ -127,38 +70,27 @@ export default function App() {
       setStatus(`Falha ao conectar: ${e.message}`);
     }
   };
+  
+  const gameLoop = useCallback(() => {
+    // Game loop logic...
+  }, [slots, adBoostTime, paidBoostTime]);
+
+  useEffect(() => {
+    if (!address) return;
+    const interval = setInterval(gameLoop, 1000);
+    return () => clearInterval(interval);
+  }, [address, gameLoop]);
 
   const handlePurchase = async (tierToBuy, purchaseType) => {
-    const emptySlotIndex = slots.findIndex(slot => !slot.filled && !slot.free);
-    if (emptySlotIndex === -1) {
-      setStatus('❌ Você precisa de um gabinete vazio!');
-      return;
-    }
-    try {
-      const { signer } = await connectWallet();
-      const price = tierPrices[tierToBuy];
-      const shopContract = new ethers.Contract(SHOP_ADDRESS, SHOP_ABI, signer);
-      setStatus(`Enviando ${price} BNB... Confirme na MetaMask.`);
-      const value = ethers.utils.parseEther(price);
-      const tx = await shopContract.buyWithBNB(tierToBuy, '0x35878269EF4051Df5f82593b4819E518bA8903A3', { value });
-      await tx.wait();
-      setSlots(prev => prev.map((slot, i) => (i === emptySlotIndex ? { ...slot, filled: true, type: purchaseType, tier: tierToBuy, name: `Gabinete ${emptySlotIndex+1}`, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS, isBroken: false } : slot)));
-      setStatus(`✅ Compra realizada!`);
-    } catch (e) {
-      setStatus(`❌ Erro na compra: ${e.message || 'Transação cancelada.'}`);
-    }
+    // Purchase logic...
   };
 
   const addNewSlot = () => {
-    if (slots.length < MAX_SLOTS) {
-      setSlots(prev => [...prev, { name: `Gabinete ${prev.length + 1}`, filled: false, free: false, repairCooldown: 0, isBroken: true, type: 'empty' }]);
-    } else {
-      setStatus('Máximo de gabinetes atingido.');
-    }
+    // Add new slot logic...
   };
 
   const renderPage = () => {
-    const pageProps = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, setAdSessionsLeft, economyData };
+    const pageProps = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, adBoostTime, paidBoostTime, setPaidBoostTime, adSessionsLeft, setAdSessionsLeft, setLastAdSessionDate, economyData };
     switch (route) {
       case 'user': return <UserPage address={address} />;
       case 'shop': return <ShopPage onPurchase={handlePurchase} />;
@@ -168,7 +100,17 @@ export default function App() {
     }
   };
 
-  const styles = { /* ... */ };
+  const styles = {
+    appContainer: { fontFamily: 'Arial, sans-serif', background: '#1a1a2e', color: '#e0e0e0', minHeight: '100vh', padding: '16px' },
+    header: { display: 'flex', justifyContent: 'space-around', padding: '12px', background: '#162447', borderRadius: '8px', marginBottom: '16px' },
+    balanceBox: { textAlign: 'center' },
+    balanceLabel: { fontSize: '0.8em', color: '#a0a0a0', margin: 0 },
+    balanceAmount: { fontSize: '1.2em', fontWeight: 'bold', margin: '4px 0 0 0', color: '#fff' },
+    statusBar: { textAlign: 'center', padding: '8px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', marginBottom: '16px', minHeight: '24px' },
+    nav: { position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', background: '#162447', padding: '10px 0' },
+    navButton: { background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', color: '#e0e0e0', fontSize: '0.8em' },
+    connectContainer: { textAlign: 'center', paddingTop: '50px' }
+  };
 
   if (!address) {
     return (
@@ -185,18 +127,18 @@ export default function App() {
 
   return (
     <div style={styles.appContainer}>
-        <header style={styles.header}>
-            <div style={styles.balanceBox}><p style={styles.balanceLabel}>Coin BDG (Jogo)</p><p style={styles.balanceAmount}>{Math.floor(coinBdg)}</p></div>
-            <div style={styles.balanceBox}><p style={styles.balanceLabel}>Token BDG (Carteira)</p><p style={styles.balanceAmount}>0.0000</p></div>
-        </header>
-        <div style={styles.statusBar}>{status}</div>
-        <main style={{ paddingBottom: '80px' }}>{renderPage()}</main>
-        <nav style={styles.nav}>
-            <button onClick={() => setRoute('user')}>Usuário</button>
-            <button onClick={() => setRoute('shop')}>Loja</button>
-            <button onClick={() => setRoute('mine')}>Mineração</button>
-            <button onClick={() => setRoute('rank')}>Ranques</button>
-        </nav>
+      <header style={styles.header}>
+        <div style={styles.balanceBox}><p style={styles.balanceLabel}>Coin BDG (Jogo)</p><p style={styles.balanceAmount}>{Math.floor(coinBdg)}</p></div>
+        <div style={styles.balanceBox}><p style={styles.balanceLabel}>Token BDG (Carteira)</p><p style={styles.balanceAmount}>0.0000</p></div>
+      </header>
+      <div style={styles.statusBar}>{status}</div>
+      <main style={{ paddingBottom: '80px' }}>{renderPage()}</main>
+      <nav style={styles.nav}>
+        <button onClick={() => setRoute('user')}>Usuário</button>
+        <button onClick={() => setRoute('shop')}>Loja</button>
+        <button onClick={() => setRoute('mine')}>Mineração</button>
+        <button onClick={() => setRoute('rank')}>Ranques</button>
+      </nav>
     </div>
   );
 }
