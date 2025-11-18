@@ -1,94 +1,67 @@
+import { Ethers5Modal } from '@web3modal/ethers5';
 import { ethers } from 'ethers';
 
-const Web3Modal = window.Web3Modal.default;
-const WalletConnectProvider = window.WalletConnectProvider.default;
+// 1. Defina as redes que seu dApp suporta
+const bnbChain = {
+  chainId: 56,
+  name: 'BNB Smart Chain',
+  currency: 'BNB',
+  explorerUrl: 'https://bscscan.com',
+  rpcUrl: 'https://bsc-dataseed.binance.org/'
+}
 
-let web3Modal;
-let provider;
-let instance;
+// 2. Configure o Web3Modal
+const projectId = '37e2b189a12b6a74354c78267c260e99';
 
-const providerOptions = {
-  walletconnect: {
-    package: WalletConnectProvider,
-    options: { 
-      rpc: { 56: 'https://bsc-dataseed.binance.org/' },
-      chainId: 56,
-    },
+const metadata = {
+  name: 'Cryptodesk',
+  description: 'Seu jogo de mineração Web3',
+  url: 'https://cryptodesktop.vercel.app',
+  icons: ['https://cryptodesktop.vercel.app/logo.png'] // Certifique-se de ter um logo nesta URL
+}
+
+const modal = new Ethers5Modal(
+  {
+    ethersConfig: ethers.providers.getDefaultProvider(),
+    chains: [bnbChain],
+    projectId
   },
-};
-
-const getWeb3Modal = () => {
-  if (!web3Modal) {
-    web3Modal = new Web3Modal({
-      network: "binance",
-      cacheProvider: true, 
-      providerOptions,
-      theme: "dark",
-    });
+  {
+    projectId,
+    chainImages: {
+      56: 'https://seeklogo.com/images/B/binance-coin-bnb-logo-CD94CC6D31-seeklogo.com.png'
+    },
+    metadata
   }
-  return web3Modal;
-};
+);
 
-// A função de conexão agora decide a melhor estratégia
-export async function connectWallet() {
-  // Estratégia 1: Se estiver no Telegram, usa o WalletConnect diretamente para forçar o deep-link
-  if (window.Telegram && window.Telegram.WebApp) {
+// --- Funções Exportadas ---
+
+export async function getAddress() {
     try {
-      instance = new WalletConnectProvider(providerOptions.walletconnect.options);
-      await instance.enable();
-      provider = new ethers.providers.Web3Provider(instance);
-    } catch (e) {
-      console.error("Conexão direta com WalletConnect falhou no Telegram:", e);
-      throw new Error("Conexão cancelada ou falhou no Telegram.");
+        const signer = await modal.getSigner();
+        return await signer.getAddress();
+    } catch {
+        return null;
     }
-  } else {
-    // Estratégia 2: Em navegadores normais, usa o Web3Modal para dar opções ao usuário
-    const modal = getWeb3Modal();
+}
+
+export function openConnectionModal() {
+    return modal.open();
+}
+
+export function disconnect() {
+    return modal.disconnect();
+}
+
+export async function getSigner() {
     try {
-      instance = await modal.connect();
-      provider = new ethers.providers.Web3Provider(instance);
-    } catch (e) {
-      console.error("Conexão via Web3Modal falhou:", e);
-      throw new Error("Você cancelou a conexão.");
+        return await modal.getSigner();
+    } catch {
+        return null;
     }
-  }
-
-  // Lógica comum após a conexão ter sido estabelecida
-  const signer = provider.getSigner();
-  const address = await signer.getAddress();
-
-  instance.on("accountsChanged", () => window.location.reload());
-  instance.on("chainChanged", () => window.location.reload());
-  instance.on("disconnect", () => disconnectWallet());
-
-  return { provider, signer, address };
 }
 
-export async function disconnectWallet() {
-  const modal = getWeb3Modal();
-  if (instance && typeof instance.close === 'function') {
-    await instance.close();
-  }
-  await modal.clearCachedProvider();
-  provider = null;
-  instance = null;
-  window.location.reload();
-}
-
-export async function checkConnectedWallet() {
-    const modal = getWeb3Modal();
-    if (modal.cachedProvider) {
-        try {
-            return await connectWallet();
-        } catch (e) {
-            await modal.clearCachedProvider();
-            return null;
-        }
-    }
-    return null;
-}
-
-export function getProvider() {
-  if (!provider) return null;
-  return provider;
+export function subscribeToEvents(callback) {
+    return modal.subscribeEvents(callback);
 }

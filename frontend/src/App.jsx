@@ -4,7 +4,7 @@ import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
-import { connectWallet, disconnectWallet, checkConnectedWallet, getProvider } from './wallet';
+import { getAddress, openConnectionModal, disconnect, getSigner, subscribeToEvents } from './wallet';
 
 // --- Constants ---
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
@@ -17,9 +17,6 @@ export const economyData = {
     1: { repairCost: 20, energyCost: 10, gainRate: 0.000135 },
     2: { repairCost: 40, energyCost: 20, gainRate: 0.00025 },
     3: { repairCost: 60, energyCost: 30, gainRate: 0.000367 },
-    A: { repairCost: 0, energyCost: 0, gainRate: 0.3 },
-    B: { repairCost: 0, energyCost: 0, gainRate: 0.4 },
-    C: { repairCost: 0, energyCost: 0, gainRate: 0.5 },
 };
 
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0, isBroken: false });
@@ -43,24 +40,27 @@ export default function App() {
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
   useEffect(() => {
-    const autoConnect = async () => {
-      const connection = await checkConnectedWallet();
-      if (connection) {
-        setAddress(connection.address);
-        const savedUser = localStorage.getItem('cryptoDesktopUsername');
-        if(savedUser) setInputUsername(savedUser);
-        setStatus('✅ Bem-vindo de volta!');
-      }
+    const onConnect = async () => {
+        const addr = await getAddress();
+        if (addr) {
+            setAddress(addr);
+            const savedUser = localStorage.getItem('cryptoDesktopUsername');
+            if(savedUser) setInputUsername(savedUser);
+            setStatus('✅ Bem-vindo de volta!');
+        }
     };
-    // Só tenta reconectar automaticamente se não estiver no Telegram
-    if (!(window.Telegram && window.Telegram.WebApp)) {
-        autoConnect();
-    }
-  }, []);
+    onConnect();
+
+    const unsubscribe = subscribeToEvents(event => {
+        if(event.type === 'MODAL_CLOSE' && !address) {
+             // Ação futura se o usuário fechar o modal sem conectar
+        }
+    });
+    return () => unsubscribe();
+  }, [address]);
 
   const gameLoop = useCallback(() => {
     const boostMultiplier = paidBoostTime > 0 ? 2 : 1;
-    const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
     setSlots(prevSlots => {
         let totalGain = 0;
         const updatedSlots = prevSlots.map(slot => {
@@ -69,7 +69,6 @@ export default function App() {
                 let econKey;
                 if (slot.type === 'free') econKey = 'free';
                 else if (slot.type === 'standard') econKey = slot.tier;
-                else if (slot.type === 'special') econKey = specialCpuMap[slot.tier];
                 const gainRate = economyData[econKey]?.gainRate || 0;
                 totalGain += gainRate * boostMultiplier;
                 if (newCooldown <= 0) return { ...slot, repairCooldown: 0, isBroken: true };
@@ -95,38 +94,32 @@ export default function App() {
         setStatus('❌ Por favor, insira um nome de usuário.');
         return;
     }
-    try {
-        setStatus('Aguardando conexão da carteira...');
-        localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
-        const { address: userAddress } = await connectWallet();
-        setAddress(userAddress);
-        setStatus('✅ Carteira conectada!');
-    } catch (e) {
-        setStatus(`❌ ${e.message}`);
-    }
+    localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
+    openConnectionModal();
   };
 
   const handleDisconnect = async () => {
-    await disconnectWallet();
+    await disconnect();
+    setAddress('');
+    setStatus('Você foi desconectado.');
   };
 
-  const handlePurchase = async (tierToBuy, purchaseType) => {
+  const handlePurchase = async (tierToBuy) => {
     const emptySlotIndex = slots.findIndex(slot => !slot.filled && !slot.free);
     if (emptySlotIndex === -1) {
       setStatus('❌ Você precisa de um gabinete vazio!');
       return;
     }
     try {
-      const provider = getProvider();
-      if (!provider) throw new Error('A carteira não está conectada. Atualize a página e conecte novamente.');
-      const signer = provider.getSigner();
+      const signer = await getSigner();
+      if (!signer) throw new Error('A carteira não está conectada.');
       const price = tierPrices[tierToBuy];
       const shopContract = new ethers.Contract(SHOP_ADDRESS, SHOP_ABI, signer);
       setStatus(`Enviando ${price} BNB... Confirme a transação em sua carteira.`);
       const value = ethers.utils.parseEther(price);
       const tx = await shopContract.buyWithBNB(tierToBuy, '0x35878269EF4051Df5f82593b4819E518bA8903A3', { value });
       await tx.wait();
-      setSlots(prev => prev.map((slot, i) => (i === emptySlotIndex ? { ...slot, filled: true, type: purchaseType, tier: tierToBuy, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS, isBroken: false } : slot)));
+      setSlots(prev => prev.map((slot, i) => (i === emptySlotIndex ? { ...slot, filled: true, type: 'standard', tier: tierToBuy, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS, isBroken: false } : slot)));
       setStatus(`✅ Compra realizada!`);
     } catch (e) {
       setStatus(`❌ Erro na compra: ${e.message || 'Transação cancelada.'}`);
@@ -149,7 +142,7 @@ export default function App() {
       case 'shop': return <ShopPage handlePurchase={handlePurchase} />;
       case 'user': return <UserPage address={address} />;
       case 'rankings': return <RankingsPage />;
-      default: return <MiningPage {...props} />;
+      default: return <MiningPage {...props} />; 
     }
   };
 
