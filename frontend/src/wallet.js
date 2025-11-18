@@ -10,10 +10,8 @@ let instance;
 const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider,
-    options: {
-      rpc: {
-        56: 'https://bsc-dataseed.binance.org/', // BNB Chain Mainnet
-      },
+    options: { 
+      rpc: { 56: 'https://bsc-dataseed.binance.org/' },
       chainId: 56,
     },
   },
@@ -29,64 +27,59 @@ const getWeb3Modal = () => {
     });
   }
   return web3Modal;
-}
+};
 
-// Lógica de Conexão Principal
+// A função de conexão agora decide a melhor estratégia
 export async function connectWallet() {
-    // O Telegram injeta seu próprio provedor. Se ele existir, usamos diretamente.
-    if (window.Telegram && window.Telegram.WebApp && window.ethereum) {
-        console.log("Ambiente do Telegram detectado, usando provedor direto.");
-        try {
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            const signer = provider.getSigner();
-            const address = await signer.getAddress();
-            return { provider, signer, address };
-        } catch(e) {
-            console.error("Erro ao conectar diretamente no Telegram:", e);
-            throw new Error("Falha ao conectar carteira no Telegram.");
-        }
+  // Estratégia 1: Se estiver no Telegram, usa o WalletConnect diretamente para forçar o deep-link
+  if (window.Telegram && window.Telegram.WebApp) {
+    try {
+      instance = new WalletConnectProvider(providerOptions.walletconnect.options);
+      await instance.enable();
+      provider = new ethers.providers.Web3Provider(instance);
+    } catch (e) {
+      console.error("Conexão direta com WalletConnect falhou no Telegram:", e);
+      throw new Error("Conexão cancelada ou falhou no Telegram.");
     }
-    
-    // Para todos os outros ambientes (navegadores de PC, celular), usamos Web3Modal.
-    console.log("Ambiente padrão detectado, usando Web3Modal.");
+  } else {
+    // Estratégia 2: Em navegadores normais, usa o Web3Modal para dar opções ao usuário
     const modal = getWeb3Modal();
     try {
-        instance = await modal.connect();
-        provider = new ethers.providers.Web3Provider(instance);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-
-        instance.on("accountsChanged", () => window.location.reload());
-        instance.on("chainChanged", () => window.location.reload());
-        instance.on("disconnect", () => disconnectWallet());
-
-        return { provider, signer, address };
+      instance = await modal.connect();
+      provider = new ethers.providers.Web3Provider(instance);
     } catch (e) {
-        throw new Error("Você cancelou a conexão.");
+      console.error("Conexão via Web3Modal falhou:", e);
+      throw new Error("Você cancelou a conexão.");
     }
+  }
+
+  // Lógica comum após a conexão ter sido estabelecida
+  const signer = provider.getSigner();
+  const address = await signer.getAddress();
+
+  instance.on("accountsChanged", () => window.location.reload());
+  instance.on("chainChanged", () => window.location.reload());
+  instance.on("disconnect", () => disconnectWallet());
+
+  return { provider, signer, address };
 }
 
 export async function disconnectWallet() {
-    const modal = getWeb3Modal();
-    if (instance && instance.close) {
-        await instance.close();
-    }
-    await modal.clearCachedProvider();
-    provider = null;
-    instance = null;
-    window.location.reload();
+  const modal = getWeb3Modal();
+  if (instance && typeof instance.close === 'function') {
+    await instance.close();
+  }
+  await modal.clearCachedProvider();
+  provider = null;
+  instance = null;
+  window.location.reload();
 }
 
-// A reconexão automática só funcionará de forma confiável fora do Telegram
 export async function checkConnectedWallet() {
-    if (window.Telegram && window.Telegram.WebApp) return null; // Desativa auto-connect no Telegram
-
     const modal = getWeb3Modal();
     if (modal.cachedProvider) {
         try {
-            const result = await connectWallet();
-            return result;
+            return await connectWallet();
         } catch (e) {
             await modal.clearCachedProvider();
             return null;
@@ -96,6 +89,6 @@ export async function checkConnectedWallet() {
 }
 
 export function getProvider() {
-    if (!provider) return null;
-    return provider;
+  if (!provider) return null;
+  return provider;
 }

@@ -52,7 +52,10 @@ export default function App() {
         setStatus('✅ Bem-vindo de volta!');
       }
     };
-    autoConnect();
+    // Só tenta reconectar automaticamente se não estiver no Telegram
+    if (!(window.Telegram && window.Telegram.WebApp)) {
+        autoConnect();
+    }
   }, []);
 
   const gameLoop = useCallback(() => {
@@ -115,11 +118,11 @@ export default function App() {
     }
     try {
       const provider = getProvider();
-      if (!provider) throw new Error('A carteira não está conectada.');
+      if (!provider) throw new Error('A carteira não está conectada. Atualize a página e conecte novamente.');
       const signer = provider.getSigner();
       const price = tierPrices[tierToBuy];
       const shopContract = new ethers.Contract(SHOP_ADDRESS, SHOP_ABI, signer);
-      setStatus(`Enviando ${price} BNB... Confirme na MetaMask.`);
+      setStatus(`Enviando ${price} BNB... Confirme a transação em sua carteira.`);
       const value = ethers.utils.parseEther(price);
       const tx = await shopContract.buyWithBNB(tierToBuy, '0x35878269EF4051Df5f82593b4819E518bA8903A3', { value });
       await tx.wait();
