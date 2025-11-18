@@ -108,6 +108,11 @@ export default function App() {
 
 
   const handleConnect = async () => {
+    if (!window.ethereum) {
+      setStatus('❌ Carteira MetaMask não detectada! Instale a extensão ou acesse por um navegador compatível.');
+      return;
+    }
+
     if (!inputUsername.trim()) {
         setStatus('❌ Por favor, insira um nome de usuário para continuar.');
         return;
