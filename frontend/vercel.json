@@ -1,4 +1,5 @@
 {
-  "trailingSlash": false,
-  "rewrites": [{ "source": "/((?!api/|\\.well-known/|\\.png).)*", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
