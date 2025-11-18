@@ -1,67 +1,90 @@
 import { ethers } from 'ethers';
 
-const WalletConnectProvider = window.WalletConnectProvider?.default;
+// Carrega as bibliotecas do window, que foram adicionadas no index.html
+const Web3Modal = window.Web3Modal.default;
+const WalletConnectProvider = window.WalletConnectProvider.default;
 
-let providerInstance;
+let web3Modal;
+let provider;
+let instance;
 
-// Função para criar uma NOVA instância do provedor
-const createNewProviderInstance = () => {
-  if (!WalletConnectProvider) {
-    console.error("Biblioteca do WalletConnect não encontrada!");
-    return null;
-  }
-  return new WalletConnectProvider({
-    rpc: {
-      56: 'https://bsc-dataseed.binance.org/', // BNB Chain Mainnet
+// 1. Define as opções para o Web3Modal, principalmente para o WalletConnect
+const providerOptions = {
+  walletconnect: {
+    package: WalletConnectProvider,
+    options: {
+      rpc: {
+        56: 'https://bsc-dataseed.binance.org/', // BNB Chain Mainnet
+      },
+      chainId: 56,
     },
-    chainId: 56,
-  });
+  },
 };
 
+// 2. Cria a instância do Web3Modal (apenas uma vez)
+const getWeb3Modal = () => {
+  if (!web3Modal) {
+    web3Modal = new Web3Modal({
+      network: "binance", // Ajuda a sugerir a rede correta
+      cacheProvider: true, // Lembra da carteira que o usuário conectou
+      providerOptions,
+      theme: "dark",
+      disableInjectedProvider: false, // Garante que a opção MetaMask apareça
+    });
+  }
+  return web3Modal;
+}
+
+// 3. Função principal para conectar
 export async function connectWallet() {
-  // Força a criação de uma nova instância para evitar que carteiras "agressivas" (Ronin) roubem a sessão.
-  providerInstance = createNewProviderInstance();
-
-  if (!providerInstance) {
-    throw new Error("Falha ao carregar o provedor WalletConnect.");
-  }
-
-  // Garante que qualquer sessão antiga seja encerrada antes de começar uma nova.
-  if (providerInstance.connected) {
-    await providerInstance.disconnect();
-  }
-
+  const modal = getWeb3Modal();
   try {
-    // Ativa a sessão do WalletConnect (mostra o QR code ou abre o app da carteira)
-    await providerInstance.enable();
+    // Abre o pop-up do Web3Modal e aguarda o usuário escolher uma carteira
+    instance = await modal.connect();
 
-    const provider = new ethers.providers.Web3Provider(providerInstance);
+    // Cria o provedor ethers a partir da instância da carteira escolhida
+    provider = new ethers.providers.Web3Provider(instance);
     const signer = provider.getSigner();
     const address = await signer.getAddress();
 
-    // Monitora o evento de desconexão
-    providerInstance.on("disconnect", (code, reason) => {
-        console.log("Carteira desconectada", code, reason);
-        window.location.reload(); // Recarrega a página para limpar o estado
-    });
+    // Monitora eventos importantes para recarregar a página e evitar bugs
+    instance.on("accountsChanged", () => window.location.reload());
+    instance.on("chainChanged", () => window.location.reload());
+    instance.on("disconnect", () => disconnectWallet());
 
     return { provider, signer, address };
-
   } catch (e) {
-    console.error("Não foi possível conectar a carteira:", e);
-    throw new Error("Conexão com a carteira cancelada ou falhou.");
+    // O usuário fechou o pop-up
+    console.error("Não foi possível conectar a carteira via Web3Modal:", e);
+    throw new Error("Você cancelou a conexão.");
   }
 }
 
+// 4. Função para desconectar
 export async function disconnectWallet() {
-    if (providerInstance && providerInstance.connected) {
-        await providerInstance.disconnect();
-    }
-    providerInstance = null;
+  const modal = getWeb3Modal();
+  if (instance && instance.close) {
+    await instance.close();
+  }
+  await modal.clearCachedProvider();
+  provider = null;
+  instance = null;
+  window.location.reload(); // Recarrega para um estado limpo
 }
 
+// 5. Função para reconectar automaticamente
 export async function checkConnectedWallet() {
-  // Esta função não é mais necessária, pois a sessão é gerenciada ativamente.
-  // Manter para não quebrar a importação, mas não deve ser usada para auto-login com este setup.
-  return null;
+    const modal = getWeb3Modal();
+    if (modal.cachedProvider) {
+        try {
+            // Tenta se reconectar silenciosamente, sem abrir o pop-up
+            const result = await connectWallet();
+            return result;
+        } catch (e) {
+            console.log("Não foi possível reconectar automaticamente.", e);
+            await modal.clearCachedProvider(); // Limpa o cache se a reconexão falhar
+            return null;
+        }
+    }
+    return null;
 }

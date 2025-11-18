@@ -4,7 +4,7 @@ import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
-import { connectWallet, disconnectWallet } from './wallet'; // Removido checkConnectedWallet
+import { connectWallet, disconnectWallet, checkConnectedWallet } from './wallet';
 
 // --- Constants ---
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
@@ -42,8 +42,22 @@ export default function App() {
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
+  // Efeito para reconectar automaticamente
+  useEffect(() => {
+    const autoConnect = async () => {
+      const connection = await checkConnectedWallet();
+      if (connection) {
+        setAddress(connection.address);
+        const savedUser = localStorage.getItem('cryptoDesktopUsername');
+        if(savedUser) setInputUsername(savedUser);
+        setStatus('✅ Bem-vindo de volta!');
+      }
+    };
+    autoConnect();
+  }, []);
+
   const gameLoop = useCallback(() => {
-      // ... (código do gameLoop existente)
+      // ... (código do gameLoop existente, não precisa mudar)
   }, [paidBoostTime, setSlots, setCoinBdg]);
 
   useEffect(() => {
@@ -58,7 +72,7 @@ export default function App() {
     }
     
     try {
-        setStatus('Conectando carteira... Siga as instruções no seu app de carteira ou escaneie o QR Code.');
+        setStatus('Aguardando conexão da carteira...');
         localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
         const { address: userAddress } = await connectWallet();
         setAddress(userAddress);
@@ -70,13 +84,10 @@ export default function App() {
 
   const handleDisconnect = async () => {
     await disconnectWallet();
-    setAddress('');
-    setStatus('Você foi desconectado.');
-    window.location.reload(); // Força o recarregamento para limpar completamente o estado
   };
 
   const handlePurchase = async (tierToBuy, purchaseType) => {
-     // ... (código existente)
+    // ... (código de compra existente)
   };
 
   const addNewSlot = () => {
@@ -84,40 +95,13 @@ export default function App() {
   };
 
   const renderPage = () => {
-    const props = { coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, paidBoostTime, setPaidBoostTime, economyData };
     // ... (código existente)
   };
 
   // --- STYLES ---
-   // ... (código de estilos existente)
+  // ... (código de estilos existente)
 
   return (
-    <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh' }}>
-        {!address ? (
-          // TELA DE ONBOARDING
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px' }}>
-            <h1 style={{ fontSize: '2.5em' }}>Cryptodesk</h1>
-            <p style={{color: '#a1a1aa'}}>Seu jogo de mineração Web3</p>
-            <input type="text" placeholder="Crie seu nome de usuário" value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #3f3f46', background: '#27272a', color: 'white', width: '90%', maxWidth: '350px' }} />
-            <button onClick={handleConnect} style={{ background: '#6366f1', color: 'white', border: 'none', padding: '15px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', marginTop: '20px' }}>Conectar e Jogar</button>
-            <p style={{ marginTop: '20px' }}>{status}</p>
-          </div>
-        ) : (
-          // TELA PRINCIPAL DO JOGO
-          <>
-            <header style={{ padding: '15px 20px', background: '#27272a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h1>Cryptodesk</h1>
-              <div>
-                <span style={{ marginRight: '15px' }}>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</span>
-                <button onClick={handleDisconnect} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px' }}>Sair</button>
-              </div>
-            </header>
-            <main style={{ padding: '20px' }}>{renderPage()}</main>
-            <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#27272a', display: 'flex', justifyContent: 'space-around', borderTop: '1px solid #3f3f46' }}>
-                 {/* ... (botões de navegação existentes) */}
-            </nav>
-          </>
-        )}
-    </div>
+    // ... (JSX existente)
   );
 }
