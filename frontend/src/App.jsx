@@ -4,7 +4,7 @@ import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
-import { connectWallet, disconnectWallet, checkConnectedWallet, getProvider } from './wallet'; // Importa getProvider
+import { connectWallet, disconnectWallet, checkConnectedWallet, getProvider } from './wallet';
 
 // --- Constants ---
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
@@ -114,7 +114,7 @@ export default function App() {
       return;
     }
     try {
-      const provider = getProvider(); // Usa o provider já estabelecido pelo Web3Modal
+      const provider = getProvider();
       if (!provider) throw new Error('A carteira não está conectada.');
       const signer = provider.getSigner();
       const price = tierPrices[tierToBuy];
