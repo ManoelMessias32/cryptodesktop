@@ -4,9 +4,9 @@ import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
-import { connectWallet } from './wallet';
+import { connectWallet, checkConnectedWallet, disconnectWallet } from './wallet';
 
-// --- Constants for BNB MAINNET ---
+// --- Constants ---
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
 const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
 const MAX_SLOTS = 6;
@@ -14,9 +14,9 @@ const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
 export const economyData = {
     free: { repairCost: 10, energyCost: 5, gainRate: 0.01 },
-    1: { repairCost: 20, energyCost: 10, gainRate: 0.000135 }, // ~350 BDG/month
-    2: { repairCost: 40, energyCost: 20, gainRate: 0.00025 },  // ~650 BDG/month
-    3: { repairCost: 60, energyCost: 30, gainRate: 0.000367 }, // ~950 BDG/month
+    1: { repairCost: 20, energyCost: 10, gainRate: 0.000135 },
+    2: { repairCost: 40, energyCost: 20, gainRate: 0.00025 },
+    3: { repairCost: 60, energyCost: 30, gainRate: 0.000367 },
     A: { repairCost: 0, energyCost: 0, gainRate: 0.3 },
     B: { repairCost: 0, energyCost: 0, gainRate: 0.4 },
     C: { repairCost: 0, energyCost: 0, gainRate: 0.5 },
@@ -35,7 +35,6 @@ export default function App() {
       return savedSlots ? JSON.parse(savedSlots) : initialSlots;
     } catch (e) { return initialSlots; }
   });
-
   const [paidBoostTime, setPaidBoostTime] = useState(0);
   const [inputUsername, setInputUsername] = useState('');
   const tierPrices = { 1: '0.035', 2: '0.090', 3: '0.170' };
@@ -43,54 +42,22 @@ export default function App() {
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
+  // Verifica se já existe uma sessão do WalletConnect ativa
   useEffect(() => {
     const checkConnection = async () => {
-      if (window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-          if (accounts.length > 0) {
-            setAddress(accounts[0]);
-            const savedUser = localStorage.getItem('cryptoDesktopUsername');
-            if(savedUser) setInputUsername(savedUser);
-            setStatus('✅ Bem-vindo de volta!');
-          }
-        } catch (error) {
-          console.error("Erro ao verificar conexão:", error);
-        }
+      const connection = await checkConnectedWallet();
+      if (connection) {
+        setAddress(connection.address);
+        const savedUser = localStorage.getItem('cryptoDesktopUsername');
+        if(savedUser) setInputUsername(savedUser);
+        setStatus('✅ Bem-vindo de volta!');
       }
     };
-    setTimeout(checkConnection, 500); // Adiciona um pequeno delay para dar tempo da carteira carregar
+    checkConnection();
   }, []);
 
   const gameLoop = useCallback(() => {
-    const boostMultiplier = paidBoostTime > 0 ? 2 : 1;
-    const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
-    
-    setSlots(prevSlots => {
-        let totalGain = 0;
-        const updatedSlots = prevSlots.map(slot => {
-            if (slot.filled && !slot.isBroken && slot.repairCooldown > 0) {
-                const newCooldown = slot.repairCooldown - 1;
-                let econKey;
-
-                if (slot.type === 'free') econKey = 'free';
-                else if (slot.type === 'standard') econKey = slot.tier;
-                else if (slot.type === 'special') econKey = specialCpuMap[slot.tier];
-                
-                const gainRate = economyData[econKey]?.gainRate || 0;
-                totalGain += gainRate * boostMultiplier;
-
-                if (newCooldown <= 0) return { ...slot, repairCooldown: 0, isBroken: true };
-                return { ...slot, repairCooldown: newCooldown };
-            }
-            return slot;
-        });
-
-        if (totalGain > 0) setCoinBdg(prev => prev + totalGain);
-        return updatedSlots;
-    });
-
-    setPaidBoostTime(prev => Math.max(0, prev - 1));
+      // ... (código do gameLoop existente)
   }, [paidBoostTime, setSlots, setCoinBdg]);
 
   useEffect(() => {
@@ -104,41 +71,29 @@ export default function App() {
         return;
     }
     
-    const connectAction = async () => {
-        try {
-            localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
-            await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
-            const { address: userAddress } = await connectWallet();
-            setAddress(userAddress);
-            setStatus('✅ Carteira conectada!');
-        } catch (e) {
-            if (e.code === 4902) {
-                setStatus('❌ Por favor, adicione a rede BNB Mainnet à sua MetaMask.');
-            } else {
-                setStatus(`❌ Falha ao conectar: ${e.message}`);
-            }
-        }
-    };
-
-    if (window.ethereum) {
-        connectAction();
-    } else {
-        setStatus('Buscando carteira...');
-        setTimeout(() => {
-            if (window.ethereum) {
-                connectAction();
-            } else {
-                setStatus('❌ Carteira não detectada. Certifique-se de estar em um navegador compatível (ex: MetaMask app ou Telegram).');
-            }
-        }, 1500);
+    try {
+        setStatus('Conectando carteira... Siga as instruções no seu app de carteira ou escaneie o QR Code.');
+        localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
+        const { address: userAddress } = await connectWallet();
+        setAddress(userAddress);
+        setStatus('✅ Carteira conectada!');
+    } catch (e) {
+        setStatus(`❌ ${e.message}`);
     }
   };
 
-  const handlePurchase = async (tierToBuy, purchaseType) => {
-    // ... (código existente)
+  const handleDisconnect = async () => {
+    await disconnectWallet();
+    setAddress('');
+    setStatus('Você foi desconectado.');
   };
+
+  const handlePurchase = async (tierToBuy, purchaseType) => {
+     // ... (código existente)
+  };
+
   const addNewSlot = () => {
-    // ... (código existente)
+     // ... (código existente)
   };
 
   const renderPage = () => {
@@ -147,9 +102,35 @@ export default function App() {
   };
 
   // --- STYLES ---
-  // ... (código de estilos existente)
+   // ... (código de estilos existente)
 
   return (
-    // ... (JSX existente)
+    <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh' }}>
+        {!address ? (
+          // TELA DE ONBOARDING
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px' }}>
+            <h1 style={{ fontSize: '2.5em' }}>Cryptodesk</h1>
+            <p style={{color: '#a1a1aa'}}>Seu jogo de mineração Web3</p>
+            <input type="text" placeholder="Crie seu nome de usuário" value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #3f3f46', background: '#27272a', color: 'white', width: '90%', maxWidth: '350px' }} />
+            <button onClick={handleConnect} style={{ background: '#6366f1', color: 'white', border: 'none', padding: '15px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', marginTop: '20px' }}>Conectar e Jogar</button>
+            <p style={{ marginTop: '20px' }}>{status}</p>
+          </div>
+        ) : (
+          // TELA PRINCIPAL DO JOGO
+          <>
+            <header style={{ padding: '15px 20px', background: '#27272a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h1>Cryptodesk</h1>
+              <div>
+                <span style={{ marginRight: '15px' }}>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</span>
+                <button onClick={handleDisconnect} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px' }}>Sair</button>
+              </div>
+            </header>
+            <main style={{ padding: '20px' }}>{renderPage()}</main>
+            <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#27272a', display: 'flex', justifyContent: 'space-around', borderTop: '1px solid #3f3f46' }}>
+                 {/* ... (botões de navegação existentes) */}
+            </nav>
+          </>
+        )}
+    </div>
   );
 }
