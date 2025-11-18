@@ -4,7 +4,7 @@ import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
-import { connectWallet, disconnectWallet, checkConnectedWallet } from './wallet';
+import { connectWallet, disconnectWallet, checkConnectedWallet, getProvider } from './wallet'; // Importa getProvider
 
 // --- Constants ---
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
@@ -80,7 +80,7 @@ export default function App() {
         return updatedSlots;
     });
     setPaidBoostTime(prev => Math.max(0, prev - 1));
-  }, [paidBoostTime]);
+  }, [paidBoostTime, slots]);
 
   useEffect(() => {
     const interval = setInterval(gameLoop, 1000);
@@ -114,7 +114,9 @@ export default function App() {
       return;
     }
     try {
-      const { signer } = await connectWallet();
+      const provider = getProvider(); // Usa o provider já estabelecido pelo Web3Modal
+      if (!provider) throw new Error('A carteira não está conectada.');
+      const signer = provider.getSigner();
       const price = tierPrices[tierToBuy];
       const shopContract = new ethers.Contract(SHOP_ADDRESS, SHOP_ABI, signer);
       setStatus(`Enviando ${price} BNB... Confirme na MetaMask.`);
@@ -173,8 +175,10 @@ export default function App() {
           <>
             <header style={{ padding: '15px 20px', background: '#27272a', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #3f3f46' }}>
               <h1 style={{ fontSize: '1.5em', margin: 0, color: '#e4e4e7' }}>Cryptodesk</h1>
-              <p style={{ margin: 0, fontSize: '0.9em', background: '#3f3f46', padding: '8px 12px', borderRadius: '999px' }}>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</p>
-              <button onClick={handleDisconnect} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', marginLeft: '10px' }}>Sair</button>
+              <div style={{display: 'flex', alignItems: 'center'}}>
+                 <p style={{ margin: 0, fontSize: '0.9em', background: '#3f3f46', padding: '8px 12px', borderRadius: '999px' }}>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</p>
+                 <button onClick={handleDisconnect} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', marginLeft: '10px' }}>Sair</button>
+              </div>
             </header>
             <p style={{ textAlign: 'center', minHeight: '24px', margin: '20px 0', ...getStatusStyle() }}>{status}</p>
             <main style={{ padding: '0 20px' }}>{renderPage()}</main>
