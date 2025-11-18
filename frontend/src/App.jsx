@@ -4,7 +4,7 @@ import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
-import { connectWallet, checkConnectedWallet, disconnectWallet } from './wallet';
+import { connectWallet, disconnectWallet } from './wallet'; // Removido checkConnectedWallet
 
 // --- Constants ---
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
@@ -42,20 +42,6 @@ export default function App() {
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
-  // Verifica se já existe uma sessão do WalletConnect ativa
-  useEffect(() => {
-    const checkConnection = async () => {
-      const connection = await checkConnectedWallet();
-      if (connection) {
-        setAddress(connection.address);
-        const savedUser = localStorage.getItem('cryptoDesktopUsername');
-        if(savedUser) setInputUsername(savedUser);
-        setStatus('✅ Bem-vindo de volta!');
-      }
-    };
-    checkConnection();
-  }, []);
-
   const gameLoop = useCallback(() => {
       // ... (código do gameLoop existente)
   }, [paidBoostTime, setSlots, setCoinBdg]);
@@ -86,6 +72,7 @@ export default function App() {
     await disconnectWallet();
     setAddress('');
     setStatus('Você foi desconectado.');
+    window.location.reload(); // Força o recarregamento para limpar completamente o estado
   };
 
   const handlePurchase = async (tierToBuy, purchaseType) => {

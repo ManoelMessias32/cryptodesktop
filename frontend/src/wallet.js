@@ -1,73 +1,67 @@
 import { ethers } from 'ethers';
 
-// Referência ao provedor do WalletConnect, que é carregado pelo script no index.html
 const WalletConnectProvider = window.WalletConnectProvider?.default;
 
 let providerInstance;
-let provider;
 
-// Configuração do provedor WalletConnect
-const getProviderInstance = () => {
-  if (!providerInstance) {
-    providerInstance = new WalletConnectProvider({
-      rpc: {
-        56: 'https://bsc-dataseed.binance.org/', // BNB Chain Mainnet
-      },
-      // Isso força a conexão com a BNB Chain
-      chainId: 56,
-    });
+// Função para criar uma NOVA instância do provedor
+const createNewProviderInstance = () => {
+  if (!WalletConnectProvider) {
+    console.error("Biblioteca do WalletConnect não encontrada!");
+    return null;
   }
-  return providerInstance;
+  return new WalletConnectProvider({
+    rpc: {
+      56: 'https://bsc-dataseed.binance.org/', // BNB Chain Mainnet
+    },
+    chainId: 56,
+  });
 };
 
 export async function connectWallet() {
-  if (!WalletConnectProvider) {
-    throw new Error("Falha ao carregar o provedor WalletConnect. Verifique a conexão com a internet.");
+  // Força a criação de uma nova instância para evitar que carteiras "agressivas" (Ronin) roubem a sessão.
+  providerInstance = createNewProviderInstance();
+
+  if (!providerInstance) {
+    throw new Error("Falha ao carregar o provedor WalletConnect.");
+  }
+
+  // Garante que qualquer sessão antiga seja encerrada antes de começar uma nova.
+  if (providerInstance.connected) {
+    await providerInstance.disconnect();
   }
 
   try {
-    const wcProvider = getProviderInstance();
-
-    // Se já estiver conectado, reutiliza a sessão
-    if (wcProvider.connected) {
-      provider = new ethers.providers.Web3Provider(wcProvider);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      return { provider, signer, address };
-    }
-
     // Ativa a sessão do WalletConnect (mostra o QR code ou abre o app da carteira)
-    await wcProvider.enable();
+    await providerInstance.enable();
 
-    provider = new ethers.providers.Web3Provider(wcProvider);
+    const provider = new ethers.providers.Web3Provider(providerInstance);
     const signer = provider.getSigner();
     const address = await signer.getAddress();
+
+    // Monitora o evento de desconexão
+    providerInstance.on("disconnect", (code, reason) => {
+        console.log("Carteira desconectada", code, reason);
+        window.location.reload(); // Recarrega a página para limpar o estado
+    });
 
     return { provider, signer, address };
 
   } catch (e) {
     console.error("Não foi possível conectar a carteira:", e);
-    // Se o usuário fechar o modal do QR Code, um erro é lançado.
     throw new Error("Conexão com a carteira cancelada ou falhou.");
   }
 }
 
 export async function disconnectWallet() {
-    const wcProvider = getProviderInstance();
-    if (wcProvider && wcProvider.connected) {
-        await wcProvider.disconnect();
-        providerInstance = null; // Limpa a instância para uma nova conexão no futuro
+    if (providerInstance && providerInstance.connected) {
+        await providerInstance.disconnect();
     }
+    providerInstance = null;
 }
 
-// Função para verificar se há uma sessão ativa do WalletConnect
 export async function checkConnectedWallet() {
-    const wcProvider = getProviderInstance();
-    if (wcProvider && wcProvider.connected) {
-        provider = new ethers.providers.Web3Provider(wcProvider);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        return { provider, signer, address };
-    }
-    return null; // Retorna nulo se não houver sessão ativa
+  // Esta função não é mais necessária, pois a sessão é gerenciada ativamente.
+  // Manter para não quebrar a importação, mas não deve ser usada para auto-login com este setup.
+  return null;
 }
