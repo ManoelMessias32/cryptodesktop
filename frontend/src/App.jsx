@@ -52,12 +52,12 @@ export default function App() {
     onConnect();
 
     const unsubscribe = subscribeToEvents(event => {
-        if(event.type === 'MODAL_CLOSE' && !address) {
-             // Ação futura se o usuário fechar o modal sem conectar
+        if(event.type === 'ACCOUNT_CHANGED') {
+            window.location.reload();
         }
     });
     return () => unsubscribe();
-  }, [address]);
+  }, []);
 
   const gameLoop = useCallback(() => {
     const boostMultiplier = paidBoostTime > 0 ? 2 : 1;

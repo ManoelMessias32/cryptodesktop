@@ -1,67 +1,104 @@
-import { Ethers5Modal } from '@web3modal/ethers5';
 import { ethers } from 'ethers';
 
-// 1. Defina as redes que seu dApp suporta
-const bnbChain = {
-  chainId: 56,
-  name: 'BNB Smart Chain',
-  currency: 'BNB',
-  explorerUrl: 'https://bscscan.com',
-  rpcUrl: 'https://bsc-dataseed.binance.org/'
-}
+const Web3Modal = window.Web3Modal.default;
+const WalletConnectProvider = window.WalletConnectProvider.default;
 
-// 2. Configure o Web3Modal
-const projectId = '37e2b189a12b6a74354c78267c260e99';
+let web3Modal;
+let provider;
+let instance;
 
-const metadata = {
-  name: 'Cryptodesk',
-  description: 'Seu jogo de mineração Web3',
-  url: 'https://cryptodesktop.vercel.app',
-  icons: ['https://cryptodesktop.vercel.app/logo.png'] // Certifique-se de ter um logo nesta URL
-}
+// --- Funções de Detecção de Provedor ---
 
-const modal = new Ethers5Modal(
-  {
-    ethersConfig: ethers.providers.getDefaultProvider(),
-    chains: [bnbChain],
-    projectId
-  },
-  {
-    projectId,
-    chainImages: {
-      56: 'https://seeklogo.com/images/B/binance-coin-bnb-logo-CD94CC6D31-seeklogo.com.png'
-    },
-    metadata
+// Procura de forma inteligente pelo provedor da MetaMask, ignorando outros.
+const getMetaMaskProvider = () => {
+  if (!window.ethereum) return null;
+  // O padrão moderno (EIP-6963) é uma lista de provedores.
+  if (window.ethereum.providers) {
+    return window.ethereum.providers.find((p) => p.isMetaMask) || null;
   }
-);
+  // Fallback para o padrão antigo se só houver um provedor.
+  if (window.ethereum.isMetaMask) {
+    return window.ethereum;
+  }
+  return null;
+};
 
-// --- Funções Exportadas ---
+// --- Lógica de Conexão ---
 
-export async function getAddress() {
+const providerOptions = {
+  walletconnect: {
+    package: WalletConnectProvider,
+    options: { rpc: { 56: 'https://bsc-dataseed.binance.org/' }, chainId: 56 },
+  },
+};
+
+const getWeb3Modal = () => {
+  if (!web3Modal) {
+    web3Modal = new Web3Modal({ network: "binance", cacheProvider: true, providerOptions, theme: "dark" });
+  }
+  return web3Modal;
+};
+
+// Conexão principal que decide a estratégia
+export async function connectWallet() {
+  // Estratégia 1: Ambiente do Telegram (conexão direta e silenciosa)
+  const metaMaskProvider = getMetaMaskProvider();
+  if (window.Telegram && window.Telegram.WebApp && metaMaskProvider) {
     try {
-        const signer = await modal.getSigner();
-        return await signer.getAddress();
-    } catch {
-        return null;
+      provider = new ethers.providers.Web3Provider(metaMaskProvider);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      return { provider, signer, address };
+    } catch (e) {
+      throw new Error("Falha ao conectar no Telegram. Tente novamente.");
     }
+  }
+
+  // Estratégia 2: Navegadores normais (Usa o pop-up do Web3Modal)
+  const modal = getWeb3Modal();
+  try {
+    instance = await modal.connect();
+    provider = new ethers.providers.Web3Provider(instance);
+    const signer = provider.getSigner();
+    const address = await signer.getAddress();
+
+    instance.on("accountsChanged", () => window.location.reload());
+    instance.on("chainChanged", () => window.location.reload());
+    instance.on("disconnect", () => disconnectWallet());
+
+    return { provider, signer, address };
+  } catch (e) {
+    throw new Error("Você cancelou a conexão.");
+  }
 }
 
-export function openConnectionModal() {
-    return modal.open();
+export async function disconnectWallet() {
+  const modal = getWeb3Modal();
+  if (instance && typeof instance.close === 'function') {
+    await instance.close();
+  }
+  await modal.clearCachedProvider();
+  provider = null;
+  instance = null;
+  window.location.reload();
 }
 
-export function disconnect() {
-    return modal.disconnect();
-}
-
-export async function getSigner() {
-    try {
-        return await modal.getSigner();
-    } catch {
-        return null;
+export async function checkConnectedWallet() {
+    if (window.Telegram && window.Telegram.WebApp) return null;
+    const modal = getWeb3Modal();
+    if (modal.cachedProvider) {
+        try {
+            return await connectWallet();
+        } catch (e) {
+            await modal.clearCachedProvider();
+            return null;
+        }
     }
+    return null;
 }
 
-export function subscribeToEvents(callback) {
-    return modal.subscribeEvents(callback);
+export function getProvider() {
+  if (!provider) return null;
+  return provider;
 }
