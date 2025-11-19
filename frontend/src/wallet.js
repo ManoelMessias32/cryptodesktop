@@ -1,73 +1,93 @@
-import Web3Modal from 'web3modal';
+
+import { createWeb3Modal, defaultConfig } from '@web3modal/ethers5';
 import { ethers } from 'ethers';
-import WalletConnectProvider from '@walletconnect/web3-provider';
 
-let web3Modal;
-let provider;
-let instance;
+// 1. Get a project ID at https://cloud.walletconnect.com
+const projectId = 'YOUR_PROJECT_ID'; // <-- Cole seu projectId aqui
 
-const providerOptions = {
-  walletconnect: {
-    package: WalletConnectProvider,
-    options: {
-      rpc: {
-        56: 'https://bsc-dataseed.binance.org/',
-      },
-      chainId: 56,
-    },
-  },
+// 2. Set chains
+const bsc = {
+  chainId: 56,
+  name: 'BNB Smart Chain',
+  currency: 'BNB',
+  explorerUrl: 'https://bscscan.com',
+  rpcUrl: 'https://bsc-dataseed.binance.org/'
 };
 
-const getWeb3Modal = () => {
-  if (!web3Modal) {
-    web3Modal = new Web3Modal({
-      network: "binance",
-      cacheProvider: true,
-      providerOptions,
-      theme: "dark",
-      disableInjectedProvider: false, 
-    });
-  }
-  return web3Modal;
+// 3. Create modal
+const metadata = {
+  name: 'Cryptodesk',
+  description: 'Seu jogo de mineração de criptomoedas',
+  url: 'https://your-game-url.com', //TODO: Troque pela URL do seu jogo
+  icons: ['https://your-game-url.com/icon.png'] //TODO: Troque pelo ícone do seu jogo
+};
+
+const modal = createWeb3Modal({
+  ethersConfig: defaultConfig({ metadata }),
+  chains: [bsc],
+  projectId,
+  themeMode: 'dark',
+  enableAnalytics: true // Optional
+});
+
+let provider = null;
+let signer = null;
+
+async function setupProvider() {
+    const walletProvider = modal.getWalletProvider();
+    if (walletProvider) {
+        provider = new ethers.providers.Web3Provider(walletProvider);
+        signer = provider.getSigner();
+        return true;
+    }
+    return false;
 }
 
+modal.subscribeProvider(async ({ provider, isConnected }) => {
+    if (isConnected) {
+        await setupProvider();
+    } else {
+        provider = null;
+        signer = null;
+    }
+});
+
+
 export async function connectWallet() {
-  const modal = getWeb3Modal();
-  try {
-    instance = await modal.connect();
-    provider = new ethers.providers.Web3Provider(instance);
-    const signer = provider.getSigner();
-    const address = await signer.getAddress();
-
-    instance.on("accountsChanged", () => window.location.reload());
-    instance.on("chainChanged", () => window.location.reload());
-    instance.on("disconnect", () => disconnectWallet());
-
-    return { provider, signer, address };
-  } catch (e) {
-    throw new Error("Você cancelou a conexão.");
+  if (!modal.getIsConnected()) {
+    await modal.open();
   }
+  
+  const isSetup = await setupProvider();
+  if(!isSetup){
+      throw new Error("Não foi possível configurar o provedor da carteira.");
+  }
+
+  const address = await signer.getAddress();
+  
+  // Recarrega a página em eventos para simplicidade, como era antes
+  modal.getWalletProvider().on("accountsChanged", () => window.location.reload());
+  modal.getWalletProvider().on("chainChanged", () => window.location.reload());
+
+  return { provider, signer, address };
 }
 
 export async function disconnectWallet() {
-  const modal = getWeb3Modal();
-  if (instance && instance.close) {
-    await instance.close();
-  }
-  await modal.clearCachedProvider();
+  await modal.disconnect();
   provider = null;
-  instance = null;
+  signer = null;
   window.location.reload();
 }
 
 export async function checkConnectedWallet() {
-    const modal = getWeb3Modal();
-    if (modal.cachedProvider) {
+    await setupProvider();
+    if (modal.getIsConnected() && provider && signer) {
         try {
-            const result = await connectWallet();
-            return result;
-        } catch (e) {
-            await modal.clearCachedProvider();
+            const address = await signer.getAddress();
+            return { provider, signer, address };
+        } catch(e) {
+            console.error("checkConnectedWallet error:", e);
+            await disconnectWallet(); // Limpa se houver erro
             return null;
         }
     }
@@ -75,5 +95,6 @@ export async function checkConnectedWallet() {
 }
 
 export function getProvider() {
-    return provider;
+  return provider;
 }
+
