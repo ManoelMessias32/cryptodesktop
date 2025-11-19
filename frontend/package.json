@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.1.4", 
+  "version": "0.1.4",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,14 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@reown/appkit": "^1.0.0",
-    "@reown/appkit-adapter-wagmi": "^1.0.0",
-    "@tanstack/react-query": "^5.0.0",
+    "web3modal": "^1.9.12",
     "ethers": "^5.7.2",
+    "@walletconnect/web3-provider": "^1.8.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "viem": "^2.0.0",
-    "wagmi": "^2.0.0"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "vite": "^5.0.0"
