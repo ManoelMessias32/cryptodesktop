@@ -1,10 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ethers } from 'ethers';
 import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
-import { connectWallet, disconnectWallet, checkConnectedWallet, getProvider } from './wallet';
+
+// Hooks do Wagmi e Web3Modal
+import { useAccount, useDisconnect, useWalletClient } from 'wagmi';
+import { useWeb3Modal } from '@reown/appkit-adapter-wagmi';
+
+// Função para converter o WalletClient (viem) para um Signer (ethers@5)
+function walletClientToSigner(walletClient) {
+  if (!walletClient) return undefined;
+  const { account, chain, transport } = walletClient;
+  const network = {
+    chainId: chain.id,
+    name: chain.name,
+    ensAddress: chain.contracts?.ensRegistry?.address,
+  };
+  const provider = new ethers.providers.Web3Provider(transport, network);
+  return provider.getSigner(account.address);
+}
 
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
 const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
@@ -22,7 +39,6 @@ const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, 
 
 export default function App() {
   const [route, setRoute] = useState('mine');
-  const [address, setAddress] = useState('');
   const [status, setStatus] = useState('Crie um nome e conecte sua carteira para jogar.');
   const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem('cryptoDesktopMined_v14')) || 0);
   const [slots, setSlots] = useState(() => {
@@ -34,53 +50,50 @@ export default function App() {
   const [paidBoostTime, setPaidBoostTime] = useState(0);
   const [inputUsername, setInputUsername] = useState('');
   const tierPrices = { 1: '0.035', 2: '0.090', 3: '0.170' };
+  
+  const { address, isConnected } = useAccount();
+  const { open } = useWeb3Modal();
+  const { disconnect } = useDisconnect();
+  
+  // Obtém o cliente da carteira do wagmi
+  const { data: walletClient } = useWalletClient();
+  // Converte para um signer do ethers, e só recalcula quando o cliente mudar
+  const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);
 
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
 
   useEffect(() => {
-    const autoConnect = async () => {
-      const connection = await checkConnectedWallet();
-      if (connection) {
-        setAddress(connection.address);
-        const savedUser = localStorage.getItem('cryptoDesktopUsername');
-        if(savedUser) setInputUsername(savedUser);
-        setStatus('✅ Bem-vindo de volta!');
-      }
-    };
-    autoConnect();
-  }, []);
+    if (inputUsername) {
+        localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
+    }
+    const savedUser = localStorage.getItem('cryptoDesktopUsername');
+    if(savedUser) setInputUsername(savedUser);
+  }, [inputUsername]);
 
-  const handleConnect = async () => {
+  const handleConnect = () => {
     if (!inputUsername.trim()) {
         setStatus('❌ Por favor, insira um nome de usuário.');
         return;
     }
-    try {
-        setStatus('Aguardando conexão...');
-        localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
-        const { address: userAddress } = await connectWallet();
-        setAddress(userAddress);
-        setStatus('✅ Carteira conectada!');
-    } catch (e) {
-        setStatus(`❌ ${e.message}`);
-    }
+    open();
   };
 
-  const handleDisconnect = async () => {
-    await disconnectWallet();
+  const handleDisconnect = () => {
+    disconnect();
   };
 
   const handlePurchase = async (tierToBuy) => {
+    if (!signer) {
+      setStatus('❌ Carteira não está pronta. Tente reconectar.');
+      return;
+    }
     const emptySlotIndex = slots.findIndex(slot => !slot.filled && !slot.free);
     if (emptySlotIndex === -1) {
       setStatus('❌ Você precisa de um gabinete vazio!');
       return;
     }
     try {
-      const provider = getProvider();
-      if (!provider) throw new Error('A carteira não está conectada.');
-      const signer = provider.getSigner();
       const price = tierPrices[tierToBuy];
       const shopContract = new ethers.Contract(SHOP_ADDRESS, SHOP_ABI, signer);
       setStatus(`Enviando ${price} BNB...`);
@@ -103,7 +116,7 @@ export default function App() {
 
   return (
     <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh' }}>
-      {!address ? (
+      {!isConnected ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
           <h1>Cryptodesk</h1>
           <input placeholder="Crie seu nome de usuário" value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} />
