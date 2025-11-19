@@ -6,11 +6,10 @@ import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
 
-// Hooks do Wagmi e Web3Modal
+// Hooks do Wagmi e Web3Modal (com importação corrigida)
 import { useAccount, useDisconnect, useWalletClient } from 'wagmi';
-import { useWeb3Modal } from '@reown/appkit-adapter-wagmi';
+import { useWeb3Modal } from '@web3modal/wagmi/react';
 
-// Função para converter o WalletClient (viem) para um Signer (ethers@5)
 function walletClientToSigner(walletClient) {
   if (!walletClient) return undefined;
   const { account, chain, transport } = walletClient;
@@ -55,9 +54,7 @@ export default function App() {
   const { open } = useWeb3Modal();
   const { disconnect } = useDisconnect();
   
-  // Obtém o cliente da carteira do wagmi
   const { data: walletClient } = useWalletClient();
-  // Converte para um signer do ethers, e só recalcula quando o cliente mudar
   const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);
 
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
