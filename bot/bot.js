@@ -11,7 +11,7 @@ if (!token) {
 const bot = new TelegramBot(token, { polling: true });
 
 // A URL base do jogo
-const baseUrl = 'https://cryptodesktop.vercel.app/games';
+const baseUrl = 'https://cryptodesktop.vercel.app'; // Removido /games para teste
 
 // Função para obter a URL com o "quebrador de cache"
 const getGameUrl = () => {
@@ -43,20 +43,6 @@ bot.onText(/\/help/, (msg) => {
   bot.sendMessage(msg.chat.id, helpMessage, { parse_mode: 'Markdown' });
 });
 
-bot.onText(/\/ranking/, (msg) => {
-  const rankingMessage = `Para ver o ranking, abra o jogo e clique na aba *🏆 Rankings*.`;
-  bot.sendMessage(msg.chat.id, rankingMessage, {
-    parse_mode: 'Markdown',
-    ...getGameButtonOptions()
-  });
-});
-
-bot.onText(/\/profile/, (msg) => {
-  const profileMessage = `Para ver seu perfil e link de referência, abra o jogo e clique na aba *👤 Usuário*.`;
-  bot.sendMessage(msg.chat.id, profileMessage, {
-    parse_mode: 'Markdown',
-    ...getGameButtonOptions()
-  });
-});
+// ... (outros comandos)
 
 console.log('🤖 O bot do Cryptodesk está no ar e ouvindo todos os comandos!');
