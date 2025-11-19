@@ -1,5 +1,4 @@
-import { Ethers5Modal } from '@web3modal/ethers5';
-import { ethers } from 'ethers';
+import { createWeb3Modal, ethers5, defaultConfig } from '@web3modal/ethers5'
 
 // 1. Defina as redes que seu dApp suporta
 const bnbChain = {
@@ -20,26 +19,23 @@ const metadata = {
   icons: ['https://cryptodesktop.vercel.app/logo.png']
 }
 
-const modal = new Ethers5Modal(
-  {
-    ethersConfig: ethers.providers.getDefaultProvider(),
-    chains: [bnbChain],
-    projectId
+const modal = createWeb3Modal({
+  ethersConfig: defaultConfig({
+    metadata,
+    defaultChainId: 56,
+  }),
+  chains: [bnbChain],
+  projectId,
+  chainImages: {
+    56: 'https://seeklogo.com/images/B/binance-coin-bnb-logo-CD94CC6D31-seeklogo.com.png'
   },
-  {
-    projectId,
-    chainImages: {
-      56: 'https://seeklogo.com/images/B/binance-coin-bnb-logo-CD94CC6D31-seeklogo.com.png'
-    },
-    metadata
-  }
-);
+})
 
 // --- Funções Exportadas ---
 
 export async function getAddress() {
     try {
-        const signer = await modal.getSigner();
+        const signer = await ethers5.getSigner({ modal });
         return await signer.getAddress();
     } catch {
         return null;
@@ -56,7 +52,7 @@ export function disconnect() {
 
 export async function getSigner() {
     try {
-        return await modal.getSigner();
+        return await ethers5.getSigner({ modal });
     } catch {
         return null;
     }
