@@ -10,10 +10,9 @@ if (!token) {
 
 const bot = new TelegramBot(token, { polling: true });
 
-// A URL base do jogo
-const baseUrl = 'https://cryptodesktop.vercel.app'; // Removido /games para teste
+// Aponta para o arquivo index.html para tentar quebrar o cache
+const baseUrl = 'https://cryptodesktop.vercel.app/index.html';
 
-// Função para obter a URL com o "quebrador de cache"
 const getGameUrl = () => {
   const cacheBuster = `v=${Date.now()}`;
   return `${baseUrl}?${cacheBuster}`;
