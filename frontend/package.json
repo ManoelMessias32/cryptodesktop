@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node node_modules/vite/bin/vite.js build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@web3modal/ethers5": "^3.4.0",
+    "ethers": "^5.7.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "ethers": "^5.7.2"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "vite": "^5.0.0"
