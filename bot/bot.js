@@ -10,25 +10,32 @@ if (!token) {
 
 const bot = new TelegramBot(token, { polling: true });
 
-const gameUrl = 'https://cryptodesktop.vercel.app/games';
+// A URL base do jogo
+const baseUrl = 'https://cryptodesktop.vercel.app/games';
 
-const gameButtonOptions = {
+// Função para obter a URL com o "quebrador de cache"
+const getGameUrl = () => {
+  const cacheBuster = `v=${Date.now()}`;
+  return `${baseUrl}?${cacheBuster}`;
+}
+
+const getGameButtonOptions = () => ({
   reply_markup: {
     inline_keyboard: [
-      [{ text: '🚀 Jogar Agora', web_app: { url: gameUrl } }]
+      [{ text: '🚀 Jogar Agora', web_app: { url: getGameUrl() } }]
     ]
   }
-};
+});
 
 // --- Comandos do Bot ---
 
 bot.onText(/\/start/, (msg) => {
   const welcomeMessage = `🎉 Bem-vindo ao Cryptodesk!\n\nClique no botão abaixo para começar a sua jornada.`;
-  bot.sendMessage(msg.chat.id, welcomeMessage, gameButtonOptions);
+  bot.sendMessage(msg.chat.id, welcomeMessage, getGameButtonOptions());
 });
 
 bot.onText(/\/play/, (msg) => {
-  bot.sendMessage(msg.chat.id, "Abra o jogo abaixo:", gameButtonOptions);
+  bot.sendMessage(msg.chat.id, "Abra o jogo abaixo:", getGameButtonOptions());
 });
 
 bot.onText(/\/help/, (msg) => {
@@ -40,7 +47,7 @@ bot.onText(/\/ranking/, (msg) => {
   const rankingMessage = `Para ver o ranking, abra o jogo e clique na aba *🏆 Rankings*.`;
   bot.sendMessage(msg.chat.id, rankingMessage, {
     parse_mode: 'Markdown',
-    reply_markup: gameButtonOptions.reply_markup
+    ...getGameButtonOptions()
   });
 });
 
@@ -48,7 +55,7 @@ bot.onText(/\/profile/, (msg) => {
   const profileMessage = `Para ver seu perfil e link de referência, abra o jogo e clique na aba *👤 Usuário*.`;
   bot.sendMessage(msg.chat.id, profileMessage, {
     parse_mode: 'Markdown',
-    reply_markup: gameButtonOptions.reply_markup
+    ...getGameButtonOptions()
   });
 });
 
