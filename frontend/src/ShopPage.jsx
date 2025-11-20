@@ -3,15 +3,15 @@ import React from 'react';
 export default function ShopPage({ handlePurchase }) {
 
   const standardCpuData = {
-    1: { name: 'Tier 1', price: '0.035', gain: '350', image: '/tier1.png', type: 'standard' },
-    2: { name: 'Tier 2', price: '0.090', gain: '650', image: '/tier2.png', type: 'standard' },
-    3: { name: 'Tier 3', price: '0.170', gain: '950', image: '/tier3.png', type: 'standard' },
+    1: { name: 'Tier 1', price: '3.5', gain: '350', image: '/tier1.png', type: 'standard', tier: 1 },
+    2: { name: 'Tier 2', price: '9.0', gain: '650', image: '/tier2.png', type: 'standard', tier: 2 },
+    3: { name: 'Tier 3', price: '17.0', gain: '950', image: '/tier3.png', type: 'standard', tier: 3 },
   };
 
   const specialCpuData = {
-    A: { name: 'CPU A', price: '0.10', gain: '1.300', image: '/special_a.png', type: 'special', tier: 1 },
-    B: { name: 'CPU B', price: '0.20', gain: '1.500', image: '/special_b.png', type: 'special', tier: 2 },
-    C: { name: 'CPU C', price: '0.30', gain: '1.800', image: '/special_c.png', type: 'special', tier: 3 },
+    A: { name: 'CPU A', price: '10.0', gain: '1.300', image: '/special_a.png', type: 'special', tier: 1 },
+    B: { name: 'CPU B', price: '20.0', gain: '1.500', image: '/special_b.png', type: 'special', tier: 2 },
+    C: { name: 'CPU C', price: '30.0', gain: '1.800', image: '/special_c.png', type: 'special', tier: 3 },
   };
 
   const styles = {
@@ -37,10 +37,10 @@ export default function ShopPage({ handlePurchase }) {
             <div>
               <img src={item.image} alt={item.name} style={styles.cardImage} />
               <h3 style={styles.cardTitle}>{item.name}</h3>
-              <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
+              <p style={styles.cardText}><strong>Preço:</strong> {item.price} TON</p>
               <p style={styles.cardText}><strong>Ganho/Mês:</strong> {item.gain} BDG</p>
             </div>
-            <button onClick={() => handlePurchase(item.tier, 'special')} style={styles.buyButton}>Comprar</button>
+            <button onClick={() => handlePurchase(item.tier)} style={styles.buyButton}>Comprar</button>
           </div>
         ))}
       </div>
@@ -54,10 +54,10 @@ export default function ShopPage({ handlePurchase }) {
               <div>
                 <img src={item.image} alt={item.name} style={styles.cardImage} />
                 <h3 style={styles.cardTitle}>{item.name}</h3>
-                <p style={styles.cardText}><strong>Preço:</strong> {item.price} BNB</p>
+                <p style={styles.cardText}><strong>Preço:</strong> {item.price} TON</p>
                 <p style={styles.cardText}><strong>Ganho/Mês:</strong> {item.gain} BDG</p> 
               </div>
-              <button onClick={() => handlePurchase(Number(key), item.type)} style={styles.buyButton}>Comprar</button>
+              <button onClick={() => handlePurchase(item.tier)} style={styles.buyButton}>Comprar</button>
             </div>
           )
         })}
