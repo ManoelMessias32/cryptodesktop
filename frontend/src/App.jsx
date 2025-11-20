@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ethers } from 'ethers';
 import MiningPage from './MiningPage';
@@ -6,10 +5,11 @@ import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
 
-// Hooks do Wagmi e Web3Modal (com importação corrigida)
-import { useAccount, useDisconnect, useWalletClient } from 'wagmi';
+// Hooks do Wagmi e Web3Modal (com importação oficial)
+import { useAccount, useDisconnect, useConnectorClient } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 
+// Função para converter o ConnectorClient (viem) para um Signer (ethers@5)
 function walletClientToSigner(walletClient) {
   if (!walletClient) return undefined;
   const { account, chain, transport } = walletClient;
@@ -54,11 +54,17 @@ export default function App() {
   const { open } = useWeb3Modal();
   const { disconnect } = useDisconnect();
   
-  const { data: walletClient } = useWalletClient();
+  // O hook foi atualizado de useWalletClient para useConnectorClient na nova versão do wagmi
+  const { data: walletClient } = useConnectorClient();
   const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);
 
-  useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
-  useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
+  useEffect(() => {
+    localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots));
+  }, [slots]);
+  
+  useEffect(() => {
+    localStorage.setItem('cryptoDesktopMined_v14', coinBdg);
+  }, [coinBdg]);
 
   useEffect(() => {
     if (inputUsername) {
@@ -126,8 +132,8 @@ export default function App() {
             <p>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</p>
             <button onClick={handleDisconnect}>Sair</button>
           </header>
-          {renderPage()}
-          <nav>{/* ... */}</nav>
+          {/* {renderPage()} */}
+          {/* <nav>{/* ... * /}</nav> */}
         </>
       )}
     </div>
