@@ -1,1 +1,140 @@
-import React, { useState, useEffect, useCallback, useMemo } from \'react\';\nimport { ethers } from \'ethers\';\nimport MiningPage from \'./MiningPage\';\nimport ShopPage from \'./ShopPage\';\nimport UserPage from \'./UserPage\';\nimport RankingsPage from \'./RankingsPage\';\n\nimport { useAccount, useConnect, useDisconnect, useConnectorClient } from \'wagmi\';\n\nfunction walletClientToSigner(walletClient) {\n  if (!walletClient) return undefined;\n  const { account, chain, transport } = walletClient;\n  const network = {\n    chainId: chain.id,\n    name: chain.name,\n    ensAddress: chain.contracts?.ensRegistry?.address,\n  };\n  const provider = new ethers.providers.Web3Provider(transport, network);\n  return provider.getSigner(account.address);\n}\n\nconst SHOP_ADDRESS = \'0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D\';\nconst SHOP_ABI = [\'function buyWithBNB(uint256,address) external payable\'];\n\nconst initialSlots = Array(1).fill({ name: \'Slot 1\', filled: false, free: true, repairCooldown: 0, isBroken: false });\n\nexport default function App() {\n  const [route, setRoute] = useState(\'mine\');\n  const [status, setStatus] = useState(\'Crie um nome e conecte sua carteira para jogar.\');\n  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem(\'cryptoDesktopMined_v14\')) || 0);\n  const [slots, setSlots] = useState(() => {\n    try {\n      const savedSlots = localStorage.getItem(\'cryptoDesktopSlots_v14\');\n      return savedSlots ? JSON.parse(savedSlots) : initialSlots;\n    } catch (e) { return initialSlots; }\n  });\n  const [inputUsername, setInputUsername] = useState(() => localStorage.getItem(\'cryptoDesktopUsername\') || \'\');\n  \n  const { address, isConnected } = useAccount();\n  const { disconnect } = useDisconnect();\n  const { data: walletClient } = useConnectorClient();\n  const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);\n  const { connectors, connect } = useConnect();\n  \n  // ATUALIZAÇÃO FINAL: Adicionado async/await para capturar o erro corretamente\n  const handleConnect = async (connector) => {\n    if (!inputUsername.trim()) {\n        setStatus(\'❌ Por favor, insira um nome de usuário.\');\n        return;\n    }\n    try {\n      setStatus(\'Tentando conectar...\');\n      await connect({ connector });\n    } catch (e) {\n      setStatus(`ERRO DE CONEXÃO: ${e.message}`);\n    }\n  };\n\n  useEffect(() => {\n    localStorage.setItem(\'cryptoDesktopSlots_v14\', JSON.stringify(slots));\n  }, [slots]);\n  useEffect(() => {\n    localStorage.setItem(\'cryptoDesktopMined_v14\', coinBdg);\n  }, [coinBdg]);\n  useEffect(() => {\n    localStorage.setItem(\'cryptoDesktopUsername\', inputUsername);\n  }, [inputUsername]);\n\n  const handleDisconnect = () => disconnect();\n  const handlePurchase = async (tierToBuy) => { /* ... */ };\n  const gameLoop = useCallback(() => { /* ... */ }, []);\n  useEffect(() => { const i = setInterval(gameLoop, 1000); return () => clearInterval(i); }, [gameLoop]);\n\n  const navButtonStyle = (page) => ({\n    padding: \'10px 20px\',\n    margin: \'0 5px\',\n    border: \'none\',\n    borderRadius: \'5px\',\n    cursor: \'pointer\',\n    backgroundColor: route === page ? \'#5a67d8\' : \'#4a5568\',\n    color: \'white\',\n  });\n\n  const renderPage = () => {\n    switch (route) {\n      case \'mine\':\n        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={{}} status={status} setStatus={setStatus} />; \n      case \'shop\':\n        return <ShopPage handlePurchase={handlePurchase} />; \n      case \'user\':\n        return <UserPage address={address} coinBdg={coinBdg} />; \n      case \'rankings\':\n        return <RankingsPage />;\n      default:\n        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={{}} status={status} setStatus={setStatus} />;\n    }\n  };\n\n  const injectedConnector = connectors.find(c => c.id === \'injected\');\n  const walletConnectConnector = connectors.find(c => c.id === \'walletConnect\');\n\n  return (\n    <div style={{ background: \'#18181b\', color: \'#f4f4f5\', minHeight: \'100vh\' }}>\n      {!isConnected ? (\n        <div style={{ display: \'flex\', flexDirection: \'column\', alignItems: \'center\', justifyContent: \'center\', height: \'100vh\' }}>\n          <h1>Cryptodesk</h1>\n          <input placeholder=\"Crie seu nome de usuário\" value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} />\n          \n          {injectedConnector && (\n            <button onClick={() => handleConnect(injectedConnector)} style={{marginTop: \'10px\'}}>\n              Conectar MetaMask\n            </button>\n          )}\n          {walletConnectConnector && (\n            <button onClick={() => handleConnect(walletConnectConnector)} style={{marginTop: \'10px\'}}>\n              Conectar com QR Code\n            </button>\n          )}\n\n          <p>{status}</p>\n        </div>\n      ) : (\n        <>\n          <header style={{ display: \'flex\', justifyContent: \'space-between\', padding: \'1rem\' }}>\n            <p>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</p>\n            <button onClick={handleDisconnect}>Sair</button>\n          </header>\n          \n          {renderPage()}\n\n          <nav style={{ position: \'fixed\', bottom: 0, width: \'100%\', display: \'flex\', justifyContent: \'center\padding: \'1rem\', background: \'#2d3748\' }}>\n            <button onClick={() => setRoute(\'mine\')} style={navButtonStyle(\'mine\')}>Minerar</button>\n            <button onClick={() => setRoute(\'shop\')} style={navButtonStyle(\'shop\')}>Loja</button>\n            <button onClick={() => setRoute(\'user\')} style={navButtonStyle(\'user\')}>Perfil</button>\n            <button onClick={() => setRoute(\'rankings\')} style={navButtonStyle(\'rankings\')}>Rankings</button>\n          </nav>\n        </>\n      )}\n    </div>\n  );\n}\n
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { ethers } from 'ethers';
+import MiningPage from './MiningPage';
+import ShopPage from './ShopPage';
+import UserPage from './UserPage';
+import RankingsPage from './RankingsPage';
+
+import { useAccount, useConnect, useDisconnect, useConnectorClient } from 'wagmi';
+
+function walletClientToSigner(walletClient) {
+  if (!walletClient) return undefined;
+  const { account, chain, transport } = walletClient;
+  const network = {
+    chainId: chain.id,
+    name: chain.name,
+    ensAddress: chain.contracts?.ensRegistry?.address,
+  };
+  const provider = new ethers.providers.Web3Provider(transport, network);
+  return provider.getSigner(account.address);
+}
+
+const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
+const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
+
+const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0, isBroken: false });
+
+export default function App() {
+  const [route, setRoute] = useState('mine');
+  const [status, setStatus] = useState('Crie um nome e conecte sua carteira para jogar.');
+  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem('cryptoDesktopMined_v14')) || 0);
+  const [slots, setSlots] = useState(() => {
+    try {
+      const savedSlots = localStorage.getItem('cryptoDesktopSlots_v14');
+      return savedSlots ? JSON.parse(savedSlots) : initialSlots;
+    } catch (e) { return initialSlots; }
+  });
+  const [inputUsername, setInputUsername] = useState(() => localStorage.getItem('cryptoDesktopUsername') || '');
+  
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { data: walletClient } = useConnectorClient();
+  const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);
+  const { connectors, connect } = useConnect();
+  
+  const handleConnect = async (connector) => {
+    if (!inputUsername.trim()) {
+        setStatus('❌ Por favor, insira um nome de usuário.');
+        return;
+    }
+    try {
+      setStatus('Tentando conectar...');
+      await connect({ connector });
+    } catch (e) {
+      setStatus(`ERRO DE CONEXÃO: ${e.message}`);
+    }
+  };
+
+  useEffect(() => {
+    localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots));
+  }, [slots]);
+  useEffect(() => {
+    localStorage.setItem('cryptoDesktopMined_v14', coinBdg);
+  }, [coinBdg]);
+  useEffect(() => {
+    localStorage.setItem('cryptoDesktopUsername', inputUsername);
+  }, [inputUsername]);
+
+  const handleDisconnect = () => disconnect();
+  const handlePurchase = async (tierToBuy) => { /* ... */ };
+  const gameLoop = useCallback(() => { /* ... */ }, []);
+  useEffect(() => { const i = setInterval(gameLoop, 1000); return () => clearInterval(i); }, [gameLoop]);
+
+  const navButtonStyle = (page) => ({
+    padding: '10px 20px',
+    margin: '0 5px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    backgroundColor: route === page ? '#5a67d8' : '#4a5568',
+    color: 'white',
+  });
+
+  const renderPage = () => {
+    switch (route) {
+      case 'mine':
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={{}} status={status} setStatus={setStatus} />; 
+      case 'shop':
+        return <ShopPage handlePurchase={handlePurchase} />; 
+      case 'user':
+        return <UserPage address={address} coinBdg={coinBdg} />; 
+      case 'rankings':
+        return <RankingsPage />;
+      default:
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={{}} status={status} setStatus={setStatus} />;
+    }
+  };
+
+  const injectedConnector = connectors.find(c => c.id === 'injected');
+  const walletConnectConnector = connectors.find(c => c.id === 'walletConnect');
+
+  return (
+    <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh' }}>
+      {!isConnected ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+          <h1>Cryptodesk</h1>
+          <input placeholder="Crie seu nome de usuário" value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} />
+          
+          {injectedConnector && (
+            <button onClick={() => handleConnect(injectedConnector)} style={{marginTop: '10px'}}>
+              Conectar MetaMask
+            </button>
+          )}
+          {walletConnectConnector && (
+            <button onClick={() => handleConnect(walletConnectConnector)} style={{marginTop: '10px'}}>
+              Conectar com QR Code
+            </button>
+          )}
+
+          <p>{status}</p>
+        </div>
+      ) : (
+        <>
+          <header style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem' }}>
+            <p>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</p>
+            <button onClick={handleDisconnect}>Sair</button>
+          </header>
+          
+          {renderPage()}
+
+          <nav style={{ position: 'fixed', bottom: 0, width: '100%', display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
+            <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>Minerar</button>
+            <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>Loja</button>
+            <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>Perfil</button>
+            <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>Rankings</button>
+          </nav>
+        </>
+      )}
+    </div>
+  );
+}
