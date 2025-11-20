@@ -7,13 +7,11 @@ import { createWeb3Modal } from '@web3modal/wagmi/react';
 
 import App from './App.jsx';
 
-// 1. Configuração do QueryClient para caching de dados
 const queryClient = new QueryClient();
 
-// 2. Seu Project ID do WalletConnect Cloud
-const projectId = '37e2b189a12b6a74354c78267c260e99';
+// O NOVO E LIMPO PROJECT ID
+const projectId = 'de591849407d4745d051c64dcd1c7ce1';
 
-// 3. Metadados do seu dApp
 const metadata = {
   name: 'Cryptodesk',
   description: 'Seu jogo de mineração Web3',
@@ -21,7 +19,6 @@ const metadata = {
   icons: ['https://cryptodesktop.vercel.app/logo.png']
 };
 
-// 4. Criação da configuração do Wagmi com a sintaxe mais recente
 const wagmiConfig = createConfig({
   chains: [bsc],
   transports: {
@@ -30,7 +27,6 @@ const wagmiConfig = createConfig({
   metadata
 });
 
-// 5. Criação do Modal do Web3Modal
 createWeb3Modal({
   wagmiConfig: wagmiConfig,
   projectId,
@@ -38,7 +34,6 @@ createWeb3Modal({
   themeMode: 'dark'
 });
 
-// Renderiza a aplicação envolvendo-a com os provedores necessários
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <WagmiProvider config={wagmiConfig}>
