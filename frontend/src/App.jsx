@@ -42,12 +42,18 @@ export default function App() {
   const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);
   const { connectors, connect } = useConnect();
   
+  // ATUALIZAÇÃO: Adicionado try...catch para depuração no Telegram
   const handleConnect = (connector) => {
     if (!inputUsername.trim()) {
         setStatus('❌ Por favor, insira um nome de usuário.');
         return;
     }
-    connect({ connector });
+    try {
+      setStatus('Tentando conectar...');
+      connect({ connector });
+    } catch (e) {
+      setStatus(`ERRO: ${e.message}`);
+    }
   };
 
   useEffect(() => {
@@ -120,7 +126,6 @@ export default function App() {
             <button onClick={handleDisconnect}>Sair</button>
           </header>
           
-          {/* CÓDIGO REATIVADO ABAIXO */}
           {renderPage()}
 
           <nav style={{ position: 'fixed', bottom: 0, width: '100%', display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
