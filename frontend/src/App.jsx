@@ -42,16 +42,22 @@ export default function App() {
   const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);
   const { connectors, connect } = useConnect();
   
+  // LÓGICA DE DEPURAÇÃO FINAL
   const handleConnect = async (connector) => {
     if (!inputUsername.trim()) {
         setStatus('❌ Por favor, insira um nome de usuário.');
         return;
     }
     try {
-      setStatus('Tentando conectar...');
-      await connect({ connector });
+      const provider = await connector.getProvider();
+      if (provider) {
+        setStatus('✅ Provedor encontrado! Tentando conectar...');
+        connect({ connector });
+      } else {
+        setStatus('❌ ERRO FATAL: O provedor da carteira não foi encontrado. O ambiente pode estar bloqueando.');
+      }
     } catch (e) {
-      setStatus(`ERRO DE CONEXÃO: ${e.message}`);
+      setStatus(`ERRO CAPTURADO: ${e.message}`);
     }
   };
 
