@@ -96,23 +96,20 @@ export default function MiningPage({
   const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', width: '100%' };
 
   return (
-    <div style={{paddingBottom: '20px'}}>
+    <div>
       <div style={{ textAlign: 'center', margin: '0 0 20px 0' }}>
         <h2 style={{ fontSize: '1.8em', margin: 0, color: '#facc15' }}>🪙 {coinBdg.toFixed(2)} BDG</h2>
         <p style={{ margin: '5px 0', color: '#a1a1aa' }}>Sua moeda para usar no jogo</p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 12, border: '1px solid #3f3f46', borderRadius: 8, background: '#27272a', maxWidth: 400, margin: '24px auto', gap: '20px' }}>
-        <div>
-            <h4>Recarga Global</h4>
-            <button onClick={handleBuyEnergyForAll} style={buttonStyle}>Reabastecer</button>
-            <p style={{textAlign: 'center', fontSize: '0.8em', color: '#a1a1aa'}}>Custo: {ENERGY_REFILL_ALL_COST} BDG</p>
-        </div>
-        <div>
-            <h4>Boost Pago</h4>
-            <button onClick={handleBuyPaidBoost} disabled={coinBdg < PAID_BOOST_COST || paidBoostTime > 0} style={buttonStyle}>Ativar (+30 min)</button>
-            <p style={{textAlign: 'center', fontSize: '0.8em', color: '#a1a1aa'}}>Custo: {PAID_BOOST_COST} BDG</p>
-        </div>
+      {/* --- SEÇÃO DE RECARGA SIMPLIFICADA --- */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', margin: '24px auto' }}>
+        <button onClick={handleBuyEnergyForAll} style={{...buttonStyle, width: 'auto', padding: '10px 15px'}}>
+          Reabastecer Tudo ({ENERGY_REFILL_ALL_COST} BDG)
+        </button>
+        <button onClick={handleBuyPaidBoost} disabled={coinBdg < PAID_BOOST_COST || paidBoostTime > 0} style={{...buttonStyle, width: 'auto', padding: '10px 15px'}}>
+          Ativar Boost (+30 min) ({PAID_BOOST_COST} BDG)
+        </button>
       </div>
 
        <div style={{textAlign: 'center', marginTop: '12px', minHeight: '20px'}}>

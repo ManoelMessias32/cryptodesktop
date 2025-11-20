@@ -5,9 +5,6 @@ import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
 
-// AVISO: A lógica de compra com BNB foi desativada.
-// Precisaremos criar uma nova lógica para a rede TON.
-
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0, isBroken: false });
 
 export default function App() {
@@ -23,7 +20,6 @@ export default function App() {
   const [username, setUsername] = useState(() => localStorage.getItem('cryptoDesktopUsername') || '');
   const [tempUsername, setTempUsername] = useState('');
 
-  // Hook da rede TON para pegar o endereço
   const userFriendlyAddress = useTonAddress();
 
   useEffect(() => {
@@ -57,6 +53,9 @@ export default function App() {
     cursor: 'pointer',
     backgroundColor: route === page ? '#5a67d8' : '#4a5568',
     color: 'white',
+    display: 'flex', // Para alinhar ícone e texto
+    alignItems: 'center',
+    gap: '8px' // Espaço entre ícone e texto
   });
 
   const renderPage = () => {
@@ -74,7 +73,6 @@ export default function App() {
     }
   };
 
-  // Se não houver nome de usuário, pede para criar um.
   if (!username) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#18181b', color: '#f4f4f5' }}>
@@ -85,22 +83,20 @@ export default function App() {
     );
   }
 
-  // Se já tem nome de usuário, mostra o jogo.
   return (
-    <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh' }}>
+    <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', paddingBottom: '80px' /* ADICIONA ESPAÇO NO FINAL */ }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
         <p>Bem-vindo, {username}!</p>
-        {/* O botão de conexão fica sempre visível no cabeçalho */}
         <TonConnectButton />
       </header>
       
       {renderPage()}
 
-      <nav style={{ position: 'fixed', bottom: 0, width: '100%', display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
-        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>Minerar</button>
-        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>Loja</button>
-        <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>Perfil</button>
-        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>Rankings</button>
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
+        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>⛏️ Minerar</button>
+        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>🛒 Loja</button>
+        <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>👤 Perfil</button>
+        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>🏆 Rankings</button>
       </nav>
     </div>
   );
