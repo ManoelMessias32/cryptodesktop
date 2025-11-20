@@ -47,14 +47,16 @@ export default function App() {
     } catch (e) { return initialSlots; }
   });
   const [paidBoostTime, setPaidBoostTime] = useState(0);
-  const [inputUsername, setInputUsername] = useState('');
+  
+  // CORREÇÃO: Inicializa o estado buscando o valor direto do localStorage.
+  const [inputUsername, setInputUsername] = useState(() => localStorage.getItem('cryptoDesktopUsername') || '');
+  
   const tierPrices = { 1: '0.035', 2: '0.090', 3: '0.170' };
   
   const { address, isConnected } = useAccount();
   const { open } = useWeb3Modal();
   const { disconnect } = useDisconnect();
   
-  // O hook foi atualizado de useWalletClient para useConnectorClient na nova versão do wagmi
   const { data: walletClient } = useConnectorClient();
   const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);
 
@@ -66,12 +68,9 @@ export default function App() {
     localStorage.setItem('cryptoDesktopMined_v14', coinBdg);
   }, [coinBdg]);
 
+  // CORREÇÃO: Este useEffect agora apenas salva as alterações no localStorage.
   useEffect(() => {
-    if (inputUsername) {
-        localStorage.setItem('cryptoDesktopUsername', inputUsername.trim());
-    }
-    const savedUser = localStorage.getItem('cryptoDesktopUsername');
-    if(savedUser) setInputUsername(savedUser);
+    localStorage.setItem('cryptoDesktopUsername', inputUsername);
   }, [inputUsername]);
 
   const handleConnect = () => {
@@ -132,8 +131,8 @@ export default function App() {
             <p>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</p>
             <button onClick={handleDisconnect}>Sair</button>
           </header>
-          {/* {renderPage()} */}
-          {/* <nav>{/* ... * /}</nav> */}
+          {renderPage()}
+          <nav>{/* ... */}</nav>
         </>
       )}
     </div>
