@@ -5,7 +5,6 @@ import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
 
-// Hooks do Wagmi - Trocamos o useWeb3Modal pelo useConnect para ter controle total
 import { useAccount, useConnect, useDisconnect, useConnectorClient } from 'wagmi';
 
 function walletClientToSigner(walletClient) {
@@ -22,7 +21,6 @@ function walletClientToSigner(walletClient) {
 
 const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
 const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
-// ... (resto do seu código permanece igual)
 
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0, isBroken: false });
 
@@ -42,8 +40,6 @@ export default function App() {
   const { disconnect } = useDisconnect();
   const { data: walletClient } = useConnectorClient();
   const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);
-
-  // Lógica de Conexão Manual
   const { connectors, connect } = useConnect();
   
   const handleConnect = (connector) => {
@@ -54,7 +50,6 @@ export default function App() {
     connect({ connector });
   };
 
-  // ... (useEffect e outras funções permanecem iguais)
   useEffect(() => {
     localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots));
   }, [slots]);
@@ -66,11 +61,35 @@ export default function App() {
   }, [inputUsername]);
 
   const handleDisconnect = () => disconnect();
-  const handlePurchase = async (tierToBuy) => { /* ... sua função de compra ... */ };
+  const handlePurchase = async (tierToBuy) => { /* ... */ };
   const gameLoop = useCallback(() => { /* ... */ }, []);
   useEffect(() => { const i = setInterval(gameLoop, 1000); return () => clearInterval(i); }, [gameLoop]);
 
-  // Separa os conectores: MetaMask (injected) e WalletConnect (QR Code)
+  const navButtonStyle = (page) => ({
+    padding: '10px 20px',
+    margin: '0 5px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    backgroundColor: route === page ? '#5a67d8' : '#4a5568',
+    color: 'white',
+  });
+
+  const renderPage = () => {
+    switch (route) {
+      case 'mine':
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={{}} status={status} setStatus={setStatus} />; 
+      case 'shop':
+        return <ShopPage handlePurchase={handlePurchase} />; 
+      case 'user':
+        return <UserPage address={address} coinBdg={coinBdg} />; 
+      case 'rankings':
+        return <RankingsPage />;
+      default:
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={{}} status={status} setStatus={setStatus} />;
+    }
+  };
+
   const injectedConnector = connectors.find(c => c.id === 'injected');
   const walletConnectConnector = connectors.find(c => c.id === 'walletConnect');
 
@@ -81,9 +100,8 @@ export default function App() {
           <h1>Cryptodesk</h1>
           <input placeholder="Crie seu nome de usuário" value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} />
           
-          {/* Botões de Conexão Separados */}
           {injectedConnector && (
-            <button onClick={() => handleConnect(injectedConnector)}>
+            <button onClick={() => handleConnect(injectedConnector)} style={{marginTop: '10px'}}>
               Conectar MetaMask
             </button>
           )}
@@ -97,11 +115,20 @@ export default function App() {
         </div>
       ) : (
         <>
-          <header>
+          <header style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem' }}>
             <p>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</p>
             <button onClick={handleDisconnect}>Sair</button>
           </header>
-          {/* O resto da sua aplicação */}
+          
+          {/* CÓDIGO REATIVADO ABAIXO */}
+          {renderPage()}
+
+          <nav style={{ position: 'fixed', bottom: 0, width: '100%', display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
+            <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>Minerar</button>
+            <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>Loja</button>
+            <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>Perfil</button>
+            <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>Rankings</button>
+          </nav>
         </>
       )}
     </div>
