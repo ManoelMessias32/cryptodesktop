@@ -10,38 +10,20 @@ if (!token) {
 
 const bot = new TelegramBot(token, { polling: true });
 
-// Aponta para o arquivo index.html para tentar quebrar o cache
-const baseUrl = 'https://cryptodesktop.vercel.app/index.html';
+// TESTE DEFINITIVO: URL do Google
+const testUrl = 'https://www.google.com';
 
-const getGameUrl = () => {
-  const cacheBuster = `v=${Date.now()}`;
-  return `${baseUrl}?${cacheBuster}`;
-}
-
-const getGameButtonOptions = () => ({
+const getTestButton = () => ({
   reply_markup: {
     inline_keyboard: [
-      [{ text: '🚀 Jogar Agora', web_app: { url: getGameUrl() } }]
+      [{ text: '🚀 Abrir o Google', url: testUrl }]
     ]
   }
 });
 
-// --- Comandos do Bot ---
-
 bot.onText(/\/start/, (msg) => {
-  const welcomeMessage = `🎉 Bem-vindo ao Cryptodesk!\n\nClique no botão abaixo para começar a sua jornada.`;
-  bot.sendMessage(msg.chat.id, welcomeMessage, getGameButtonOptions());
+  const welcomeMessage = `Este é um teste. Por favor, clique no botão abaixo e veja se ele abre o Google no seu navegador principal (Chrome, Safari, etc.) ou dentro do Telegram.`;
+  bot.sendMessage(msg.chat.id, welcomeMessage, getTestButton());
 });
 
-bot.onText(/\/play/, (msg) => {
-  bot.sendMessage(msg.chat.id, "Abra o jogo abaixo:", getGameButtonOptions());
-});
-
-bot.onText(/\/help/, (msg) => {
-  const helpMessage = `*Comandos Disponíveis*\n\n/start - Inicia o bot\n/play - Atalho para abrir o jogo\n/ranking - Dica para ver o ranking\n/profile - Dica para ver seu perfil\n/help - Mostra esta ajuda`;
-  bot.sendMessage(msg.chat.id, helpMessage, { parse_mode: 'Markdown' });
-});
-
-// ... (outros comandos)
-
-console.log('🤖 O bot do Cryptodesk está no ar e ouvindo todos os comandos!');
+console.log('🤖 O bot de teste do Google está no ar!');

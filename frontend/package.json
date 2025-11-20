@@ -9,13 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.28.4",
-    "@web3modal/wagmi": "^4.1.11",
-    "ethers": "^5.7.2",
+    "@orbs-network/ton-access": "^2.3.3",
+    "@tonconnect/ui-react": "^2.3.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "viem": "^2.8.13",
-    "wagmi": "^2.5.7"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",

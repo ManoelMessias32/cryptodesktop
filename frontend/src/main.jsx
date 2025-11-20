@@ -1,41 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { WagmiProvider, createConfig, http } from 'wagmi';
-import { bsc } from 'wagmi/chains';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { walletConnect, injected } from 'wagmi/connectors';
-
+import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import App from './App.jsx';
 
-const queryClient = new QueryClient();
-
-const projectId = 'de591849407d4745d051c64dcd1c7ce1';
-
-const metadata = {
-  name: 'Cryptodesk',
-  description: 'Seu jogo de mineração Web3',
-  url: 'https://cryptodesktop.vercel.app',
-  icons: ['https://cryptodesktop.vercel.app/logo.png']
-};
-
-// Configuração com conectores manuais
-const wagmiConfig = createConfig({
-  chains: [bsc],
-  connectors: [
-    walletConnect({ projectId, metadata, showQrModal: true }),
-    injected({ shimDisconnect: true }),
-  ],
-  transports: {
-    [bsc.id]: http(),
-  },
-});
+// URL do manifesto do seu dApp. 
+// Ele informa às carteiras TON sobre seu aplicativo.
+// Por enquanto, usaremos o exemplo. Depois, criaremos o nosso.
+const manifestUrl = 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
-    </WagmiProvider>
+    <TonConnectUIProvider manifestUrl={manifestUrl}>
+      <App />
+    </TonConnectUIProvider>
   </React.StrictMode>
 );

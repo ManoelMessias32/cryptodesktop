@@ -1,26 +1,12 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ethers } from 'ethers';
+import React, { useState, useEffect, useCallback } from 'react';
+import { TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
 
-import { useAccount, useConnect, useDisconnect, useConnectorClient } from 'wagmi';
-
-function walletClientToSigner(walletClient) {
-  if (!walletClient) return undefined;
-  const { account, chain, transport } = walletClient;
-  const network = {
-    chainId: chain.id,
-    name: chain.name,
-    ensAddress: chain.contracts?.ensRegistry?.address,
-  };
-  const provider = new ethers.providers.Web3Provider(transport, network);
-  return provider.getSigner(account.address);
-}
-
-const SHOP_ADDRESS = '0xA7730c7FAAF932C158d5B10aA3A768CBfD97b98D';
-const SHOP_ABI = ['function buyWithBNB(uint256,address) external payable'];
+// AVISO: A lógica de compra com BNB foi desativada.
+// Precisaremos criar uma nova lógica para a rede TON.
 
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0, isBroken: false });
 
@@ -36,30 +22,8 @@ export default function App() {
   });
   const [inputUsername, setInputUsername] = useState(() => localStorage.getItem('cryptoDesktopUsername') || '');
   
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
-  const { data: walletClient } = useConnectorClient();
-  const signer = useMemo(() => walletClientToSigner(walletClient), [walletClient]);
-  const { connectors, connect } = useConnect();
-  
-  // LÓGICA DE DEPURAÇÃO FINAL
-  const handleConnect = async (connector) => {
-    if (!inputUsername.trim()) {
-        setStatus('❌ Por favor, insira um nome de usuário.');
-        return;
-    }
-    try {
-      const provider = await connector.getProvider();
-      if (provider) {
-        setStatus('✅ Provedor encontrado! Tentando conectar...');
-        connect({ connector });
-      } else {
-        setStatus('❌ ERRO FATAL: O provedor da carteira não foi encontrado. O ambiente pode estar bloqueando.');
-      }
-    } catch (e) {
-      setStatus(`ERRO CAPTURADO: ${e.message}`);
-    }
-  };
+  // Hooks da rede TON
+  const wallet = useTonWallet();
 
   useEffect(() => {
     localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots));
@@ -71,9 +35,11 @@ export default function App() {
     localStorage.setItem('cryptoDesktopUsername', inputUsername);
   }, [inputUsername]);
 
-  const handleDisconnect = () => disconnect();
-  const handlePurchase = async (tierToBuy) => { /* ... */ };
-  const gameLoop = useCallback(() => { /* ... */ }, []);
+  const handlePurchase = async (tierToBuy) => {
+    setStatus('❌ Função de compra em desenvolvimento para a rede TON.');
+  };
+
+  const gameLoop = useCallback(() => { /* Sua lógica de loop */ }, [slots]);
   useEffect(() => { const i = setInterval(gameLoop, 1000); return () => clearInterval(i); }, [gameLoop]);
 
   const navButtonStyle = (page) => ({
@@ -93,7 +59,7 @@ export default function App() {
       case 'shop':
         return <ShopPage handlePurchase={handlePurchase} />; 
       case 'user':
-        return <UserPage address={address} coinBdg={coinBdg} />; 
+        return <UserPage address={wallet?.account?.address} coinBdg={coinBdg} />; 
       case 'rankings':
         return <RankingsPage />;
       default:
@@ -101,34 +67,27 @@ export default function App() {
     }
   };
 
-  const injectedConnector = connectors.find(c => c.id === 'injected');
-  const walletConnectConnector = connectors.find(c => c.id === 'walletConnect');
-
   return (
     <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh' }}>
-      {!isConnected ? (
+      {!wallet ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
           <h1>Cryptodesk</h1>
           <input placeholder="Crie seu nome de usuário" value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} />
           
-          {injectedConnector && (
-            <button onClick={() => handleConnect(injectedConnector)} style={{marginTop: '10px'}}>
-              Conectar MetaMask
-            </button>
-          )}
-          {walletConnectConnector && (
-            <button onClick={() => handleConnect(walletConnectConnector)} style={{marginTop: '10px'}}>
-              Conectar com QR Code
-            </button>
-          )}
+          {/* Botão de conexão da TON. Ele já faz tudo! */}
+          <div style={{marginTop: '20px'}}>
+            <TonConnectButton />
+          </div>
 
           <p>{status}</p>
         </div>
       ) : (
         <>
           <header style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem' }}>
-            <p>{`${address.substring(0, 6)}...${address.substring(address.length - 4)}`}</p>
-            <button onClick={handleDisconnect}>Sair</button>
+            {/* Exibe o endereço da carteira TON */}
+            <p>{`${wallet.account.address.substring(0, 6)}...${wallet.account.address.substring(wallet.account.address.length - 4)}`}</p>
+            {/* O botão do TonConnect já oferece a opção de desconectar */}
+            <TonConnectButton />
           </header>
           
           {renderPage()}
