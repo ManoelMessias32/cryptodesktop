@@ -2,6 +2,7 @@
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@openzeppelin/contracts": "^5.4.0",
+    "@vitejs/plugin-react": "^5.1.1",
     "hardhat": "^2.19.4"
   },
   "name": "jogo-web3",
@@ -63,4 +64,3 @@
   "author": "",
   "license": "ISC"
 }
- 
