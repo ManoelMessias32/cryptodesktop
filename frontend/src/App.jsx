@@ -10,13 +10,13 @@ import { economyData } from './economy';
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 });
 
 const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
-const NEW_SLOT_COST = 500;
+const NEW_SLOT_COST = 500; // Preço para comprar um novo gabinete
 
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = {
-  1: '3500000000',
-  2: '9000000000',
-  3: '17000000000',
+  1: '3500000000', 
+  2: '9000000000', 
+  3: '17000000000', 
 };
 
 export default function App() {
@@ -59,7 +59,7 @@ export default function App() {
   };
 
   const handlePurchase = async (tierToBuy) => {
-    if (!userFriendlyAddress) { // Verifica se a carteira está conectada
+    if (!userFriendlyAddress) {
       setStatus('❌ Por favor, conecte sua carteira primeiro no topo da página.');
       return;
     }
@@ -76,9 +76,6 @@ export default function App() {
       setStatus('⏳ Abra sua carteira TON para aprovar a transação.');
       await tonConnectUI.sendTransaction(transaction);
       setStatus('✅ Compra realizada com sucesso! O novo item aparecerá em breve.');
-      
-      // Lógica para adicionar slot após compra bem-sucedida
-
     } catch (error) {
       setStatus(`❌ A transação foi rejeitada ou falhou.`);
       console.error(error);
@@ -90,12 +87,21 @@ export default function App() {
 
   const navButtonStyle = (page) => ({ /* ...styles */ });
 
+  // FUNÇÃO DE ROTEAMENTO CORRIGIDA
   const renderPage = () => {
     switch (route) {
       case 'mine':
         return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={economyData} addNewSlot={addNewSlot} />; 
-      default:
+      case 'shop':
         return <ShopPage handlePurchase={handlePurchase} />;
+      case 'games':
+        return <GamesPage />;
+      case 'user':
+        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} />;
+      case 'rankings':
+        return <RankingsPage />;
+      default:
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={economyData} addNewSlot={addNewSlot} />;
     }
   };
 
@@ -116,7 +122,6 @@ export default function App() {
         <TonConnectButton />
       </header>
       
-      {/* CAMPO DE STATUS GLOBAL */}
       <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: status.startsWith('❌') ? '#f87171' : '#34d399' }}>
         <p>{status}</p>
       </div>
