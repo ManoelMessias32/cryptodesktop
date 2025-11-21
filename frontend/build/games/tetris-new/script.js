@@ -97,7 +97,6 @@
       for (var i = 0; i < s; i++) {
         this.board.push(0);
       }
-      //this.boardDiv = document.getElementById('board); //for debugging
     },
     initInfo: function () {
       this.nextShapeDisplay = document.getElementById("next_shape");
@@ -147,7 +146,6 @@
       }
       var k = this.tempShapes.length;
       while (--k) {
-        //Fisher Yates Shuffle
         var j = Math.floor(Math.random() * (k + 1));
         var tempk = this.tempShapes[k];
         var tempj = this.tempShapes[j];
@@ -180,7 +178,7 @@
     initLevelScores: function () {
       var c = 1;
       for (var i = 1; i <= this.numLevels; i++) {
-        this["level" + i] = [c * 1000, 40 * i, 5 * i]; //for nxt level, row score, p sore,
+        this["level" + i] = [c * 1000, 40 * i, 5 * i];
         c = c + c;
       }
     },
@@ -240,6 +238,22 @@
       };
       if (window.addEventListener) {
         document.addEventListener(event, cb, false);
+
+        // Listener para os botões do controle
+        window.addEventListener('message', function(msg) {
+            var keyMap = {
+                'up': 38,     // Rotacionar
+                'down': 40,   // Descer
+                'left': 37,   // Esquerda
+                'right': 39,  // Direita
+                'action': 38  // Rotacionar (Ação)
+            };
+            var keyCode = keyMap[msg.data];
+            if (keyCode) {
+                me.handleKey({ keyCode: keyCode });
+            }
+        }, false);
+
       } else {
         document.attachEvent("on" + event, cb);
       }
@@ -306,7 +320,6 @@
       if (shape === true) {
         score += shape * this["level" + this.level][2];
       }
-      /*if (speed > 0){ score += speed * this["level" +this .level[3]];}*/
       this.incScore(score);
     },
     checkScore: function () {
@@ -401,7 +414,6 @@
     },
     rotate: function () {
       if (this.curShapeIndex !== 6) {
-        //square
         var temp = [];
         this.curShape.eachdo(function () {
           temp.push([this[1] * -1, this[0]]);
@@ -411,7 +423,6 @@
           this.removeCur();
           this.drawShape(this.curX, this.curY, this.curShape);
         } else {
-          throw new Error("Could not rotate!");
         }
       }
     },
@@ -466,12 +477,10 @@
       var start = this.boardHeight;
       this.curShape.eachdo(function () {
         var n = this[1] + me.curY;
-        console.log(n);
         if (n < start) {
           start = n;
         }
       });
-      console.log(start);
 
       var c = 0;
       var stopCheck = false;
@@ -500,6 +509,8 @@
       }
       if (c > 0) {
         this.calcScore({ lines: c });
+        // Envia a mensagem de vitória para o app principal
+        window.parent.postMessage('gameWon', '*');
       }
     },
     shiftRow: function (y, amount) {

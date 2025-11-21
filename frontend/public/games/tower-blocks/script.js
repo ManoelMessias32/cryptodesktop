@@ -281,6 +281,14 @@ var Game = /** @class */ (function () {
       // ☝️ this triggers after click on android so you
       // insta-lose, will figure it out later.
     });
+
+    // Listener for new controls from the parent app.
+    window.addEventListener('message', function(event) {
+        if (event.data === 'action') {
+            _this.onAction();
+        }
+    });
+
   }
   Game.prototype.updateState = function (newState) {
     for (var key in this.STATES)
@@ -353,7 +361,11 @@ var Game = /** @class */ (function () {
     var currentBlock = this.blocks[this.blocks.length - 1];
     var newBlocks = currentBlock.place();
     this.newBlocks.remove(currentBlock.mesh);
-    if (newBlocks.placed) this.placedBlocks.add(newBlocks.placed);
+    if (newBlocks.placed) {
+      this.placedBlocks.add(newBlocks.placed);
+      // Send 'gameWon' message to parent app.
+      window.parent.postMessage('gameWon', '*');
+    }
     if (newBlocks.chopped) {
       this.choppedBlocks.add(newBlocks.chopped);
       var positionParams = {
@@ -383,7 +395,7 @@ var Game = /** @class */ (function () {
         positionParams[newBlocks.plane] =
           "+=" + 40 * Math.abs(newBlocks.direction);
       } else {
-        positionParams[newBlocks.plane] =
+        position પણ[newBlocks.plane] =
           "-=" + 40 * Math.abs(newBlocks.direction);
       }
       TweenLite.to(newBlocks.chopped.position, 1, positionParams);

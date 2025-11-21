@@ -41,7 +41,7 @@ body.onload= function(){
 
 }
 
-/* --- Refresh Size Page ---
+/* --- Refresh Size Page --- 
 * This function update the size of mini game
 * according with the parameter "size" of mini game tag at HTML
 * */
@@ -172,4 +172,18 @@ init = function(){
     //Setting event keyDown
     document.addEventListener("keydown",keyDown);
 
+    // Listener for new controls from the parent app.
+    window.addEventListener('message', function(event) {
+        const keyMap = {
+            'up': 38,       // ArrowUp
+            'down': 40,     // ArrowDown
+            'left': 37,     // ArrowLeft
+            'right': 39,    // ArrowRight
+            'action': 32    // Spacebar
+        };
+        const keyCode = keyMap[event.data];
+        if (keyCode) {
+            keyDown({ keyCode: keyCode });
+        }
+    });
 }

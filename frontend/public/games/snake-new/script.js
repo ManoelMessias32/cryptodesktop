@@ -1,7 +1,6 @@
 const playBoard = document.querySelector(".play-board");
 const scoreElement = document.querySelector(".score");
 const highScoreElement = document.querySelector(".high-score");
-const controls = document.querySelectorAll(".controls i");
 
 let gameOver = false;
 let foodX, foodY;
@@ -45,8 +44,19 @@ const changeDirection = e => {
     }
 }
 
-// Calling changeDirection on each key click and passing key dataset value as an object
-controls.forEach(button => button.addEventListener("click", () => changeDirection({ key: button.dataset.key })));
+// Listener for new controls from the parent app.
+window.addEventListener('message', function(event) {
+    const keyMap = {
+        'up': "ArrowUp",
+        'down': "ArrowDown",
+        'left': "ArrowLeft",
+        'right': "ArrowRight",
+    };
+    const key = keyMap[event.data];
+    if (key) {
+        changeDirection({ key: key });
+    }
+});
 
 const initGame = () => {
     if(gameOver) return handleGameOver();
@@ -54,6 +64,8 @@ const initGame = () => {
 
     // Checking if the snake hit the food
     if(snakeX === foodX && snakeY === foodY) {
+        // Send 'gameWon' message to parent app.
+        window.parent.postMessage('gameWon', '*');
         updateFoodPosition();
         snakeBody.push([foodY, foodX]); // Pushing food position to snake body array
         score++; // increment score by 1
