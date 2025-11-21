@@ -33,10 +33,10 @@ body.onload= function(){
     //Pega contexto 2D
     ctx = canvas.getContext("2d");
 
-     //Imagem tetris ativos
-     imgTetrisAtivo.src = "img/tetris.png";
-     //Imagem tetris inativo
-     imgTetrisInativo.src = "img/tetrisAlpha.png";
+     //Imagem tetris ativos - CAMINHOS CORRIGIDOS
+     imgTetrisAtivo.src = "/games/brick-game/img/tetris.png";
+     //Imagem tetris inativo - CAMINHOS CORRIGIDOS
+     imgTetrisInativo.src = "/games/brick-game/img/tetrisAlpha.png";
 
      init();
 

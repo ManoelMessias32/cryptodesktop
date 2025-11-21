@@ -4,10 +4,12 @@ import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
-import GamesPage from './GamesPage'; // Importa a nova página de jogos
+import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
-const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0, isBroken: false });
+const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 }); // isBroken removido
+
+const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -41,13 +43,36 @@ export default function App() {
   };
 
   const handlePurchase = async (tierToBuy) => {
-    // Lógica de compra com TON aqui
+    // Lógica de compra com TON 
   };
 
+  // LÓGICA DE MINERAÇÃO ATUALIZADA: NÃO QUEBRA MAIS, APENAS PARA
   const gameLoop = useCallback(() => {
-    // Sua lógica de mineração aqui
-  }, [slots]);
-  useEffect(() => { const i = setInterval(gameLoop, 1000); return () => clearInterval(i); }, [gameLoop]);
+    let totalGain = 0;
+    const updatedSlots = slots.map(slot => {
+      if (slot.filled && slot.repairCooldown > 0) { // Removido !isBroken
+        const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
+        const gainRate = (economyData[econKey]?.gain || 0) / SECONDS_IN_A_MONTH; 
+        totalGain += gainRate;
+        
+        const newRepairCooldown = slot.repairCooldown - 1;
+        // A CPU simplesmente para quando o tempo acaba, não quebra.
+        return { ...slot, repairCooldown: newRepairCooldown }; 
+      }
+      return slot;
+    });
+
+    if (totalGain > 0) {
+      setCoinBdg(prev => prev + totalGain);
+    }
+    setSlots(updatedSlots);
+
+  }, [slots, setCoinBdg, setSlots]);
+
+  useEffect(() => {
+    const gameInterval = setInterval(gameLoop, 1000);
+    return () => clearInterval(gameInterval);
+  }, [gameLoop]);
 
   const navButtonStyle = (page) => ({
     padding: '10px 20px',
@@ -72,7 +97,7 @@ export default function App() {
         return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} />;
       case 'rankings':
         return <RankingsPage />;
-      case 'games': // Adiciona a rota para a página de jogos
+      case 'games':
         return <GamesPage />;
       default:
         return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={economyData} status={status} setStatus={setStatus} />;
@@ -101,7 +126,7 @@ export default function App() {
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
         <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>⛏️ Minerar</button>
         <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>🛒 Loja</button>
-        <button onClick={() => setRoute('games')} style={navButtonStyle('games')}>🎮 Jogos</button> {/* Adiciona o botão de jogos */}
+        <button onClick={() => setRoute('games')} style={navButtonStyle('games')}>🎮 Jogos</button>
         <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>👤 Perfil</button>
         <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>🏆 Rankings</button>
       </nav>
