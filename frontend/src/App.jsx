@@ -7,9 +7,10 @@ import RankingsPage from './RankingsPage';
 import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
-const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 }); // isBroken removido
+const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 });
 
 const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
+const NEW_SLOT_COST = 500; // Preço para comprar um novo gabinete
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -46,27 +47,36 @@ export default function App() {
     // Lógica de compra com TON 
   };
 
-  // LÓGICA DE MINERAÇÃO ATUALIZADA: NÃO QUEBRA MAIS, APENAS PARA
+  // FUNÇÃO PARA COMPRAR NOVO GABINETE (SLOT)
+  const addNewSlot = () => {
+    if (slots.length >= 6) {
+      setStatus('❌ Você atingiu o limite máximo de gabinetes.');
+      return;
+    }
+    if (coinBdg >= NEW_SLOT_COST) {
+      setCoinBdg(prev => prev - NEW_SLOT_COST);
+      const newSlotName = `Slot ${slots.length + 1}`;
+      setSlots(prev => [...prev, { name: newSlotName, filled: false, free: false, repairCooldown: 0 }]);
+      setStatus(`✅ Novo gabinete comprado por ${NEW_SLOT_COST} BDG!`);
+    } else {
+      setStatus(`❌ Moedas insuficientes! Você precisa de ${NEW_SLOT_COST} BDG.`);
+    }
+  };
+
   const gameLoop = useCallback(() => {
     let totalGain = 0;
     const updatedSlots = slots.map(slot => {
-      if (slot.filled && slot.repairCooldown > 0) { // Removido !isBroken
+      if (slot.filled && slot.repairCooldown > 0) {
         const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
         const gainRate = (economyData[econKey]?.gain || 0) / SECONDS_IN_A_MONTH; 
         totalGain += gainRate;
-        
         const newRepairCooldown = slot.repairCooldown - 1;
-        // A CPU simplesmente para quando o tempo acaba, não quebra.
         return { ...slot, repairCooldown: newRepairCooldown }; 
       }
       return slot;
     });
-
-    if (totalGain > 0) {
-      setCoinBdg(prev => prev + totalGain);
-    }
+    if (totalGain > 0) setCoinBdg(prev => prev + totalGain);
     setSlots(updatedSlots);
-
   }, [slots, setCoinBdg, setSlots]);
 
   useEffect(() => {
@@ -74,23 +84,13 @@ export default function App() {
     return () => clearInterval(gameInterval);
   }, [gameLoop]);
 
-  const navButtonStyle = (page) => ({
-    padding: '10px 20px',
-    margin: '0 5px',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    backgroundColor: route === page ? '#5a67d8' : '#4a5568',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  });
+  const navButtonStyle = (page) => ({ /* ...styles */ });
 
   const renderPage = () => {
     switch (route) {
       case 'mine':
-        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={economyData} status={status} setStatus={setStatus} />; 
+        // Passando a função addNewSlot para a MiningPage
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={economyData} status={status} setStatus={setStatus} addNewSlot={addNewSlot} />; 
       case 'shop':
         return <ShopPage handlePurchase={handlePurchase} />; 
       case 'user':
@@ -100,7 +100,7 @@ export default function App() {
       case 'games':
         return <GamesPage />;
       default:
-        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={economyData} status={status} setStatus={setStatus} />;
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={economyData} status={status} setStatus={setStatus} addNewSlot={addNewSlot} />;
     }
   };
 
