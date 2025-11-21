@@ -9,11 +9,6 @@ import { economyData } from './economy';
 
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 });
 
-const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
-const NEW_SLOT_COST = 500;
-
-// ... (outras constantes)
-
 export default function App() {
   const [route, setRoute] = useState('mine');
   const [status, setStatus] = useState('Bem-vindo! Conecte sua carteira quando quiser.');
@@ -51,17 +46,31 @@ export default function App() {
     color: 'white',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px'
+    gap: '8px',
+    fontFamily: '"Press Start 2P", cursive',
+    fontSize: '0.8em'
   });
 
   const renderPage = () => {
-    // ... (lógica de roteamento)
+    switch (route) {
+      case 'mine':
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} />;
+      case 'shop':
+        return <ShopPage handlePurchase={() => {}} />;
+      case 'games':
+        return <GamesPage />;
+      case 'user':
+        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} />;
+      case 'rankings':
+        return <RankingsPage />;
+      default:
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} />;
+    }
   };
 
   if (!username) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#18181b', color: '#f4f4f5', textAlign: 'center' }}>
-        {/* TÍTULO ATUALIZADO COM NOVA FONTE */}
         <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15', marginBottom: '30px' }}>Crypto Desktop Miner</h1>
         <input placeholder="Crie seu nome de usuário" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white' }} />
         <button onClick={handleUsernameSubmit} style={{...navButtonStyle('none'), marginTop: '10px', background: '#5a67d8'}}>Entrar e Jogar</button>
@@ -76,7 +85,16 @@ export default function App() {
         <TonConnectButton />
       </header>
       
-      {/* ... (resto do seu App) */}
+      {/* ---- CHAMADA CORRIGIDA ---- */}
+      {renderPage()}
+
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
+        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>⛏️ Minerar</button>
+        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>🛒 Loja</button>
+        <button onClick={() => setRoute('games')} style={navButtonStyle('games')}>🎮 Jogos</button>
+        <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>👤 Perfil</button>
+        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>🏆 Rankings</button>
+      </nav>
     </div>
   );
 }
