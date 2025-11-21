@@ -34,7 +34,7 @@ export default function App() {
 
   // --- Hooks da Carteira TON ---
   const userFriendlyAddress = useTonAddress();
-  const [tonConnectUI] = useTonConnectUI(); // Hook que estava faltando
+  const [tonConnectUI] = useTonConnectUI();
 
   // --- Efeitos para Salvar no LocalStorage ---
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
@@ -106,9 +106,22 @@ export default function App() {
     return () => clearInterval(gameInterval);
   }, [gameLoop]);
 
-  const navButtonStyle = (page) => ({ /* ... styles ... */ });
+  const navButtonStyle = (page) => ({
+    padding: '10px 15px',
+    margin: '0 5px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    backgroundColor: route === page ? '#5a67d8' : '#4a5568',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontFamily: '"Press Start 2P", cursive',
+    fontSize: '0.7em'
+  });
 
-  // --- Renderização das Páginas ---
+  // --- Renderização das Páginas (CORRIGIDO) ---
   const renderPage = () => {
     switch (route) {
       case 'mine':
@@ -129,15 +142,15 @@ export default function App() {
   // --- Tela de Login ---
   if (!username) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#18181b', color: '#f4f4f5', textAlign: 'center' }}>
-        <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15', marginBottom: '30px' }}>Crypto Desktop Miner</h1>
-        <input placeholder="Crie seu nome de usuário" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white' }} />
-        <button onClick={handleUsernameSubmit} style={{ fontFamily: '"Press Start 2P", cursive', marginTop: '10px', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', background: '#5a67d8', color: 'white' }}>Entrar e Jogar</button>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#18181b', color: '#f4f4f5', textAlign: 'center', padding: '20px' }}>
+        <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15', marginBottom: '30px', fontSize: '1.5em' }}>Crypto Desktop Miner</h1>
+        <input placeholder="Crie seu nome de usuário" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white', width: '80%' }} />
+        <button onClick={handleUsernameSubmit} style={{...navButtonStyle('none'), marginTop: '20px', background: '#5a67d8'}}>Entrar e Jogar</button>
       </div>
     );
   }
 
-  // --- Tela Principal do Jogo ---
+  // --- Tela Principal do Jogo (CORRIGIDO) ---
   return (
     <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', paddingBottom: '80px' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
@@ -149,7 +162,11 @@ export default function App() {
       </div>
       {renderPage()}
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
-        {/* ... botões de navegação ... */}
+        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>⛏️ Minerar</button>
+        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>🛒 Loja</button>
+        <button onClick={() => setRoute('games')} style={navButtonStyle('games')}>🎮 Jogos</button>
+        <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>👤 Perfil</button>
+        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>🏆 Rankings</button>
       </nav>
     </div>
   );
