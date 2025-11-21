@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TonConnectButton, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
@@ -41,46 +41,38 @@ export default function App() {
   const addNewSlot = () => { /* ... */ };
   const handlePurchase = async (tierToBuy) => { /* ... */ };
 
-  // Game loop refatorado para estabilidade
-  const gameLoop = () => {
-    setPaidBoostTime(prev => (prev > 0 ? prev - 1 : 0));
+  const gameLoop = useCallback(() => {
+    setSlots(currentSlots => {
+        let totalGain = 0;
+        const updatedSlots = currentSlots.map(slot => {
+            if (slot.filled && slot.repairCooldown > 0) {
+                const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
+                let gainRate = (economyData[econKey]?.gainPerHour || 0) / SECONDS_IN_AN_HOUR;
+                if (paidBoostTime > 0) {
+                    gainRate *= 1.5;
+                }
+                totalGain += gainRate;
+                return { ...slot, repairCooldown: slot.repairCooldown - 1 };
+            }
+            return slot;
+        });
 
-    let totalGain = 0;
-    let boostActive = false;
-    setPaidBoostTime(prev => {
-      boostActive = prev > 0;
-      return prev;
+        if (totalGain > 0) {
+            setCoinBdg(prev => prev + totalGain);
+        }
+        
+        return updatedSlots;
     });
 
-    const updatedSlots = slots.map(slot => {
-      if (slot.filled && slot.repairCooldown > 0) {
-        const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
-        let gainRate = (economyData[econKey]?.gainPerHour || 0) / SECONDS_IN_AN_HOUR;
-        if (boostActive) gainRate *= 1.5;
-        totalGain += gainRate;
-        return { ...slot, repairCooldown: slot.repairCooldown - 1 };
-      }
-      return slot;
-    });
-
-    if (totalGain > 0) {
-      setCoinBdg(prev => prev + totalGain);
+    if (paidBoostTime > 0) {
+        setPaidBoostTime(prev => prev - 1);
     }
-    setSlots(updatedSlots);
-  };
-  
-  const savedCallback = useRef();
-  useEffect(() => {
-    savedCallback.current = gameLoop;
-  });
+  }, [paidBoostTime]);
 
   useEffect(() => {
-    function tick() {
-      savedCallback.current();
-    }
-    const gameInterval = setInterval(tick, 1000);
+    const gameInterval = setInterval(gameLoop, 1000);
     return () => clearInterval(gameInterval);
-  }, []);
+  }, [gameLoop]);
 
   const navButtonStyle = (page) => ({ padding: '10px 15px', margin: '0 5px', border: 'none', borderRadius: '5px', cursor: 'pointer', backgroundColor: route === page ? '#5a67d8' : '#4a5568', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.7em' });
 
@@ -101,30 +93,28 @@ export default function App() {
     }
   };
 
-  if (!username) {
-    return (
-      <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+  const loginScreen = (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px' }}>
         <div style={{ textAlign: 'center', background: '#2d3748', padding: '30px', borderRadius: '10px', width: '100%', maxWidth: '400px' }}>
-          <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15', marginBottom: '30px' }}>Login</h1>
-          <input 
-            type="text" 
-            value={tempUsername}
-            onChange={(e) => setTempUsername(e.target.value)}
-            placeholder="Digite seu nome de usuário"
-            style={{ padding: '10px', width: 'calc(100% - 22px)', borderRadius: '5px', border: '1px solid #4a5568', background: '#18181b', color: 'white', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' }}
-          />
-          <button 
-            onClick={handleUsernameSubmit} 
-            style={{ ...navButtonStyle('login'), width: '100%', marginTop: '20px', justifyContent: 'center' }}>
-            Entrar
-          </button>
+            <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15', marginBottom: '30px' }}>Cryptobot</h1>
+            <input 
+              type="text" 
+              value={tempUsername}
+              onChange={(e) => setTempUsername(e.target.value)}
+              placeholder="Digite seu nome de usuário"
+              style={{ padding: '10px', width: 'calc(100% - 22px)', borderRadius: '5px', border: '1px solid #4a5568', background: '#18181b', color: 'white', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' }}
+            />
+            <button 
+              onClick={handleUsernameSubmit} 
+              style={{ ...navButtonStyle('login'), width: '100%', marginTop: '20px', justifyContent: 'center' }}>
+              Entrar
+            </button>
         </div>
-      </div>
-    );
-  }
+    </div>
+  );
 
-  return (
-    <div style={{ background: '#18181b', color: '#f4f4f5', paddingBottom: '100px' }}>
+  const mainApp = (
+    <>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
         <p>Bem-vindo, {username}!</p>
         <TonConnectButton />
@@ -140,6 +130,12 @@ export default function App() {
         <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>👤 Perfil</button>
         <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>🏆 Rankings</button>
       </nav>
+    </>
+  );
+
+  return (
+    <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', paddingBottom: '100px' }}>
+      {!username ? loginScreen : mainApp}
     </div>
   );
 }
