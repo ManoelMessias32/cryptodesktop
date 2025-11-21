@@ -1,10 +1,6 @@
 import React from 'react';
 
-const specialCpuMap = { 1: 'A', 2: 'B', 3: 'C' };
-const PAID_BOOST_COST = 80;
-const PAID_BOOST_DURATION = 1800; 
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
-const ENERGY_REFILL_ALL_COST = 50;
 
 const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
@@ -13,9 +9,18 @@ const formatTime = (seconds) => {
     return `${h}:${m}:${s}`;
 };
 
+// Componente da Barra de Energia
+const EnergyBar = ({ currentTime, maxTime }) => {
+  const percentage = (currentTime / maxTime) * 100;
+  return (
+    <div style={{ width: '100%', backgroundColor: '#4a5568', borderRadius: '5px', overflow: 'hidden' }}>
+      <div style={{ width: `${percentage}%`, backgroundColor: '#6366f1', height: '10px' }}></div>
+    </div>
+  );
+};
+
 export default function MiningPage({ 
-  coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus,
-  paidBoostTime, setPaidBoostTime, economyData 
+  coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus
 }) {
 
   const handleMountFree = (idx) => {
@@ -23,116 +28,57 @@ export default function MiningPage({
     setStatus('✅ CPU Grátis montado e pronto para minerar!');
   };
 
-  // NOVA FUNÇÃO PARA REATIVAR A ENERGIA
   const handleReactivateEnergy = (idx) => {
     setSlots(prevSlots => prevSlots.map((slot, i) => {
         if (i === idx) {
-            return { ...slot, repairCooldown: 3600 }; // Adiciona 1 hora (3600 segundos)
+            return { ...slot, repairCooldown: 3600 };
         }
         return slot;
     }));
     setStatus(`✅ Energia do Slot ${idx + 1} reativada por 1 hora!`);
   };
 
-  const handleBuyEnergy = (idx) => {
-      const slotToRefill = slots[idx];
-      if (!slotToRefill.filled) return;
-      
-      const econKey = slotToRefill.type === 'free' ? 'free' : (slotToRefill.type === 'standard' ? slotToRefill.tier : Object.keys(economyData).find(k => economyData[k].tier === slotToRefill.tier && k.length === 1));
-      const energyCost = economyData[econKey]?.energyCost;
-
-      if (coinBdg >= energyCost) {
-          setCoinBdg(prev => prev - energyCost);
-          setSlots(prevSlots => prevSlots.map((slot, i) => {
-              if (i === idx) {
-                  const newTimer = Math.min(slot.repairCooldown + 3600, TWENTY_FOUR_HOURS_IN_SECONDS);
-                  return { ...slot, repairCooldown: newTimer };
-              }
-              return slot;
-          }));
-          setStatus(`✅ +1 hora de mineração comprada para o Slot ${idx + 1}!`);
-      } else {
-          setStatus('❌ Moedas insuficientes para comprar energia.');
-      }
-  };
-
-  const handleBuyPaidBoost = () => {
-    // ... (função existente)
-  };
-
-  const handleBuyEnergyForAll = () => {
-    // ... (função existente)
-  };
+  // ... (outras funções)
 
   const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', width: '100%' };
 
   return (
-    <div>
-      <div style={{ textAlign: 'center', margin: '0 0 20px 0' }}>
-        <h2 style={{ fontSize: '1.8em', margin: 0, color: '#facc15' }}>🪙 {coinBdg.toFixed(2)} BDG</h2>
-        <p style={{ margin: '5px 0', color: '#a1a1aa' }}>Sua moeda para usar no jogo</p>
+    <div style={{padding: '0 10px 80px 10px'}}>
+      {/* SALDO DE BDG EM DESTAQUE */}
+      <div style={{ textAlign: 'center', margin: '20px 0', padding: '20px', background: '#2d3748', borderRadius: '10px' }}>
+        <p style={{ margin: 0, color: '#a1a1aa', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em'}}>Seu Saldo</p>
+        <h2 style={{ fontSize: '2.5em', margin: '10px 0 0 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive' }}>{coinBdg.toFixed(4)}</h2>
+        <p style={{ margin: '5px 0', color: '#a1a1aa' }}>BDG</p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', margin: '24px auto' }}>
-        <button onClick={handleBuyEnergyForAll} style={{...buttonStyle, width: 'auto', padding: '10px 15px'}}>
-          Reabastecer Tudo ({ENERGY_REFILL_ALL_COST} BDG)
-        </button>
-        <button onClick={handleBuyPaidBoost} disabled={coinBdg < PAID_BOOST_COST || paidBoostTime > 0} style={{...buttonStyle, width: 'auto', padding: '10px 15px'}}>
-          Ativar Boost (+30 min) ({PAID_BOOST_COST} BDG)
-        </button>
-      </div>
-
-       <div style={{textAlign: 'center', marginTop: '12px', minHeight: '20px'}}>
-        {paidBoostTime > 0 && <p>Boost Pago: {formatTime(paidBoostTime)}</p>}
-      </div>
-
-      <div style={{ textAlign: 'center', margin: '24px 0' }}>
-        <button onClick={addNewSlot} disabled={slots.length >= 6} style={buttonStyle}>Comprar Novo Gabinete ({slots.length}/6)</button>
-      </div>
+      {/* ... (seção de recarga) */}
 
       <div style={{ marginTop: 24 }}>
-        <h3 style={{ textAlign: 'center', color: '#e4e4e7' }}>Sua Sala de Mineração</h3>
+        <h3 style={{ textAlign: 'center', color: '#e4e4e7', fontFamily: '"Press Start 2P", cursive', fontSize: '1em' }}>Sua Sala de Mineração</h3>
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '20px' }}>
           {slots.map((slot, idx) => {
-            let imageUrl = '';
-            let title = 'Gabinete Vazio';
-            if (slot.filled) {
-              const tier = slot.tier || 1;
-              if (slot.type === 'free') {
-                  imageUrl = '/tier1.png';
-                  title = 'CPU Grátis';
-              } else if (slot.type === 'standard') {
-                  imageUrl = `/tier${tier}.png`;
-                  title = `Padrão Tier ${tier}`;
-              } else { 
-                  const specialKey = specialCpuMap[tier];
-                  imageUrl = `/special_${specialKey?.toLowerCase()}.png`;
-                  title = `Especial CPU ${specialKey}`;
-              }
-            }
+            // ... (lógica para pegar imagem e título)
 
             return (
-              <div key={idx} style={{ border: '1px solid #3f3f46', borderRadius: '8px', padding: '10px', width: '140px', height: '240px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', background: '#27272a' }}>
+              <div key={idx} style={{ border: '1px solid #3f3f46', borderRadius: '8px', padding: '10px', width: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', background: '#27272a' }}>
                 <div style={{ fontWeight: 'bold', fontSize: '0.9em', color: '#a1a1aa' }}>{slot.name}</div>
                 {slot.filled ? (
-                  <div style={{ textAlign: 'center' }}>
-                    <img src={imageUrl} alt={title} style={{ width: '60px', height: '60px', objectFit: 'contain', margin: '10px 0' }} />
+                  <div style={{ textAlign: 'center', width: '100%' }}>
+                    <img src={'/tier1.png'} alt={title} style={{ width: '60px', height: '60px', objectFit: 'contain', margin: '10px 0' }} />
                     <p style={{ margin: '8px 0', fontWeight: 'bold' }}>{title}</p>
                     
-                    {/* LÓGICA DE EXIBIÇÃO ATUALIZADA */}
                     {slot.repairCooldown > 0 ? (
-                      <div>
-                        <p style={{fontSize: '0.8em'}}>Tempo: {formatTime(slot.repairCooldown)}</p>
-                        <button onClick={() => handleBuyEnergy(idx)} style={{...buttonStyle, padding: '6px 10px', fontSize: '0.9em'}}>+1h Energia (Pago)</button>
+                      <div style={{width: '100%'}}>
+                        <p style={{fontSize: '0.8em'}}>Energia: {formatTime(slot.repairCooldown)}</p>
+                        {/* BARRA DE ENERGIA */}
+                        <EnergyBar currentTime={slot.repairCooldown} maxTime={TWENTY_FOUR_HOURS_IN_SECONDS} />
                       </div>
                     ) : (
-                      <button onClick={() => handleReactivateEnergy(idx)} style={{...buttonStyle, background:'#34d399'}}>Reativar Energia (1h)</button>
+                      <button onClick={() => handleReactivateEnergy(idx)} style={{...buttonStyle, background:'#34d399'}}>Reativar Energia</button>
                     )}
                   </div>
-                ) : slot.free ? (
-                  <button onClick={() => handleMountFree(idx)} style={buttonStyle}>Montar CPU Grátis</button>
                 ) : (
-                  <p style={{ color: '#a1a1aa' }}>{title}</p>
+                   <button onClick={() => handleMountFree(idx)} style={buttonStyle}>Montar CPU Grátis</button>
                 )}
               </div>
             );

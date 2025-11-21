@@ -13,48 +13,40 @@ const styles = {
     height: '650px', 
   },
   title: {
-    marginBottom: '20px',
+    marginBottom: '30px',
     color: '#e4e4e7',
+    fontFamily: '"Press Start 2P", cursive'
   },
   gameMenu: {
-    display: 'flex',
-    justifyContent: 'center',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', // Layout responsivo
     gap: '20px',
     marginBottom: '30px',
-    flexWrap: 'wrap'
   },
-  gameButton: {
-    padding: '10px 20px',
-    fontSize: '1em',
+  // Estilo do Cartão do Jogo
+  gameCard: {
+    padding: '20px',
+    fontSize: '1.2em',
     cursor: 'pointer',
-    background: '#4a5568',
+    background: '#2d3748',
     color: 'white',
-    border: 'none',
-    borderRadius: '5px',
+    border: '1px solid #4a5568',
+    borderRadius: '10px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '120px',
+    fontFamily: '"Press Start 2P", cursive',
   }
 };
 
 const GAMES = {
-  candyCrush: {
-    title: 'Candy Crush',
-    src: '/games/candy-crush/index.html'
-  },
-  towerBlocks: {
-    title: 'Tower Blocks',
-    src: '/games/tower-blocks/index.html'
-  },
-  pingPong: {
-    title: 'Ping Pong',
-    src: '/games/ping-pong/index.html'
-  },
-  tetris: {
-    title: 'Tetris',
-    src: '/games/tetris-new/index.html'
-  },
-  snake: {
-    title: 'Snake',
-    src: '/games/snake-new/index.html'
-  },
+  candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html' },
+  towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html' },
+  pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html' },
+  tetris: { title: 'Tetris', src: '/games/tetris-new/index.html' },
+  snake: { title: 'Snake', src: '/games/snake-new/index.html' },
 };
 
 export default function GamesPage() {
@@ -65,11 +57,15 @@ export default function GamesPage() {
       <div style={styles.container}>
         <h1 style={styles.title}>Centro de Jogos</h1>
         <div style={styles.gameMenu}>
-          <button onClick={() => setSelectedGame(GAMES.candyCrush)} style={styles.gameButton}>Candy Crush</button>
-          <button onClick={() => setSelectedGame(GAMES.towerBlocks)} style={styles.gameButton}>Tower Blocks</button>
-          <button onClick={() => setSelectedGame(GAMES.pingPong)} style={styles.gameButton}>Ping Pong</button>
-          <button onClick={() => setSelectedGame(GAMES.tetris)} style={styles.gameButton}>Tetris</button>
-          <button onClick={() => setSelectedGame(GAMES.snake)} style={styles.gameButton}>Snake</button>
+          {Object.keys(GAMES).map(key => (
+            <div 
+              key={key}
+              onClick={() => setSelectedGame(GAMES[key])}
+              style={styles.gameCard}
+            >
+              {GAMES[key].title}
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -78,7 +74,7 @@ export default function GamesPage() {
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>{selectedGame.title}</h1>
-      <button onClick={() => setSelectedGame(null)} style={{...styles.gameButton, marginBottom: '20px'}}>Voltar ao Menu</button>
+      <button onClick={() => setSelectedGame(null)} style={{...styles.gameButton, marginBottom: '20px', fontFamily: '"Press Start 2P", cursive'}}>Voltar ao Menu</button>
       <iframe 
         src={selectedGame.src} 
         style={styles.iframe} 

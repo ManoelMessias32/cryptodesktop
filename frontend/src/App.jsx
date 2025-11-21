@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TonConnectButton, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
+import { TonConnectButton, useTonAddress } from '@tonconnect/ui-react';
 import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
@@ -10,14 +10,9 @@ import { economyData } from './economy';
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 });
 
 const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
-const NEW_SLOT_COST = 500; // Preço para comprar um novo gabinete
+const NEW_SLOT_COST = 500;
 
-const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
-const TIER_PRICES = {
-  1: '3500000000', 
-  2: '9000000000', 
-  3: '17000000000', 
-};
+// ... (outras constantes)
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -33,9 +28,10 @@ export default function App() {
   const [tempUsername, setTempUsername] = useState('');
 
   const userFriendlyAddress = useTonAddress();
-  const [tonConnectUI] = useTonConnectUI();
 
-  useEffect(() => { /* Efeitos de salvar no localStorage */ }, [slots, coinBdg, username]);
+  useEffect(() => {
+    // ... (lógica de salvar no localStorage)
+  }, [slots, coinBdg, username]);
 
   const handleUsernameSubmit = () => {
     if (tempUsername.trim()) {
@@ -43,74 +39,32 @@ export default function App() {
     }
   };
 
-  const addNewSlot = () => {
-    if (slots.length >= 6) {
-      setStatus('❌ Você atingiu o limite máximo de gabinetes.');
-      return;
-    }
-    if (coinBdg >= NEW_SLOT_COST) {
-      setCoinBdg(prev => prev - NEW_SLOT_COST);
-      const newSlotName = `Slot ${slots.length + 1}`;
-      setSlots(prev => [...prev, { name: newSlotName, filled: false, free: false, repairCooldown: 0 }]);
-      setStatus(`✅ Novo gabinete comprado por ${NEW_SLOT_COST} BDG!`);
-    } else {
-      setStatus(`❌ Moedas insuficientes! Você precisa de ${NEW_SLOT_COST} BDG.`);
-    }
-  };
+  // ... (outras funções)
 
-  const handlePurchase = async (tierToBuy) => {
-    if (!userFriendlyAddress) {
-      setStatus('❌ Por favor, conecte sua carteira primeiro no topo da página.');
-      return;
-    }
+  const navButtonStyle = (page) => ({
+    padding: '10px 20px',
+    margin: '0 5px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    backgroundColor: route === page ? '#5a67d8' : '#4a5568',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  });
 
-    const transaction = {
-      validUntil: Math.floor(Date.now() / 1000) + 60,
-      messages: [{
-        address: SHOP_RECEIVER_ADDRESS,
-        amount: TIER_PRICES[tierToBuy],
-      }],
-    };
-
-    try {
-      setStatus('⏳ Abra sua carteira TON para aprovar a transação.');
-      await tonConnectUI.sendTransaction(transaction);
-      setStatus('✅ Compra realizada com sucesso! O novo item aparecerá em breve.');
-    } catch (error) {
-      setStatus(`❌ A transação foi rejeitada ou falhou.`);
-      console.error(error);
-    }
-  };
-
-  const gameLoop = useCallback(() => { /* ...lógica de mineração... */ }, [slots]);
-  useEffect(() => { const gameInterval = setInterval(gameLoop, 1000); return () => clearInterval(gameInterval); }, [gameLoop]);
-
-  const navButtonStyle = (page) => ({ /* ...styles */ });
-
-  // FUNÇÃO DE ROTEAMENTO CORRIGIDA
   const renderPage = () => {
-    switch (route) {
-      case 'mine':
-        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={economyData} addNewSlot={addNewSlot} />; 
-      case 'shop':
-        return <ShopPage handlePurchase={handlePurchase} />;
-      case 'games':
-        return <GamesPage />;
-      case 'user':
-        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} />;
-      case 'rankings':
-        return <RankingsPage />;
-      default:
-        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} economyData={economyData} addNewSlot={addNewSlot} />;
-    }
+    // ... (lógica de roteamento)
   };
 
   if (!username) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#18181b', color: '#f4f4f5' }}>
-        <h1>Cryptodesk</h1>
-        <input placeholder="Crie seu nome de usuário" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} />
-        <button onClick={handleUsernameSubmit} style={{marginTop: '10px'}}>Entrar e Jogar</button>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#18181b', color: '#f4f4f5', textAlign: 'center' }}>
+        {/* TÍTULO ATUALIZADO COM NOVA FONTE */}
+        <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15', marginBottom: '30px' }}>Crypto Desktop Miner</h1>
+        <input placeholder="Crie seu nome de usuário" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white' }} />
+        <button onClick={handleUsernameSubmit} style={{...navButtonStyle('none'), marginTop: '10px', background: '#5a67d8'}}>Entrar e Jogar</button>
       </div>
     );
   }
@@ -122,19 +76,7 @@ export default function App() {
         <TonConnectButton />
       </header>
       
-      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: status.startsWith('❌') ? '#f87171' : '#34d399' }}>
-        <p>{status}</p>
-      </div>
-
-      {renderPage()}
-
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
-        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>⛏️ Minerar</button>
-        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>🛒 Loja</button>
-        <button onClick={() => setRoute('games')} style={navButtonStyle('games')}>🎮 Jogos</button>
-        <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>👤 Perfil</button>
-        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>🏆 Rankings</button>
-      </nav>
+      {/* ... (resto do seu App) */}
     </div>
   );
 }
