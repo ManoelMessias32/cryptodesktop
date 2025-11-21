@@ -1,14 +1,50 @@
 import React from 'react';
 
-// A página agora recebe `username` do App.jsx
 export default function UserPage({ address, coinBdg, username }) {
 
   const styles = {
-    pageContainer: { display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '700px', margin: '0 auto', fontFamily: '"Press Start 2P", cursive', padding: '20px' },
-    container: { padding: '16px', background: '#2d3748', borderRadius: '8px', border: '1px solid #4a5568' },
-    title: { color: '#facc15', borderBottom: '1px solid #4a5568', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.2em' },
-    infoLine: { margin: '15px 0', fontSize: '0.9em', color: '#e4e4e7', wordBreak: 'break-all' },
-    infoLabel: { color: '#a1a1aa', marginRight: '10px' },
+    // Container principal agora usa layout de bloco normal
+    pageContainer: { 
+      padding: '10px',
+      maxWidth: '700px',
+      margin: '0 auto',
+      fontFamily: '"Press Start 2P", cursive',
+    },
+    // Estilo individual de cada cartão
+    container: {
+      padding: '16px',
+      background: '#2d3748',
+      borderRadius: '8px',
+      border: '1px solid #4a5568',
+      marginBottom: '20px', // Adiciona espaço entre os cartões
+    },
+    title: {
+      color: '#facc15',
+      borderBottom: '1px solid #4a5568',
+      paddingBottom: '10px',
+      marginBottom: '20px',
+      fontSize: '1.2em'
+    },
+    infoLine: {
+      margin: '15px 0',
+      fontSize: '0.9em',
+      color: '#e4e4e7',
+      wordBreak: 'break-all'
+    },
+    infoLabel: {
+      color: '#a1a1aa',
+      marginRight: '10px'
+    },
+    button: {
+      padding: '10px 15px',
+      cursor: 'pointer',
+      border: 'none',
+      borderRadius: '4px',
+      background: '#4f46e5',
+      color: 'white',
+      fontFamily: '"Press Start 2P", cursive',
+      fontSize: '0.8em'
+    }
   };
 
   const referralLink = `${window.location.origin}/?ref=${encodeURIComponent(username)}`;
@@ -35,7 +71,7 @@ export default function UserPage({ address, coinBdg, username }) {
           <span>{address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'Não conectada'}</span>
         </p>
         <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Saldo:</strong> 
+          <strong style={styles.infoLabel}>Saldo em Token:</strong> 
           <span>{coinBdg.toFixed(4)} BDG</span>
         </p>
       </div>
@@ -45,10 +81,10 @@ export default function UserPage({ address, coinBdg, username }) {
           <div style={styles.container}>
             <h3 style={{...styles.title, fontSize: '1em'}}>Seu Link de Referência</h3>
             <p style={{...styles.infoLine, fontSize: '0.8em'}}>Compartilhe para ganhar recompensas!</p>
-            <div style={{ background: '#1e293b', padding: '12px', borderRadius: '4px', wordBreak: 'break-all' }}>
+            <div style={{ background: '#1e293b', padding: '12px', borderRadius: '4px', wordBreak: 'break-all', marginBottom: '15px' }}>
               {referralLink}
             </div>
-            <button onClick={handleCopyToClipboard} style={{ padding: '8px 12px', cursor: 'pointer', border: 'none', borderRadius: '4px', background: '#4f46e5', color: 'white', marginTop: '12px'}}>Copiar Link</button>
+            <button onClick={handleCopyToClipboard} style={styles.button}>Copiar Link</button>
           </div>
         )}
 
