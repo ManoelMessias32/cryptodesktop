@@ -3,7 +3,7 @@
 }
 
 #minigame{
-    background-image: url(./img/capa.png);
+    background-image: url(/games/brick-game/img/capa.png);
     background-repeat: no-repeat;
     background-size: 100%;
 

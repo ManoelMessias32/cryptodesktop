@@ -33,9 +33,9 @@ body.onload= function(){
     //Pega contexto 2D
     ctx = canvas.getContext("2d");
 
-     // Usando caminhos relativos
-     imgTetrisAtivo.src = "./img/tetris.png";
-     imgTetrisInativo.src = "./img/tetrisAlpha.png";
+     // Usando caminhos absolutos a partir da raiz do site
+     imgTetrisAtivo.src = "/games/brick-game/img/tetris.png";
+     imgTetrisInativo.src = "/games/brick-game/img/tetrisAlpha.png";
 
      init();
 

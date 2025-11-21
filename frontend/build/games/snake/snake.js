@@ -1,34 +1,22 @@
-/*
-Create by Learn Web Developement
-Youtube channel : https://www.youtube.com/channel/UC8n8ftV94ZU_DJLOLtrpORA
-*/
-
 const cvs = document.getElementById("snake");
 const ctx = cvs.getContext("2d");
 
 const box = 32;
 
-// Usando caminhos relativos para garantir que o iframe encontre os assets
 const ground = new Image();
 ground.src = "./img/ground.png";
 
 const foodImg = new Image();
 foodImg.src = "./img/food.png";
 
-// Áudios
-let dead = new Audio();
-let eat = new Audio();
-let up = new Audio();
-let right = new Audio();
-let left = new Audio();
-let down = new Audio();
+let dead = new Audio("./audio/dead.mp3");
+let eat = new Audio("./audio/eat.mp3");
+let up = new Audio("./audio/up.mp3");
+let right = new Audio("./audio/right.mp3");
+let left = new Audio("./audio/left.mp3");
+let down = new Audio("./audio/down.mp3");
 
-dead.src = "./audio/dead.mp3";
-eat.src = "./audio/eat.mp3";
-up.src = "./audio/up.mp3";
-right.src = "./audio/right.mp3";
-left.src = "./audio/left.mp3";
-down.src = "./audio/down.mp3";
+// ... (o resto do código do snake.js continua o mesmo)
 
 let snake = [];
 snake[0] = { x: 9 * box, y: 10 * box };
