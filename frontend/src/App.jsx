@@ -8,15 +8,15 @@ import { economyData } from './economy';
 
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0, isBroken: false });
 
-// O SEU ENDEREÇO DA CARTEIRA TON PARA RECEBER PAGAMENTOS
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 
-// Preços em TON
 const TIER_PRICES = {
-  1: '3500000000', // 3.5 TON em nanoTONs
-  2: '9000000000', // 9.0 TON em nanoTONs
-  3: '17000000000', // 17.0 TON em nanoTONs
+  1: '3500000000',
+  2: '9000000000',
+  3: '17000000000',
 };
+
+const SECONDS_IN_A_MONTH = 30 * 24 * 3600; // Aproximação para o cálculo de ganho
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -50,7 +50,6 @@ export default function App() {
     }
   };
 
-  // LÓGICA DE COMPRA COM TON
   const handlePurchase = async (tierToBuy) => {
     if (!tonConnectUI.connected) {
       setStatus('❌ Por favor, conecte sua carteira primeiro.');
@@ -58,7 +57,7 @@ export default function App() {
     }
 
     const transaction = {
-      validUntil: Math.floor(Date.now() / 1000) + 60, // 60 segundos de validade
+      validUntil: Math.floor(Date.now() / 1000) + 60, 
       messages: [
         {
           address: SHOP_RECEIVER_ADDRESS,
@@ -72,7 +71,6 @@ export default function App() {
       await tonConnectUI.sendTransaction(transaction);
       setStatus('✅ Compra realizada com sucesso! (Aguarde a confirmação do slot)');
 
-      // Lógica para adicionar o slot após a compra (simplificada)
       const emptySlotIndex = slots.findIndex(slot => !slot.filled && !slot.free);
       if (emptySlotIndex !== -1) {
           setSlots(prev => prev.map((slot, i) => (i === emptySlotIndex ? { ...slot, filled: true, type: 'standard', tier: tierToBuy, repairCooldown: 24 * 3600, isBroken: false } : slot)));
@@ -85,12 +83,14 @@ export default function App() {
     }
   };
 
+  // LÓGICA DE MINERAÇÃO ATUALIZADA
   const gameLoop = useCallback(() => {
     let totalGain = 0;
     const updatedSlots = slots.map(slot => {
       if (slot.filled && !slot.isBroken && slot.repairCooldown > 0) {
-        const econKey = slot.type === 'free' ? 'free' : (slot.type === 'standard' ? slot.tier : slot.tier);
-        const gainRate = (economyData[econKey]?.gain || 0) / 3600;
+        const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
+        // Fórmula corrigida para usar o ganho mensal
+        const gainRate = (economyData[econKey]?.gain || 0) / SECONDS_IN_A_MONTH; 
         totalGain += gainRate;
         
         const newRepairCooldown = slot.repairCooldown - 1;
