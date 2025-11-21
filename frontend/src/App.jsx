@@ -8,7 +8,7 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 });
-const SECONDS_IN_AN_HOUR = 3600;
+const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
 const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000' };
@@ -47,7 +47,7 @@ export default function App() {
     const updatedSlots = slots.map(slot => {
       if (slot.filled && slot.repairCooldown > 0) {
         const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
-        let gainRate = (economyData[econKey]?.gainPerHour || 0) / SECONDS_IN_AN_HOUR;
+        let gainRate = (economyData[econKey]?.gain || 0) / SECONDS_IN_A_MONTH;
         if (paidBoostTime > 0) gainRate *= 1.5;
         totalGain += gainRate;
         return { ...slot, repairCooldown: slot.repairCooldown - 1 };

@@ -70,27 +70,25 @@ export default function MiningPage({
     }
   };
 
-  const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', width: '100%', fontFamily: '"Press Start 2P", cursive', fontSize:'0.7em' };
+  const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', width: '100%', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' };
 
   return (
     <div style={{padding: '0 10px 80px 10px'}}>
-      <div style={{ textAlign: 'center', margin: '20px auto', padding: '20px', background: '#2d3748', borderRadius: '10px', maxWidth: '500px' }}>
+      <div style={{ textAlign: 'center', margin: '20px auto', padding: '20px', background: '#2d3748', borderRadius: '10px', maxWidth: '90vw' }}>
         <p style={{ margin: 0, color: '#a1a1aa', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em'}}>Seu Saldo</p>
-        <h2 style={{ fontSize: '1.8em', margin: '10px 0 0 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive' }}>{coinBdg.toFixed(4)}</h2>
+        <h2 style={{ fontSize: '2em', margin: '10px 0 0 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive' }}>{coinBdg.toFixed(4)}</h2>
         <p style={{ margin: '5px 0', color: '#a1a1aa' }}>BDG</p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', margin: '24px auto' }}>
-        <button onClick={handleBuyEnergyForAll} style={{...buttonStyle, width: 'auto', padding: '10px 15px'}}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', margin: '24px auto', flexWrap: 'wrap' }}>
+        <button onClick={handleBuyEnergyForAll} style={{...buttonStyle, width: 'auto'}}>
           Reabastecer Tudo ({ENERGY_REFILL_ALL_COST} BDG)
         </button>
-        <button onClick={handleBuyPaidBoost} disabled={paidBoostTime > 0} style={{...buttonStyle, width: 'auto', padding: '10px 15px'}}>
+        <button onClick={handleBuyPaidBoost} disabled={paidBoostTime > 0} style={{...buttonStyle, width: 'auto'}}>
           Ativar Boost ({PAID_BOOST_COST} BDG)
         </button>
       </div>
-      <div style={{textAlign: 'center', minHeight: '20px'}}>
-        {paidBoostTime > 0 && <p>Boost: {formatTime(paidBoostTime)}</p>}
-      </div>
+      <div style={{textAlign: 'center', minHeight: '20px'}}>{paidBoostTime > 0 && <p>Boost: {formatTime(paidBoostTime)}</p>}</div>
 
       <div style={{ textAlign: 'center', margin: '24px 0' }}>
         <button onClick={addNewSlot} disabled={slots.length >= 6} style={buttonStyle}>Comprar Gabinete ({slots.length}/6)</button>
@@ -106,21 +104,21 @@ export default function MiningPage({
             const timeToMine = econKey ? formatTimeToMine(economyData[econKey]?.gain) : null;
 
             return (
-              <div key={idx} style={{ border: '1px solid #3f3f46', borderRadius: '8px', padding: '10px', width: '160px', minHeight: '240px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', background: '#27272a' }}>
+              <div key={idx} style={{ border: '1px solid #3f3f46', borderRadius: '8px', padding: '10px', width: 'clamp(140px, 45%, 180px)', minHeight: '240px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', background: '#27272a' }}>
                 <div style={{ fontWeight: 'bold', fontSize: '0.9em', color: '#a1a1aa' }}>{slot.name}</div>
                 
                 {slot.filled ? (
                   <div style={{ textAlign: 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', flexGrow: 1, justifyContent: 'center' }}>
                     <img src={imageUrl} alt={title} style={{ width: '60px', height: '60px', objectFit: 'contain', margin: '10px 0' }} />
                     <p style={{ margin: '8px 0', fontWeight: 'bold' }}>{title}</p>
-                    {timeToMine && <p style={{fontSize: '0.75em', color: '#a1a1aa', margin: '4px 0'}}>1 BDG em {timeToMine}</p>}
+                    {timeToMine && <p style={{fontSize: '0.8em', color: '#a1a1aa', margin: '4px 0'}}>1 BDG em {timeToMine}</p>}
                     {slot.repairCooldown > 0 ? (
-                      <div style={{width: '100%', marginTop: '10px'}}>
+                      <div style={{width: '100%', marginTop: '10px'}}>\
                         <p style={{fontSize: '0.8em', margin: '5px 0'}}>Energia: {formatTime(slot.repairCooldown)}</p>
                         <EnergyBar currentTime={slot.repairCooldown} maxTime={TWENTY_FOUR_HOURS_IN_SECONDS} />
                       </div>
                     ) : (
-                      <button onClick={() => handleReactivateEnergy(idx)} style={{...buttonStyle, background:'#34d399', marginTop: '10px', width:'auto', padding: '8px 12px'}}>Reativar</button>
+                      <button onClick={() => handleReactivateEnergy(idx)} style={{...buttonStyle, background:'#34d399', marginTop: '10px', width:'auto'}}>Reativar</button>
                     )}
                   </div>
                 ) : slot.free ? (
