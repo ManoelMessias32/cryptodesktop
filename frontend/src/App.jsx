@@ -48,52 +48,44 @@ export default function App() {
     }
   };
 
-  const handlePurchase = async (tierToBuy) => { /* ...lógica de compra TON... */ };
+  const handlePurchase = async (tierToBuy) => { /* ... */ };
 
-  const gameLoop = useCallback(() => {
-    if (paidBoostTime > 0) {
-      setPaidBoostTime(prev => prev - 1);
-    }
-    let totalGain = 0;
-    const updatedSlots = slots.map(slot => {
-      if (slot.filled && slot.repairCooldown > 0) {
-        const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
-        let gainRate = (economyData[econKey]?.gain || 0) / SECONDS_IN_A_MONTH;
-        if (paidBoostTime > 0) gainRate *= 1.5; // Boost de 50%
-        totalGain += gainRate;
-        return { ...slot, repairCooldown: slot.repairCooldown - 1 };
-      }
-      return slot;
-    });
-    if (totalGain > 0) setCoinBdg(prev => prev + totalGain);
-    setSlots(updatedSlots);
-  }, [slots, paidBoostTime]);
+  const gameLoop = useCallback(() => { /* ... */ }, [slots, paidBoostTime]);
 
   useEffect(() => {
     const gameInterval = setInterval(gameLoop, 1000);
     return () => clearInterval(gameInterval);
   }, [gameLoop]);
 
-  const navButtonStyle = (page) => ({ /* ... styles ... */ });
+  const navButtonStyle = (page) => ({ padding: '10px 15px', margin: '0 5px', border: 'none', borderRadius: '5px', cursor: 'pointer', backgroundColor: route === page ? '#5a67d8' : '#4a5568', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.7em' });
 
   const renderPage = () => {
     switch (route) {
       case 'mine':
-        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} />;
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
       case 'shop':
         return <ShopPage handlePurchase={handlePurchase} />;
       case 'games':
         return <GamesPage />;
       case 'user':
-        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} />;
+        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} username={username} />;
       case 'rankings':
         return <RankingsPage />;
       default:
-        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} />;
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
     }
   };
 
-  if (!username) { /* ... Tela de login ... */ }
+  // LÓGICA DE LOGIN RESTAURADA
+  if (!username) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#18181b', color: '#f4f4f5', textAlign: 'center', padding: '20px' }}>
+        <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15', marginBottom: '30px', fontSize: '1.5em' }}>Crypto Desktop Miner</h1>
+        <input placeholder="Crie seu nome de usuário" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white', width: '80%', maxWidth: '400px' }} />
+        <button onClick={handleUsernameSubmit} style={{...navButtonStyle('none'), marginTop: '20px', background: '#5a67d8'}}>Entrar e Jogar</button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', paddingBottom: '80px' }}>
