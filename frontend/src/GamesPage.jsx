@@ -18,11 +18,13 @@ const styles = {
   },
   iframe: {
     position: 'absolute',
-    top: '18%',
-    left: '12%',
-    width: '76%',
-    height: '45%',
+    // Valores ajustados para um encaixe mais preciso
+    top: '22%',
+    left: '13%',
+    width: '74%',
+    height: '58%',
     border: 'none',
+    backgroundColor: '#9ead86', // Cor de fundo para preencher o display
   },
   title: {
     marginBottom: '30px',
@@ -128,14 +130,11 @@ export default function GamesPage({ onGameWin }) {
   }, [onGameWin]);
 
   const handleFullscreen = () => {
-    if (gameContainerRef.current) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      } else {
-        gameContainerRef.current.requestFullscreen().catch(err => {
-          alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-        });
-      }
+    const iframe = gameContainerRef.current.querySelector('iframe');
+    if (iframe && iframe.requestFullscreen) {
+      iframe.requestFullscreen().catch(err => {
+        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
     }
   };
 
@@ -167,6 +166,7 @@ export default function GamesPage({ onGameWin }) {
           src={selectedGame.src} 
           style={styles.iframe} 
           title={selectedGame.title}
+          allow="fullscreen"
         ></iframe>
       </div>
       <GameControls onFullscreen={handleFullscreen} />
