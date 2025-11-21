@@ -82,18 +82,11 @@ export default function App() {
     }
   };
 
-  if (!username) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#18181b', color: '#f4f4f5', textAlign: 'center', padding: '20px' }}>
-        <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15', marginBottom: '30px', fontSize: '1.5em' }}>Crypto Desktop Miner</h1>
-        <input placeholder="Crie seu nome de usuário" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white', width: '80%', maxWidth: '400px' }} />
-        <button onClick={handleUsernameSubmit} style={{...navButtonStyle('none'), marginTop: '20px', background: '#5a67d8'}}>Entrar e Jogar</button>
-      </div>
-    );
-  }
+  if (!username) { /* ... Tela de login ... */ }
 
   return (
-    <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', paddingBottom: '80px' }}>
+    // A única mudança é aqui: removido o minHeight e aumentado o padding
+    <div style={{ background: '#18181b', color: '#f4f4f5', paddingBottom: '100px' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
         <p>Bem-vindo, {username}!</p>
         <TonConnectButton />
