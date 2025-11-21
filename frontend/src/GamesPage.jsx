@@ -1,16 +1,28 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const styles = {
   container: {
     textAlign: 'center',
     padding: '20px',
   },
-  iframe: {
-    border: '2px solid #4a5568',
-    borderRadius: '10px',
+  gameContainer: {
+    position: 'relative',
     width: '100%',
-    maxWidth: '610px',
-    height: '650px', 
+    maxWidth: '420px',
+    margin: '0 auto',
+    backgroundImage: `url('/games/brick-game/img/capa.png')`,
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    paddingTop: '150%', 
+  },
+  iframe: {
+    position: 'absolute',
+    top: '18%',
+    left: '12%',
+    width: '76%',
+    height: '45%',
+    border: 'none',
   },
   title: {
     marginBottom: '30px',
@@ -51,13 +63,12 @@ const GAMES = {
   snake: { title: 'Snake', src: '/games/snake-new/index.html' },
 };
 
-// GameControls Component
 const GameControls = ({ onFullscreen }) => {
   const dPadButtonStyle = {
     width: '50px', 
     height: '50px',
-    background: '#facc15', // Amarelo
-    border: '2px solid #eab308', // Amarelo mais escuro
+    background: '#facc15',
+    border: '2px solid #eab308',
     borderRadius: '50%',
     color: 'black',
     fontSize: '1.5rem',
@@ -84,7 +95,6 @@ const GameControls = ({ onFullscreen }) => {
       padding: '20px', 
       borderRadius: '15px' 
     }}>
-      {/* D-Pad */}
       <div style={{ display: 'grid', gridTemplateAreas: `'. up .' 'left . right' '. down .'`, gap: '10px' }}>
         <button style={{ ...dPadButtonStyle, gridArea: 'up' }}>▲</button>
         <button style={{ ...dPadButtonStyle, gridArea: 'left' }}>◀</button>
@@ -92,18 +102,30 @@ const GameControls = ({ onFullscreen }) => {
         <button style={{ ...dPadButtonStyle, gridArea: 'down' }}>▼</button>
       </div>
       
-      {/* Botões de Ação */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         <button style={actionButtonStyle}>A</button>
-        <button onClick={onFullscreen} style={dPadButtonStyle}>⛶</button> {/* Ícone de tela cheia */}
+        <button onClick={onFullscreen} style={dPadButtonStyle}>⛶</button>
       </div>
     </div>
   );
 };
 
-export default function GamesPage() {
+export default function GamesPage({ onGameWin }) {
   const [selectedGame, setSelectedGame] = useState(null);
   const gameContainerRef = useRef(null);
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data === 'gameWon') {
+        onGameWin();
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [onGameWin]);
 
   const handleFullscreen = () => {
     if (gameContainerRef.current) {
@@ -140,11 +162,13 @@ export default function GamesPage() {
     <div style={styles.container} ref={gameContainerRef}>
       <h1 style={styles.title}>{selectedGame.title}</h1>
       <button onClick={() => setSelectedGame(null)} style={{...styles.gameButton, marginBottom: '20px'}}>Voltar ao Menu</button>
-      <iframe 
-        src={selectedGame.src} 
-        style={styles.iframe} 
-        title={selectedGame.title}
-      ></iframe>
+      <div style={styles.gameContainer}>
+        <iframe 
+          src={selectedGame.src} 
+          style={styles.iframe} 
+          title={selectedGame.title}
+        ></iframe>
+      </div>
       <GameControls onFullscreen={handleFullscreen} />
     </div>
   );

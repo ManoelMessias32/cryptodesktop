@@ -62,4 +62,10 @@ app.post('/claim', async (req, res) => {
 });
 
 // Para qualquer outra rota, sirva o index.html do frontend
-app.get('*__MESSAGE_TRUNCATED_HERE__'
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
+});
+
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
+});
