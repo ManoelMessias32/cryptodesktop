@@ -21,6 +21,7 @@ const styles = {
     justifyContent: 'center',
     gap: '20px',
     marginBottom: '30px',
+    flexWrap: 'wrap'
   },
   gameButton: {
     padding: '10px 20px',
@@ -34,18 +35,26 @@ const styles = {
 };
 
 const GAMES = {
-  brick: {
-    title: 'Brick Game Simulator',
-    src: '/games/brick-game/index.html'
+  candyCrush: {
+    title: 'Candy Crush',
+    src: '/games/candy-crush/index.html'
   },
-  snake: {
-    title: 'Snake',
-    src: '/games/snake/index.html'
+  towerBlocks: {
+    title: 'Tower Blocks',
+    src: '/games/tower-blocks/index.html'
+  },
+  pingPong: {
+    title: 'Ping Pong',
+    src: '/games/ping-pong/index.html'
   },
   tetris: {
     title: 'Tetris',
-    src: '/games/tetris/index.html'
-  }
+    src: '/games/tetris-new/index.html'
+  },
+  snake: {
+    title: 'Snake',
+    src: '/games/snake-new/index.html'
+  },
 };
 
 export default function GamesPage() {
@@ -56,24 +65,11 @@ export default function GamesPage() {
       <div style={styles.container}>
         <h1 style={styles.title}>Centro de Jogos</h1>
         <div style={styles.gameMenu}>
-          <button 
-            onClick={() => setSelectedGame(GAMES.brick)}
-            style={styles.gameButton}
-          >
-            Brick Game
-          </button>
-          <button 
-            onClick={() => setSelectedGame(GAMES.snake)}
-            style={styles.gameButton}
-          >
-            Snake
-          </button>
-          <button 
-            onClick={() => setSelectedGame(GAMES.tetris)}
-            style={styles.gameButton}
-          >
-            Tetris
-          </button>
+          <button onClick={() => setSelectedGame(GAMES.candyCrush)} style={styles.gameButton}>Candy Crush</button>
+          <button onClick={() => setSelectedGame(GAMES.towerBlocks)} style={styles.gameButton}>Tower Blocks</button>
+          <button onClick={() => setSelectedGame(GAMES.pingPong)} style={styles.gameButton}>Ping Pong</button>
+          <button onClick={() => setSelectedGame(GAMES.tetris)} style={styles.gameButton}>Tetris</button>
+          <button onClick={() => setSelectedGame(GAMES.snake)} style={styles.gameButton}>Snake</button>
         </div>
       </div>
     );
