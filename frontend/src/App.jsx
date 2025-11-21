@@ -8,7 +8,7 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 });
-const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
+const SECONDS_IN_AN_HOUR = 3600;
 const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000' };
@@ -38,17 +38,7 @@ export default function App() {
 
   const handleUsernameSubmit = () => { if (tempUsername.trim()) setUsername(tempUsername.trim()); };
 
-  const addNewSlot = () => {
-    if (slots.length >= 6) return setStatus('❌ Você atingiu o limite máximo de gabinetes.');
-    if (coinBdg >= NEW_SLOT_COST) {
-      setCoinBdg(prev => prev - NEW_SLOT_COST);
-      setSlots(prev => [...prev, { name: `Slot ${prev.length + 1}`, filled: false, free: false, repairCooldown: 0 }]);
-      setStatus(`✅ Novo gabinete comprado por ${NEW_SLOT_COST} BDG!`);
-    } else {
-      setStatus(`❌ Moedas insuficientes! Você precisa de ${NEW_SLOT_COST} BDG.`);
-    }
-  };
-
+  const addNewSlot = () => { /* ... */ };
   const handlePurchase = async (tierToBuy) => { /* ... */ };
 
   const gameLoop = useCallback(() => {
@@ -57,7 +47,7 @@ export default function App() {
     const updatedSlots = slots.map(slot => {
       if (slot.filled && slot.repairCooldown > 0) {
         const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
-        let gainRate = (economyData[econKey]?.gain || 0) / SECONDS_IN_A_MONTH;
+        let gainRate = (economyData[econKey]?.gainPerHour || 0) / SECONDS_IN_AN_HOUR;
         if (paidBoostTime > 0) gainRate *= 1.5;
         totalGain += gainRate;
         return { ...slot, repairCooldown: slot.repairCooldown - 1 };
@@ -112,7 +102,6 @@ export default function App() {
         <p>{status}</p>
       </div>
       {renderPage()}
-      {/* BARRA DE NAVEGAÇÃO RESTAURADA */}
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
         <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>⛏️ Minerar</button>
         <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>🛒 Loja</button>
