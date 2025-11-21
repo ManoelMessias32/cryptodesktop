@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 const styles = {
   container: {
     textAlign: 'center',
     padding: '20px',
   },
-  gameContainer: {
+  gameWrapper: {
     position: 'relative',
     width: '100%',
     maxWidth: '420px',
@@ -18,13 +18,12 @@ const styles = {
   },
   iframe: {
     position: 'absolute',
-    // Valores ajustados para um encaixe mais preciso
-    top: '22%',
-    left: '13%',
-    width: '74%',
-    height: '58%',
+    top: '21.5%',
+    left: '13.5%',
+    width: '73%',
+    height: '46%',
     border: 'none',
-    backgroundColor: '#9ead86', // Cor de fundo para preencher o display
+    backgroundColor: '#9ead86', 
   },
   title: {
     marginBottom: '30px',
@@ -65,7 +64,7 @@ const GAMES = {
   snake: { title: 'Snake', src: '/games/snake-new/index.html' },
 };
 
-const GameControls = ({ onFullscreen }) => {
+const GameControls = ({ onControlPress, onFullscreen }) => {
   const dPadButtonStyle = {
     width: '50px', 
     height: '50px',
@@ -95,17 +94,19 @@ const GameControls = ({ onFullscreen }) => {
       marginTop: '25px',
       background: '#1e293b', 
       padding: '20px', 
-      borderRadius: '15px' 
+      borderRadius: '15px',
+      maxWidth: '420px', 
+      margin: '25px auto 0 auto'
     }}>
       <div style={{ display: 'grid', gridTemplateAreas: `'. up .' 'left . right' '. down .'`, gap: '10px' }}>
-        <button style={{ ...dPadButtonStyle, gridArea: 'up' }}>▲</button>
-        <button style={{ ...dPadButtonStyle, gridArea: 'left' }}>◀</button>
-        <button style={{ ...dPadButtonStyle, gridArea: 'right' }}>▶</button>
-        <button style={{ ...dPadButtonStyle, gridArea: 'down' }}>▼</button>
+        <button onClick={() => onControlPress('up')} style={{ ...dPadButtonStyle, gridArea: 'up' }}>▲</button>
+        <button onClick={() => onControlPress('left')} style={{ ...dPadButtonStyle, gridArea: 'left' }}>◀</button>
+        <button onClick={() => onControlPress('right')} style={{ ...dPadButtonStyle, gridArea: 'right' }}>▶</button>
+        <button onClick={() => onControlPress('down')} style={{ ...dPadButtonStyle, gridArea: 'down' }}>▼</button>
       </div>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <button style={actionButtonStyle}>A</button>
+        <button onClick={() => onControlPress('action')} style={actionButtonStyle}>A</button>
         <button onClick={onFullscreen} style={dPadButtonStyle}>⛶</button>
       </div>
     </div>
@@ -114,29 +115,31 @@ const GameControls = ({ onFullscreen }) => {
 
 export default function GamesPage({ onGameWin }) {
   const [selectedGame, setSelectedGame] = useState(null);
-  const gameContainerRef = useRef(null);
+  const gameWrapperRef = useRef(null);
+  const iframeRef = useRef(null);
 
   useEffect(() => {
     const handleMessage = (event) => {
-      if (event.data === 'gameWon') {
-        onGameWin();
-      }
+      if (event.data === 'gameWon') onGameWin();
     };
-
     window.addEventListener('message', handleMessage);
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
+    return () => window.removeEventListener('message', handleMessage);
   }, [onGameWin]);
 
-  const handleFullscreen = () => {
-    const iframe = gameContainerRef.current.querySelector('iframe');
-    if (iframe && iframe.requestFullscreen) {
-      iframe.requestFullscreen().catch(err => {
-        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-      });
+  const handleFullscreen = useCallback(() => {
+    if (!gameWrapperRef.current) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      gameWrapperRef.current.requestFullscreen().catch(console.error);
     }
-  };
+  }, []);
+
+  const handleControlPress = useCallback((command) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(command, '*');
+    }
+  }, []);
 
   if (!selectedGame) {
     return (
@@ -158,18 +161,21 @@ export default function GamesPage({ onGameWin }) {
   }
 
   return (
-    <div style={styles.container} ref={gameContainerRef}>
+    <div style={styles.container}>
       <h1 style={styles.title}>{selectedGame.title}</h1>
       <button onClick={() => setSelectedGame(null)} style={{...styles.gameButton, marginBottom: '20px'}}>Voltar ao Menu</button>
-      <div style={styles.gameContainer}>
+      
+      <div style={styles.gameWrapper} ref={gameWrapperRef}>
         <iframe 
+          ref={iframeRef}
           src={selectedGame.src} 
           style={styles.iframe} 
           title={selectedGame.title}
           allow="fullscreen"
         ></iframe>
       </div>
-      <GameControls onFullscreen={handleFullscreen} />
+      
+      <GameControls onFullscreen={handleFullscreen} onControlPress={handleControlPress} />
     </div>
   );
 }
