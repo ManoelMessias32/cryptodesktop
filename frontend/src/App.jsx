@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TonConnectButton, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
@@ -8,7 +8,7 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 });
-const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
+const SECONDS_IN_AN_HOUR = 3600;
 const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000' };
@@ -41,27 +41,46 @@ export default function App() {
   const addNewSlot = () => { /* ... */ };
   const handlePurchase = async (tierToBuy) => { /* ... */ };
 
-  const gameLoop = useCallback(() => {
-    if (paidBoostTime > 0) setPaidBoostTime(prev => prev - 1);
+  // Game loop refatorado para estabilidade
+  const gameLoop = () => {
+    setPaidBoostTime(prev => (prev > 0 ? prev - 1 : 0));
+
     let totalGain = 0;
+    let boostActive = false;
+    setPaidBoostTime(prev => {
+      boostActive = prev > 0;
+      return prev;
+    });
+
     const updatedSlots = slots.map(slot => {
       if (slot.filled && slot.repairCooldown > 0) {
         const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
-        let gainRate = (economyData[econKey]?.gain || 0) / SECONDS_IN_A_MONTH;
-        if (paidBoostTime > 0) gainRate *= 1.5;
+        let gainRate = (economyData[econKey]?.gainPerHour || 0) / SECONDS_IN_AN_HOUR;
+        if (boostActive) gainRate *= 1.5;
         totalGain += gainRate;
         return { ...slot, repairCooldown: slot.repairCooldown - 1 };
       }
       return slot;
     });
-    if (totalGain > 0) setCoinBdg(prev => prev + totalGain);
+
+    if (totalGain > 0) {
+      setCoinBdg(prev => prev + totalGain);
+    }
     setSlots(updatedSlots);
-  }, [slots, paidBoostTime]);
+  };
+  
+  const savedCallback = useRef();
+  useEffect(() => {
+    savedCallback.current = gameLoop;
+  });
 
   useEffect(() => {
-    const gameInterval = setInterval(gameLoop, 1000);
+    function tick() {
+      savedCallback.current();
+    }
+    const gameInterval = setInterval(tick, 1000);
     return () => clearInterval(gameInterval);
-  }, [gameLoop]);
+  }, []);
 
   const navButtonStyle = (page) => ({ padding: '10px 15px', margin: '0 5px', border: 'none', borderRadius: '5px', cursor: 'pointer', backgroundColor: route === page ? '#5a67d8' : '#4a5568', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.7em' });
 
@@ -82,10 +101,29 @@ export default function App() {
     }
   };
 
-  if (!username) { /* ... Tela de login ... */ }
+  if (!username) {
+    return (
+      <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div style={{ textAlign: 'center', background: '#2d3748', padding: '30px', borderRadius: '10px', width: '100%', maxWidth: '400px' }}>
+          <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15', marginBottom: '30px' }}>Login</h1>
+          <input 
+            type="text" 
+            value={tempUsername}
+            onChange={(e) => setTempUsername(e.target.value)}
+            placeholder="Digite seu nome de usuário"
+            style={{ padding: '10px', width: 'calc(100% - 22px)', borderRadius: '5px', border: '1px solid #4a5568', background: '#18181b', color: 'white', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' }}
+          />
+          <button 
+            onClick={handleUsernameSubmit} 
+            style={{ ...navButtonStyle('login'), width: '100%', marginTop: '20px', justifyContent: 'center' }}>
+            Entrar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    // A única mudança é aqui: removido o minHeight e aumentado o padding
     <div style={{ background: '#18181b', color: '#f4f4f5', paddingBottom: '100px' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
         <p>Bem-vindo, {username}!</p>
@@ -95,7 +133,7 @@ export default function App() {
         <p>{status}</p>
       </div>
       {renderPage()}
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748' }}>
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748', flexWrap: 'wrap' }}>
         <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>⛏️ Minerar</button>
         <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>🛒 Loja</button>
         <button onClick={() => setRoute('games')} style={navButtonStyle('games')}>🎮 Jogos</button>
