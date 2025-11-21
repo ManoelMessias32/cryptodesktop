@@ -3,37 +3,39 @@ import React from 'react';
 export default function UserPage({ address, coinBdg, username }) {
 
   const styles = {
-    // Container principal agora usa layout de bloco normal
-    pageContainer: { 
+    pageContainer: {
       padding: '10px',
       maxWidth: '700px',
       margin: '0 auto',
       fontFamily: '"Press Start 2P", cursive',
     },
-    // Estilo individual de cada cartão
     container: {
-      padding: '16px',
+      padding: '15px',
       background: '#2d3748',
       borderRadius: '8px',
       border: '1px solid #4a5568',
-      marginBottom: '20px', // Adiciona espaço entre os cartões
+      marginBottom: '20px',
     },
     title: {
       color: '#facc15',
       borderBottom: '1px solid #4a5568',
       paddingBottom: '10px',
       marginBottom: '20px',
-      fontSize: '1.2em'
+      fontSize: '1.1em',
+      wordBreak: 'break-word', // Garante que o título quebre a linha
     },
     infoLine: {
       margin: '15px 0',
-      fontSize: '0.9em',
+      fontSize: '0.8em',  // Fonte menor para caber melhor
       color: '#e4e4e7',
-      wordBreak: 'break-all'
+      wordBreak: 'break-word', // Força a quebra de palavras longas
+      lineHeight: '1.5',    // Aumenta o espaço entre as linhas
     },
     infoLabel: {
       color: '#a1a1aa',
-      marginRight: '10px'
+      marginRight: '8px',
+      display: 'block', // Força a label a ficar em cima em telas pequenas
+      marginBottom: '5px', 
     },
     button: {
       padding: '10px 15px',
@@ -44,6 +46,14 @@ export default function UserPage({ address, coinBdg, username }) {
       color: 'white',
       fontFamily: '"Press Start 2P", cursive',
       fontSize: '0.8em'
+    },
+    linkBox: {
+      background: '#1e293b',
+      padding: '12px',
+      borderRadius: '4px',
+      wordBreak: 'break-all',
+      marginBottom: '15px',
+      fontSize: '0.7em' // Fonte do link ainda menor
     }
   };
 
@@ -68,7 +78,7 @@ export default function UserPage({ address, coinBdg, username }) {
         </p>
         <p style={styles.infoLine}>
           <strong style={styles.infoLabel}>Carteira:</strong> 
-          <span>{address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 'Não conectada'}</span>
+          <span>{address ? address : 'Não conectada'}</span>
         </p>
         <p style={styles.infoLine}>
           <strong style={styles.infoLabel}>Saldo em Token:</strong> 
@@ -81,7 +91,7 @@ export default function UserPage({ address, coinBdg, username }) {
           <div style={styles.container}>
             <h3 style={{...styles.title, fontSize: '1em'}}>Seu Link de Referência</h3>
             <p style={{...styles.infoLine, fontSize: '0.8em'}}>Compartilhe para ganhar recompensas!</p>
-            <div style={{ background: '#1e293b', padding: '12px', borderRadius: '4px', wordBreak: 'break-all', marginBottom: '15px' }}>
+            <div style={styles.linkBox}>
               {referralLink}
             </div>
             <button onClick={handleCopyToClipboard} style={styles.button}>Copiar Link</button>
