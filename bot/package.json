@@ -1,7 +1,7 @@
 {
   "name": "crypdesk_bot",
   "version": "1.0.0",
-  "description": "Telegram bot for the Crypdesk game.",
+  "description": "Telegram bot for the Crypdesk app.",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
