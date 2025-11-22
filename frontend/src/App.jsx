@@ -49,8 +49,19 @@ export default function App() {
   useEffect(() => { localStorage.setItem(`dailySessionsUsed_${STORAGE_VERSION}`, dailySessionsUsed); }, [dailySessionsUsed]);
   useEffect(() => { localStorage.setItem(`lastSessionReset_${STORAGE_VERSION}`, lastSessionReset); }, [lastSessionReset]);
 
-  // ... (o resto do código permanece o mesmo)
+  // Reset daily sessions
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (lastSessionReset !== today) {
+      setDailySessionsUsed(0);
+      setEnergyEarnedInSession(0);
+      setLastSessionReset(today);
+      setStatus('Suas sessões de energia de jogo foram resetadas!');
+    }
+  }, [lastSessionReset]);
+
   const handleUsernameSubmit = () => { if (tempUsername.trim()) setUsername(tempUsername.trim()); };
+
   const addNewSlot = () => {
     if (slots.length >= 6) {
         setStatus('❌ Limite de 6 gabinetes atingido!');
@@ -64,13 +75,14 @@ export default function App() {
         setStatus(`❌ BDG insuficiente! Você precisa de ${NEW_SLOT_COST} BDG.`)
     }
   };
+
   const handlePurchase = async (tierToBuy) => {
     if (!userFriendlyAddress) {
         setStatus('❌ Por favor, conecte sua carteira para comprar.');
         return;
     }
     const transaction = {
-        validUntil: Math.floor(Date.now() / 1000) + 60, // 1 minute from now
+        validUntil: Math.floor(Date.now() / 1000) + 60,
         messages: [
             {
                 address: SHOP_RECEIVER_ADDRESS,
@@ -99,17 +111,74 @@ export default function App() {
         setStatus('❌ Transação cancelada ou falhou.');
     }
   };
+
   const handleGameWin = useCallback(() => {
-    // ... (lógica de energia dos jogos)
+    const today = new Date().toISOString().split('T')[0];
+    if (lastSessionReset !== today) {
+        setDailySessionsUsed(0);
+        setEnergyEarnedInSession(0);
+        setLastSessionReset(today);
+    }
+
+    if (dailySessionsUsed >= 3) {
+      setStatus('❌ Você já usou suas 3 sessões de energia de hoje.');
+      return;
+    }
+    if (energyEarnedInSession >= 60) {
+      setStatus('🕒 Limite de 1h de energia atingido nesta sessão. Use outra sessão mais tarde!');
+      if(dailySessionsUsed < 3 && energyEarnedInSession >= 60) {
+          setDailySessionsUsed(prev => prev + 1);
+          setEnergyEarnedInSession(0);
+      }
+      return;
+    }
+
+    setSlots(prevSlots => prevSlots.map(slot => {
+      if (slot.filled) {
+        const newCooldown = Math.min(slot.repairCooldown + 10 * 60, TWENTY_FOUR_HOURS_IN_SECONDS);
+        return { ...slot, repairCooldown: newCooldown };
+      }
+      return slot;
+    }));
+
+    const newEnergyEarned = energyEarnedInSession + 10;
+    setEnergyEarnedInSession(newEnergyEarned);
+    setStatus(`🎉 Você ganhou 10 minutos de energia! Total na sessão: ${newEnergyEarned} min.`);
+
+    if (newEnergyEarned >= 60) {
+        setDailySessionsUsed(prev => prev + 1);
+        setEnergyEarnedInSession(0);
+        setStatus('✨ Sessão de energia completa! Use as próximas mais tarde.');
+    }
+
   }, [dailySessionsUsed, energyEarnedInSession, lastSessionReset]);
+
   const gameLoop = useCallback(() => {
-    // ... (lógica de mineração)
+    setSlots(currentSlots => {
+      let totalGain = 0;
+      const updatedSlots = currentSlots.map(slot => {
+        if (slot.filled && slot.repairCooldown > 0) {
+          const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
+          let gainRate = (economyData[econKey]?.gainPerHour || 0) / SECONDS_IN_AN_HOUR;
+          if (paidBoostTime > 0) gainRate *= 1.5;
+          totalGain += gainRate;
+          return { ...slot, repairCooldown: slot.repairCooldown - 1 };
+        }
+        return slot;
+      });
+      if (totalGain > 0) setCoinBdg(prev => prev + totalGain);
+      return updatedSlots;
+    });
+    if (paidBoostTime > 0) setPaidBoostTime(prev => prev - 1);
   }, [paidBoostTime]);
+
   useEffect(() => {
     const gameInterval = setInterval(gameLoop, 1000);
     return () => clearInterval(gameInterval);
   }, [gameLoop]);
+
   const navButtonStyle = (page) => ({ padding: '10px 15px', margin: '0 5px', border: 'none', borderRadius: '5px', cursor: 'pointer', backgroundColor: route === page ? '#5a67d8' : '#4a5568', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.7em', flexWrap: 'wrap' });
+
   const renderPage = () => {
     switch (route) {
       case 'mine':
@@ -126,11 +195,13 @@ export default function App() {
         return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
     }
   };
+
   const loginScreen = (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px' }}>
        {/* ... */}
     </div>
   );
+
   const mainApp = (
     <>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
@@ -150,6 +221,7 @@ export default function App() {
       </nav>
     </>
   );
+
   return (
     <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', paddingBottom: '100px' }}>
       {!username ? loginScreen : mainApp}
