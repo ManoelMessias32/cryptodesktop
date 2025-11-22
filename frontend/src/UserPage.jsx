@@ -7,7 +7,7 @@ export default function UserPage({ address, coinBdg, username }) {
       padding: '10px',
       maxWidth: '700px',
       margin: '0 auto',
-      fontFamily: '"Press Start 2P", cursive',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', // Fonte "lisinha"
     },
     container: {
       padding: '15px',
@@ -22,20 +22,23 @@ export default function UserPage({ address, coinBdg, username }) {
       paddingBottom: '10px',
       marginBottom: '20px',
       fontSize: '1.1em',
-      wordBreak: 'break-word', // Garante que o título quebre a linha
+      wordBreak: 'break-word',
+      fontFamily: '"Press Start 2P", cursive', // Mantém a fonte pixelada para títulos
     },
     infoLine: {
       margin: '15px 0',
-      fontSize: '0.8em',  // Fonte menor para caber melhor
+      fontSize: '1em', // Aumenta o tamanho da fonte para legibilidade
       color: '#e4e4e7',
-      wordBreak: 'break-word', // Força a quebra de palavras longas
-      lineHeight: '1.5',    // Aumenta o espaço entre as linhas
+      wordBreak: 'break-word',
+      lineHeight: '1.6', 
     },
     infoLabel: {
       color: '#a1a1aa',
       marginRight: '8px',
-      display: 'block', // Força a label a ficar em cima em telas pequenas
-      marginBottom: '5px', 
+      display: 'block',
+      marginBottom: '5px',
+      fontFamily: '"Press Start 2P", cursive', // Mantém a fonte pixelada para labels
+      fontSize: '0.8em', 
     },
     button: {
       padding: '10px 15px',
@@ -44,7 +47,7 @@ export default function UserPage({ address, coinBdg, username }) {
       borderRadius: '4px',
       background: '#4f46e5',
       color: 'white',
-      fontFamily: '"Press Start 2P", cursive',
+      fontFamily: '"Press Start 2P", cursive', // Mantém a fonte pixelada para botões
       fontSize: '0.8em'
     },
     linkBox: {
@@ -53,7 +56,8 @@ export default function UserPage({ address, coinBdg, username }) {
       borderRadius: '4px',
       wordBreak: 'break-all',
       marginBottom: '15px',
-      fontSize: '0.7em' // Fonte do link ainda menor
+      fontSize: '0.9em', // Aumenta a fonte do link
+      lineHeight: '1.5',
     }
   };
 
@@ -69,7 +73,6 @@ export default function UserPage({ address, coinBdg, username }) {
 
   return (
     <div style={styles.pageContainer}>
-      {/* Seção de Perfil do Usuário */}
       <div style={styles.container}>
         <h2 style={styles.title}>👤 Perfil do Jogador</h2>
         <p style={styles.infoLine}>
@@ -81,16 +84,15 @@ export default function UserPage({ address, coinBdg, username }) {
           <span>{address ? address : 'Não conectada'}</span>
         </p>
         <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Saldo em Token:</strong> 
+          <strong style={styles.infoLabel}>Saldo:</strong> 
           <span>{coinBdg.toFixed(4)} BDG</span>
         </p>
       </div>
 
-      {/* Seção do Link de Referência */}
       {username && (
           <div style={styles.container}>
             <h3 style={{...styles.title, fontSize: '1em'}}>Seu Link de Referência</h3>
-            <p style={{...styles.infoLine, fontSize: '0.8em'}}>Compartilhe para ganhar recompensas!</p>
+            <p style={{...styles.infoLine, fontSize: '0.9em', fontFamily: '"Press Start 2P", cursive'}}>Compartilhe para ganhar recompensas!</p>
             <div style={styles.linkBox}>
               {referralLink}
             </div>
@@ -98,16 +100,11 @@ export default function UserPage({ address, coinBdg, username }) {
           </div>
         )}
 
-      {/* Informativo Oficial BAD DOG COIN */}
       <div style={styles.container}>
         <h2 style={{...styles.title, fontSize: '1em'}}>🐾 BAD DOG COIN (BDG)</h2>
         <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>🔗 Contrato:</strong> 
-          <span style={{ fontSize: '0.8em' }}>0x9Fd1456F61a8c8212b691353249C411115C53aE8</span>
-        </p>
-        <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>🔢 Decimais:</strong> 
-          <span>18</span>
+          <strong style={styles.infoLabel}>Contrato:</strong> 
+          <span>0x9Fd1456F61a8c8212b691353249C411115C53aE8</span>
         </p>
       </div>
     </div>
