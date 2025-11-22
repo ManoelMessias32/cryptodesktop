@@ -25,7 +25,7 @@ const getGameButtonOptions = () => ({
 
 bot.onText(/\/start/, (msg) => {
   const welcomeMessage = `🎉 Bem-vindo ao Cryptodesk!\n\nClique no botão abaixo para começar a sua jornada.`;
-  bot.sendMessage(msg.chat.id, welcomeMessage, getGameButtonOptions());
+  bot.sendMessage(msg.chat.botid, welcomeMessage, getGameButtonOptions());
 });
 
 bot.onText(/\/play/, (msg) => {
