@@ -1,21 +1,25 @@
 import os
 import telebot
 from telebot import types
+from flask import Flask, request
 
-# Pega o token do bot das variáveis de ambiente do Vercel
+# --- Configuração do Bot ---
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
-
-# URL CORRETA do seu Mini App
 WEB_APP_URL = "https://cryptodesktop.vercel.app/"
 
-# Esta é a função principal que o Vercel irá executar
-def handler(request):
+# --- Servidor Flask ---
+app = Flask(__name__)
+
+# Esta é a rota que o Vercel irá expor (ex: /api/index)
+@app.route('/', methods=['POST'])
+def webhook():
     # Processa a atualização (mensagem) vinda do Telegram
     update = types.Update.de_json(request.get_json(force=True))
     bot.process_new_updates([update])
     return 'ok', 200
 
+# --- Lógica do Bot ---
 @bot.message_handler(commands=['start', 'jogar'])
 def send_welcome(message):
     markup = types.InlineKeyboardMarkup()
@@ -28,7 +32,6 @@ def send_welcome(message):
                      "Clique no botão abaixo para iniciar o Cryptobot e começar a minerar!", 
                      reply_markup=markup)
 
-# Este trecho é apenas para teste local e não será usado no Vercel
+# Se o arquivo for executado diretamente (para teste local), o Vercel não usará isso.
 if __name__ == "__main__":
-    print("Bot rodando localmente...")
-    bot.polling()
+    app.run(port=5000)
