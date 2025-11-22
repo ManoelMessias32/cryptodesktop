@@ -5,21 +5,28 @@ from flask import Flask, request
 
 # --- Configuração do Bot ---
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
-bot = telebot.TeleBot(BOT_TOKEN)
 WEB_APP_URL = "https://cryptodesktop.vercel.app/"
 
 # --- Servidor Flask ---
 app = Flask(__name__)
 
-# Esta é a rota que o Vercel irá expor (ex: /api/index)
+# Rota de teste para verificar se a API está viva
+@app.route('/', methods=['GET'])
+def health_check():
+    return "API do Bot está no ar. Se você está vendo isso, a API está funcionando!"
+
+# Rota que recebe os webhooks do Telegram
 @app.route('/', methods=['POST'])
 def webhook():
-    # Processa a atualização (mensagem) vinda do Telegram
+    if not BOT_TOKEN:
+        return "Erro: BOT_TOKEN não configurado no Vercel.", 500
+    
+    bot = telebot.TeleBot(BOT_TOKEN)
     update = types.Update.de_json(request.get_json(force=True))
     bot.process_new_updates([update])
     return 'ok', 200
 
-# --- Lógica do Bot ---
+# --- Lógica do Bot (só é executada se o bot for inicializado) ---
 @bot.message_handler(commands=['start', 'jogar'])
 def send_welcome(message):
     markup = types.InlineKeyboardMarkup()
@@ -32,6 +39,6 @@ def send_welcome(message):
                      "Clique no botão abaixo para iniciar o Cryptobot e começar a minerar!", 
                      reply_markup=markup)
 
-# Se o arquivo for executado diretamente (para teste local), o Vercel não usará isso.
+# O Vercel não usa este trecho
 if __name__ == "__main__":
     app.run(port=5000)
