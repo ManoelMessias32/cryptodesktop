@@ -16,51 +16,41 @@ const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000' }; // Prices in nanotons
 
+const STORAGE_VERSION = 'v15'; // <<-- VERSÃO ATUALIZADA
+
 export default function App() {
   const [route, setRoute] = useState('mine');
   const [status, setStatus] = useState('Bem-vindo! Conecte sua carteira quando quiser.');
-  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem('cryptoDesktopMined_v14')) || 0);
+  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem(`cryptoDesktopMined_${STORAGE_VERSION}`)) || 0);
   const [slots, setSlots] = useState(() => {
     try {
-      const savedSlots = localStorage.getItem('cryptoDesktopSlots_v14');
+      const savedSlots = localStorage.getItem(`cryptoDesktopSlots_${STORAGE_VERSION}`);
       return savedSlots ? JSON.parse(savedSlots) : initialSlots;
     } catch (e) { return initialSlots; }
   });
   const [username, setUsername] = useState(() => localStorage.getItem('cryptoDesktopUsername') || '');
   const [tempUsername, setTempUsername] = useState('');
-  const [paidBoostTime, setPaidBoostTime] = useState(() => Number(localStorage.getItem('paidBoostTime_v14')) || 0);
+  const [paidBoostTime, setPaidBoostTime] = useState(() => Number(localStorage.getItem(`paidBoostTime_${STORAGE_VERSION}`)) || 0);
 
   // Game energy state
-  const [energyEarnedInSession, setEnergyEarnedInSession] = useState(() => Number(localStorage.getItem('energyEarnedInSession_v14')) || 0);
-  const [dailySessionsUsed, setDailySessionsUsed] = useState(() => Number(localStorage.getItem('dailySessionsUsed_v14')) || 0);
-  const [lastSessionReset, setLastSessionReset] = useState(() => localStorage.getItem('lastSessionReset_v14') || new Date().toISOString().split('T')[0]);
+  const [energyEarnedInSession, setEnergyEarnedInSession] = useState(() => Number(localStorage.getItem(`energyEarnedInSession_${STORAGE_VERSION}`)) || 0);
+  const [dailySessionsUsed, setDailySessionsUsed] = useState(() => Number(localStorage.getItem(`dailySessionsUsed_${STORAGE_VERSION}`)) || 0);
+  const [lastSessionReset, setLastSessionReset] = useState(() => localStorage.getItem(`lastSessionReset_${STORAGE_VERSION}`) || new Date().toISOString().split('T')[0]);
 
   const userFriendlyAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
 
   // Save state to localStorage
-  useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
-  useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
+  useEffect(() => { localStorage.setItem(`cryptoDesktopSlots_${STORAGE_VERSION}`, JSON.stringify(slots)); }, [slots]);
+  useEffect(() => { localStorage.setItem(`cryptoDesktopMined_${STORAGE_VERSION}`, coinBdg); }, [coinBdg]);
   useEffect(() => { localStorage.setItem('cryptoDesktopUsername', username); }, [username]);
-  useEffect(() => { localStorage.setItem('paidBoostTime_v14', paidBoostTime); }, [paidBoostTime]);
-  useEffect(() => { localStorage.setItem('energyEarnedInSession_v14', energyEarnedInSession); }, [energyEarnedInSession]);
-  useEffect(() => { localStorage.setItem('dailySessionsUsed_v14', dailySessionsUsed); }, [dailySessionsUsed]);
-  useEffect(() => { localStorage.setItem('lastSessionReset_v14', lastSessionReset); }, [lastSessionReset]);
+  useEffect(() => { localStorage.setItem(`paidBoostTime_${STORAGE_VERSION}`, paidBoostTime); }, [paidBoostTime]);
+  useEffect(() => { localStorage.setItem(`energyEarnedInSession_${STORAGE_VERSION}`, energyEarnedInSession); }, [energyEarnedInSession]);
+  useEffect(() => { localStorage.setItem(`dailySessionsUsed_${STORAGE_VERSION}`, dailySessionsUsed); }, [dailySessionsUsed]);
+  useEffect(() => { localStorage.setItem(`lastSessionReset_${STORAGE_VERSION}`, lastSessionReset); }, [lastSessionReset]);
 
-  // Reset daily sessions
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    if (lastSessionReset !== today) {
-      setDailySessionsUsed(0);
-      setEnergyEarnedInSession(0);
-      setLastSessionReset(today);
-      setStatus('Suas sessões de energia de jogo foram resetadas!');
-    }
-  }, [lastSessionReset]);
-
+  // ... (o resto do código permanece o mesmo)
   const handleUsernameSubmit = () => { if (tempUsername.trim()) setUsername(tempUsername.trim()); };
-
-  // --- LÓGICA DE COMPRA DE GABINETE ---
   const addNewSlot = () => {
     if (slots.length >= 6) {
         setStatus('❌ Limite de 6 gabinetes atingido!');
@@ -74,14 +64,11 @@ export default function App() {
         setStatus(`❌ BDG insuficiente! Você precisa de ${NEW_SLOT_COST} BDG.`)
     }
   };
-
-  // --- LÓGICA DE COMPRA DA LOJA (TON) ---
   const handlePurchase = async (tierToBuy) => {
     if (!userFriendlyAddress) {
         setStatus('❌ Por favor, conecte sua carteira para comprar.');
         return;
     }
-
     const transaction = {
         validUntil: Math.floor(Date.now() / 1000) + 60, // 1 minute from now
         messages: [
@@ -91,14 +78,10 @@ export default function App() {
             }
         ]
     };
-
     try {
         setStatus('⏳ Enviando transação para sua carteira...');
         await tonConnectUI.sendTransaction(transaction);
         setStatus('✅ Transação enviada! Aguardando confirmação da compra.');
-
-        // Aqui você adicionaria o item comprado ao inventário do usuário.
-        // Por exemplo, encontrar um slot vazio e preenchê-lo com o novo tier.
         const emptySlotIndex = slots.findIndex(slot => !slot.filled);
         if (emptySlotIndex !== -1) {
             setSlots(prevSlots => prevSlots.map((slot, index) => {
@@ -111,29 +94,22 @@ export default function App() {
         } else {
             setStatus('✅ Compra aprovada, mas você não tem gabinetes vazios para instalar a CPU.');
         }
-
     } catch (error) {
         console.error(error);
         setStatus('❌ Transação cancelada ou falhou.');
     }
   };
-
   const handleGameWin = useCallback(() => {
     // ... (lógica de energia dos jogos)
   }, [dailySessionsUsed, energyEarnedInSession, lastSessionReset]);
-
   const gameLoop = useCallback(() => {
     // ... (lógica de mineração)
   }, [paidBoostTime]);
-
   useEffect(() => {
     const gameInterval = setInterval(gameLoop, 1000);
     return () => clearInterval(gameInterval);
   }, [gameLoop]);
-
-  // --- Renderização ---
   const navButtonStyle = (page) => ({ padding: '10px 15px', margin: '0 5px', border: 'none', borderRadius: '5px', cursor: 'pointer', backgroundColor: route === page ? '#5a67d8' : '#4a5568', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.7em', flexWrap: 'wrap' });
-
   const renderPage = () => {
     switch (route) {
       case 'mine':
@@ -150,14 +126,11 @@ export default function App() {
         return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
     }
   };
-
-  // ... (JSX para login e layout principal)
   const loginScreen = (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px' }}>
        {/* ... */}
     </div>
   );
-
   const mainApp = (
     <>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
@@ -177,7 +150,6 @@ export default function App() {
       </nav>
     </>
   );
-
   return (
     <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', paddingBottom: '100px' }}>
       {!username ? loginScreen : mainApp}

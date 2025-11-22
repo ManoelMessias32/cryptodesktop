@@ -6,8 +6,8 @@ from telebot import types
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# URL do seu Mini App
-WEB_APP_URL = "https://cryptodesktop-main.vercel.app/"
+# URL CORRETA do seu Mini App
+WEB_APP_URL = "https://cryptodesktop.vercel.app/"
 
 # Esta é a função principal que o Vercel irá executar
 def handler(request):
