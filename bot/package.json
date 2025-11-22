@@ -1,5 +1,5 @@
 {
-  "name": "crypdesk-bot",
+  "name": "crypdesk_bot",
   "version": "1.0.0",
   "description": "Telegram bot for the Crypdesk game.",
   "main": "bot.js",
