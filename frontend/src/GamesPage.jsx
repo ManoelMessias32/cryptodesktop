@@ -14,14 +14,20 @@ const styles = {
     backgroundSize: 'contain',
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center',
-    paddingTop: '150%', 
+    paddingTop: '150%', // Mantém a proporção da imagem de fundo (630px de altura para 420px de largura)
   },
   iframe: {
     position: 'absolute',
-    top: '21%',
-    left: '12.5%',
-    width: '75%',
-    height: '48%',
+    // --- Valores calculados com base nas suas medidas (220x480) ---
+    // (Largura do iframe / Largura do container) -> (220 / 420) * 100% = 52.4%
+    width: '52.4%',
+    // (Altura do iframe / Altura do container) -> (480 / 630) * 100% = 76.2%
+    height: '76.2%',
+    // (Dist. do topo da tela / Altura do container) -> Ajuste visual
+    top: '13.5%',
+    // (Dist. da esq. da tela / Largura do container) -> (100% - 52.4%) / 2 = 23.8%
+    left: '23.8%',
+    // ---
     border: 'none',
     backgroundColor: '#9ead86', 
   },
@@ -127,11 +133,25 @@ export default function GamesPage({ onGameWin }) {
   }, [onGameWin]);
 
   const handleFullscreen = useCallback(() => {
-    if (!gameWrapperRef.current) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
+    const elem = gameWrapperRef.current;
+    if (!elem) return;
+
+    if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) { /* Safari */
+        document.webkitExitFullscreen();
+      } else if (document.mozCancelFullScreen) { /* Firefox */
+        document.mozCancelFullScreen();
+      }
     } else {
-      gameWrapperRef.current.requestFullscreen().catch(console.error);
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) { /* Safari */
+        elem.webkitRequestFullscreen();
+      } else if (elem.mozRequestFullScreen) { /* Firefox */
+        elem.mozRequestFullScreen();
+      }
     }
   }, []);
 
