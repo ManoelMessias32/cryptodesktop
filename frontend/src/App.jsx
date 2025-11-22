@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TonConnectButton, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
+import { TonConnectButton, useTonAddress } from '@tonconnect/ui-react';
 import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
 import UserPage from './UserPage';
@@ -11,14 +11,11 @@ const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, 
 const SECONDS_IN_AN_HOUR = 3600;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * SECONDS_IN_AN_HOUR;
 const NEW_SLOT_COST = 500;
-const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
-const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000' };
 
 export default function App() {
   const [route, setRoute] = useState('mine');
   const [status, setStatus] = useState('Bem-vindo! Conecte sua carteira quando quiser.');
   const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem('cryptoDesktopMined_v14')) || 0);
-  const [bdgTokenBalance, setBdgTokenBalance] = useState(0);
   const [slots, setSlots] = useState(() => {
     try {
       const savedSlots = localStorage.getItem('cryptoDesktopSlots_v14');
@@ -29,14 +26,14 @@ export default function App() {
   const [tempUsername, setTempUsername] = useState('');
   const [paidBoostTime, setPaidBoostTime] = useState(() => Number(localStorage.getItem('paidBoostTime_v14')) || 0);
 
-  // State para o novo sistema de energia dos jogos
+  // State for game energy system
   const [energyEarnedInSession, setEnergyEarnedInSession] = useState(() => Number(localStorage.getItem('energyEarnedInSession_v14')) || 0);
   const [dailySessionsUsed, setDailySessionsUsed] = useState(() => Number(localStorage.getItem('dailySessionsUsed_v14')) || 0);
-  const [lastSessionReset, setLastSessionReset] = useState(() => localStorage.getItem('lastSessionReset_v14') || '');
+  const [lastSessionReset, setLastSessionReset] = useState(() => localStorage.getItem('lastSessionReset_v14') || new Date().toISOString().split('T')[0]);
 
   const userFriendlyAddress = useTonAddress();
 
-  // Salvar estado no localStorage
+  // Save state to localStorage
   useEffect(() => { localStorage.setItem('cryptoDesktopSlots_v14', JSON.stringify(slots)); }, [slots]);
   useEffect(() => { localStorage.setItem('cryptoDesktopMined_v14', coinBdg); }, [coinBdg]);
   useEffect(() => { localStorage.setItem('cryptoDesktopUsername', username); }, [username]);
@@ -45,30 +42,44 @@ export default function App() {
   useEffect(() => { localStorage.setItem('dailySessionsUsed_v14', dailySessionsUsed); }, [dailySessionsUsed]);
   useEffect(() => { localStorage.setItem('lastSessionReset_v14', lastSessionReset); }, [lastSessionReset]);
 
-  // Resetar sessões diárias
+  // Reset daily sessions
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     if (lastSessionReset !== today) {
       setDailySessionsUsed(0);
       setEnergyEarnedInSession(0);
       setLastSessionReset(today);
+      setStatus('Suas sessões de energia de jogo foram resetadas!');
     }
-  }, [lastSessionReset]);
+  }, []); // Runs once on app load
 
   const handleUsernameSubmit = () => { if (tempUsername.trim()) setUsername(tempUsername.trim()); };
 
   const handleGameWin = useCallback(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (lastSessionReset !== today) {
+        setDailySessionsUsed(0);
+        setEnergyEarnedInSession(0);
+        setLastSessionReset(today);
+    }
+
     if (dailySessionsUsed >= 3) {
-      setStatus('Você já usou suas 3 sessões de energia de hoje.');
+      setStatus('❌ Você já usou suas 3 sessões de energia de hoje.');
       return;
     }
     if (energyEarnedInSession >= 60) {
-      setStatus('Limite de 1h de energia ganha. Jogue novamente mais tarde.');
+      setStatus('🕒 Limite de 1h de energia atingido nesta sessão. Use outra sessão mais tarde!');
+      // Increment session count only when they try to play again after reaching the limit
+      if(dailySessionsUsed < 3 && energyEarnedInSession >= 60) {
+          setDailySessionsUsed(prev => prev + 1);
+          setEnergyEarnedInSession(0); // Reset for next session
+      }
       return;
     }
 
     setSlots(prevSlots => prevSlots.map(slot => {
       if (slot.filled) {
+        // Add 10 minutes (600 seconds) to the current cooldown
         const newCooldown = Math.min(slot.repairCooldown + 10 * 60, TWENTY_FOUR_HOURS_IN_SECONDS);
         return { ...slot, repairCooldown: newCooldown };
       }
@@ -77,16 +88,18 @@ export default function App() {
 
     const newEnergyEarned = energyEarnedInSession + 10;
     setEnergyEarnedInSession(newEnergyEarned);
-    setStatus(`🎉 Você ganhou 10 minutos de energia para mineração!`);
+    setStatus(`🎉 Você ganhou 10 minutos de energia! Total na sessão: ${newEnergyEarned} min.`);
 
     if (newEnergyEarned >= 60) {
-      setDailySessionsUsed(prev => prev + 1);
-      setEnergyEarnedInSession(0);
-      setStatus('Você completou uma sessão de 1 hora de ganhos!');
+        setDailySessionsUsed(prev => prev + 1);
+        setEnergyEarnedInSession(0);
+        setStatus('✨ Sessão de energia completa! Use as próximas mais tarde.');
     }
-  }, [dailySessionsUsed, energyEarnedInSession]);
+
+  }, [dailySessionsUsed, energyEarnedInSession, lastSessionReset]);
 
   const gameLoop = useCallback(() => {
+    // Mining logic
     setSlots(currentSlots => {
       let totalGain = 0;
       const updatedSlots = currentSlots.map(slot => {
@@ -102,7 +115,10 @@ export default function App() {
       if (totalGain > 0) setCoinBdg(prev => prev + totalGain);
       return updatedSlots;
     });
+
+    // Boost timer
     if (paidBoostTime > 0) setPaidBoostTime(prev => prev - 1);
+
   }, [paidBoostTime]);
 
   useEffect(() => {
@@ -110,6 +126,7 @@ export default function App() {
     return () => clearInterval(gameInterval);
   }, [gameLoop]);
 
+  // ... Render logic remains the same (login screen, main app, navigation, etc.)
   const navButtonStyle = (page) => ({ padding: '10px 15px', margin: '0 5px', border: 'none', borderRadius: '5px', cursor: 'pointer', backgroundColor: route === page ? '#5a67d8' : '#4a5568', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.7em', flexWrap: 'wrap' });
 
   const renderPage = () => {
@@ -121,7 +138,7 @@ export default function App() {
       case 'games':
         return <GamesPage onGameWin={handleGameWin} />;
       case 'user':
-        return <UserPage address={userFriendlyAddress} coinBdg={bdgTokenBalance} username={username} />;
+        return <UserPage address={userFriendlyAddress} coinBdg={0} username={username} />;
       case 'rankings':
         return <RankingsPage />;
       default:
@@ -155,7 +172,7 @@ export default function App() {
         <p>Bem-vindo, {username}!</p>
         <TonConnectButton />
       </header>
-      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: status.startsWith('❌') ? '#f87171' : '#34d399' }}>
+      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: status.startsWith('❌') ? '#f87171' : status.startsWith('🎉') ? '#34d399' : '#34d399' }}>
         <p>{status}</p>
       </div>
       {renderPage()}
