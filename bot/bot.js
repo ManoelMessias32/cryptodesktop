@@ -1,18 +1,6 @@
-require('dotenv').config();
-const TelegramBot = require('node-telegram-bot-api');
-
-const token = process.env.TELEGRAM_TOKEN;
-
-if (!token) {
-  console.error('Erro: O token do Telegram não foi encontrado. Verifique seu arquivo .env');
-  process.exit(1);
-}
-
-const bot = new TelegramBot(token, { polling: true });
-
 const gameUrl = 'https://cryptodesktop.vercel.app';
 
-// VOLTANDO PARA O BOTÃO WEB_APP, otimizado para a rede TON
+// Botão WebApp
 const getGameButtonOptions = () => ({
   reply_markup: {
     inline_keyboard: [
@@ -25,7 +13,7 @@ const getGameButtonOptions = () => ({
 
 bot.onText(/\/start/, (msg) => {
   const welcomeMessage = `🎉 Bem-vindo ao Cryptodesk!\n\nClique no botão abaixo para começar a sua jornada.`;
-  bot.sendMessage(msg.chat.botid, welcomeMessage, getGameButtonOptions());
+  bot.sendMessage(msg.chat.id, welcomeMessage, getGameButtonOptions()); // <-- corrigido
 });
 
 bot.onText(/\/play/, (msg) => {
