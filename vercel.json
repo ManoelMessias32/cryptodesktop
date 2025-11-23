@@ -9,7 +9,7 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "npm install --prefix ./frontend && npm run build --prefix ./frontend",
+        "buildCommand": "npm install --prefix ./frontend && npx --prefix ./frontend vite build --outDir build",
         "outputDirectory": "frontend/build"
       }
     }

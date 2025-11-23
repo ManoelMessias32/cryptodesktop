@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 # --- Configuração ---
 BOT_TOKEN = os.environ.get('BOT_TOKEN') # O Vercel vai injetar a variável de ambiente aqui.
-WEB_APP_URL = "https://cryptodesktop.vercel.app/"
+WEB_APP_URL = "https://cryptodesktop.vercel.app"
 
 # Verifica o token logo no início
 if not BOT_TOKEN:
