@@ -1,87 +1,22 @@
 import React from 'react';
 
+// Versão de emergência para remover o erro da tela branca.
+// A seção de Link de Referência foi completamente removida.
+
 export default function UserPage({ address, coinBdg, username }) {
 
   const styles = {
-    pageContainer: {
-      padding: '10px',
-      maxWidth: '700px',
-      margin: '0 auto',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    },
-    container: {
-      padding: '15px',
-      background: '#2d3748',
-      borderRadius: '8px',
-      border: '1px solid #4a5568',
-      marginBottom: '20px',
-    },
-    title: {
-      color: '#facc15',
-      borderBottom: '1px solid #4a5568',
-      paddingBottom: '10px',
-      marginBottom: '20px',
-      fontSize: '1.1em',
-      wordBreak: 'break-word',
-      fontFamily: '"Press Start 2P", cursive',
-    },
-    infoLine: {
-      margin: '15px 0',
-      fontSize: '1em',
-      color: '#e4e4e7',
-      wordBreak: 'break-word',
-      lineHeight: '1.6', 
-    },
-    infoLabel: {
-      color: '#a1a1aa',
-      marginRight: '8px',
-      display: 'block',
-      marginBottom: '5px',
-      fontFamily: '"Press Start 2P", cursive',
-      fontSize: '0.8em', 
-    },
-    button: {
-      padding: '10px 15px',
-      cursor: 'pointer',
-      border: 'none',
-      borderRadius: '4px',
-      background: '#4f46e5',
-      color: 'white',
-      fontFamily: '"Press Start 2P", cursive',
-      fontSize: '0.8em'
-    },
-    linkBox: {
-      background: '#1e293b',
-      padding: '12px',
-      borderRadius: '4px',
-      wordBreak: 'break-all',
-      marginBottom: '15px',
-      fontSize: '0.9em',
-      lineHeight: '1.5',
-    },
-    disclaimer: {
-      fontSize: '0.8em',
-      color: '#a1a1aa',
-      marginTop: '20px',
-      borderTop: '1px solid #4a5568',
-      paddingTop: '15px',
-      lineHeight: '1.5',
-    }
-  };
-
-  // A função de copiar agora cria o link sob demanda
-  const handleCopyToClipboard = () => {
-    if (!username) return; // Proteção extra
-    const link = `${window.location.origin}/?ref=${encodeURIComponent(username)}`;
-    navigator.clipboard.writeText(link).then(() => {
-      alert('Link de referência copiado!');
-    }, () => {
-      alert('Falha ao copiar o link.');
-    });
+    pageContainer: { padding: '10px', maxWidth: '700px', margin: '0 auto', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' },
+    container: { padding: '15px', background: '#2d3748', borderRadius: '8px', border: '1px solid #4a5568', marginBottom: '20px' },
+    title: { color: '#facc15', borderBottom: '1px solid #4a5568', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.1em', wordBreak: 'break-word', fontFamily: '"Press Start 2P", cursive' },
+    infoLine: { margin: '15px 0', fontSize: '1em', color: '#e4e4e7', wordBreak: 'break-word', lineHeight: '1.6' },
+    infoLabel: { color: '#a1a1aa', marginRight: '8px', display: 'block', marginBottom: '5px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' },
+    disclaimer: { fontSize: '0.8em', color: '#a1a1aa', marginTop: '20px', borderTop: '1px solid #4a5568', paddingTop: '15px', lineHeight: '1.5' }
   };
 
   return (
     <div style={styles.pageContainer}>
+      {/* Seção de Perfil do Jogador */}
       <div style={styles.container}>
         <h2 style={styles.title}>👤 Perfil do Jogador</h2>
         <p style={styles.infoLine}>
@@ -94,23 +29,13 @@ export default function UserPage({ address, coinBdg, username }) {
         </p>
         <p style={styles.infoLine}>
           <strong style={styles.infoLabel}>Saldo BDG Token:</strong> 
-          <span>{coinBdg.toFixed(4)} BDG</span>
+          <span>{(coinBdg || 0).toFixed(4)} BDG</span>
         </p>
       </div>
 
-      {/* A seção de referência só renderiza se o username existir */}
-      {username && (
-          <div style={styles.container}>
-            <h3 style={{...styles.title, fontSize: '1em'}}>Seu Link de Referência</h3>
-            <p style={{...styles.infoLine, fontSize: '0.9em', fontFamily: '"Press Start 2P", cursive'}}>Compartilhe para ganhar recompensas!</p>
-            <div style={styles.linkBox}>
-              {/* O link é criado aqui, na hora de exibir */}
-              {`${window.location.origin}/?ref=${encodeURIComponent(username)}`}
-            </div>
-            <button onClick={handleCopyToClipboard} style={styles.button}>Copiar Link</button>
-          </div>
-        )}
+      {/* A SEÇÃO DE LINK DE REFERÊNCIA FOI REMOVIDA PARA CORRIGIR O CRASH */}
 
+      {/* Seção de Informações do Token */}
       <div style={styles.container}>
         <h2 style={{...styles.title, fontSize: '1em'}}>🐾 BAD DOG COIN (BDG)</h2>
         <p style={styles.infoLine}>
