@@ -177,7 +177,21 @@ export default function App() {
     return () => clearInterval(gameInterval);
   }, [gameLoop]);
 
-  const navButtonStyle = (page) => ({ padding: '10px 15px', margin: '0 5px', border: 'none', borderRadius: '5px', cursor: 'pointer', backgroundColor: route === page ? '#5a67d8' : '#4a5568', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.7em', flexWrap: 'wrap' });
+  const navButtonStyle = (page) => ({
+    background: route === page ? '#5a67d8' : '#4a5568',
+    color: 'white',
+    border: 'none',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1, // Faz com que todos os botões tenham o mesmo tamanho
+    padding: '10px 0', // Ajusta o preenchimento vertical
+    margin: '0 4px',   // Espaçamento horizontal
+    fontSize: '1.5em', // Aumenta o tamanho do ícone
+    maxWidth: '60px', // Limita a largura máxima
+  });
 
   const renderPage = () => {
     switch (route) {
@@ -188,7 +202,7 @@ export default function App() {
       case 'games':
         return <GamesPage onGameWin={handleGameWin} />;
       case 'user':
-        return <UserPage address={userFriendlyAddress} coinBdg={0} username={username} />;
+        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} username={username} />;
       case 'rankings':
         return <RankingsPage />;
       default:
@@ -198,7 +212,7 @@ export default function App() {
 
   const loginScreen = (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px' }}>
-       {/* ... */}
+       {/* ... (seu código da tela de login) */}
     </div>
   );
 
@@ -212,12 +226,22 @@ export default function App() {
         <p>{status}</p>
       </div>
       {renderPage()}
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', padding: '1rem', background: '#2d3748', flexWrap: 'wrap' }}>
-        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')}>⛏️ Minerar</button>
-        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')}>🛒 Loja</button>
-        <button onClick={() => setRoute('games')} style={navButtonStyle('games')}>🎮 Jogos</button>
-        <button onClick={() => setRoute('user')} style={navButtonStyle('user')}>👤 Perfil</button>
-        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')}>🏆 Rankings</button>
+      <nav style={{ 
+          position: 'fixed', 
+          bottom: 0, 
+          left: 0, 
+          right: 0, 
+          display: 'flex', 
+          justifyContent: 'space-around', // Distribui o espaço igualmente
+          padding: '0.5rem', 
+          background: '#2d3748', 
+          gap: '5px' // Pequeno espaço entre os botões
+      }}>
+        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
+        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')} title="Loja">🛒</button>
+        <button onClick={() => setRoute('games')} style={navButtonStyle('games')} title="Jogos">🎮</button>
+        <button onClick={() => setRoute('user')} style={navButtonStyle('user')} title="Perfil">👤</button>
+        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
       </nav>
     </>
   );
