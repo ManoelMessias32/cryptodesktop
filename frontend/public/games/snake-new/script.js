@@ -10,25 +10,37 @@ let snakeBody = [];
 let setIntervalId;
 let score = 0;
 
-// Getting high score from the local storage
+// --- Nova Lógica de Velocidade ---
+let gameSpeed = 100; // Velocidade inicial
+let speedMilestone = 500; // Pontuação para aumentar a velocidade
+
 let highScore = localStorage.getItem("high-score") || 0;
 highScoreElement.innerText = `High Score: ${highScore}`;
 
+// Função para ajustar a velocidade
+const adjustSpeed = () => {
+    // A cada `speedMilestone` pontos, aumenta a velocidade em 10%
+    if (score > 0 && score % speedMilestone === 0) {
+        gameSpeed = Math.max(30, gameSpeed * 0.9); // Velocidade mínima de 30ms
+        clearInterval(setIntervalId);
+        setIntervalId = setInterval(initGame, gameSpeed);
+        // Aumenta o próximo marco
+        speedMilestone += 500;
+    }
+}
+
 const updateFoodPosition = () => {
-    // Passing a random 1 - 30 value as food position
     foodX = Math.floor(Math.random() * 30) + 1;
     foodY = Math.floor(Math.random() * 30) + 1;
 }
 
 const handleGameOver = () => {
-    // Clearing the timer and reloading the page on game over
     clearInterval(setIntervalId);
     alert("Game Over! Press OK to replay...");
     location.reload();
 }
 
 const changeDirection = e => {
-    // Changing velocity value based on key press
     if(e.key === "ArrowUp" && velocityY != 1) {
         velocityX = 0;
         velocityY = -1;
@@ -44,55 +56,42 @@ const changeDirection = e => {
     }
 }
 
-// Listener for new controls from the parent app.
 window.addEventListener('message', function(event) {
-    const keyMap = {
-        'up': "ArrowUp",
-        'down': "ArrowDown",
-        'left': "ArrowLeft",
-        'right': "ArrowRight",
-    };
+    const keyMap = { 'up': "ArrowUp", 'down': "ArrowDown", 'left': "ArrowLeft", 'right': "ArrowRight" };
     const key = keyMap[event.data];
-    if (key) {
-        changeDirection({ key: key });
-    }
+    if (key) changeDirection({ key: key });
 });
 
 const initGame = () => {
     if(gameOver) return handleGameOver();
     let html = `<div class="food" style="grid-area: ${foodY} / ${foodX}"></div>`;
 
-    // Checking if the snake hit the food
     if(snakeX === foodX && snakeY === foodY) {
-        // Send 'gameWon' message to parent app.
         window.parent.postMessage('gameWon', '*');
         updateFoodPosition();
-        snakeBody.push([foodY, foodX]); // Pushing food position to snake body array
-        score++; // increment score by 1
+        snakeBody.push([foodY, foodX]);
+        score++;
+        adjustSpeed(); // <<--- Chama a função para verificar e ajustar a velocidade
         highScore = score >= highScore ? score : highScore;
         localStorage.setItem("high-score", highScore);
         scoreElement.innerText = `Score: ${score}`;
         highScoreElement.innerText = `High Score: ${highScore}`;
     }
-    // Updating the snake's head position based on the current velocity
+
     snakeX += velocityX;
     snakeY += velocityY;
     
-    // Shifting forward the values of the elements in the snake body by one
     for (let i = snakeBody.length - 1; i > 0; i--) {
         snakeBody[i] = snakeBody[i - 1];
     }
-    snakeBody[0] = [snakeX, snakeY]; // Setting first element of snake body to current snake position
+    snakeBody[0] = [snakeX, snakeY];
 
-    // Checking if the snake's head is out of wall, if so setting gameOver to true
     if(snakeX <= 0 || snakeX > 30 || snakeY <= 0 || snakeY > 30) {
         return gameOver = true;
     }
 
     for (let i = 0; i < snakeBody.length; i++) {
-        // Adding a div for each part of the snake's body
         html += `<div class="head" style="grid-area: ${snakeBody[i][1]} / ${snakeBody[i][0]}"></div>`;
-        // Checking if the snake head hit the body, if so set gameOver to true
         if (i !== 0 && snakeBody[0][1] === snakeBody[i][1] && snakeBody[0][0] === snakeBody[i][0]) {
             gameOver = true;
         }
@@ -101,5 +100,5 @@ const initGame = () => {
 }
 
 updateFoodPosition();
-setIntervalId = setInterval(initGame, 100);
+setIntervalId = setInterval(initGame, gameSpeed);
 document.addEventListener("keyup", changeDirection);

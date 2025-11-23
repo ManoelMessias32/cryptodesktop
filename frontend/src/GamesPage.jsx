@@ -68,11 +68,11 @@ const styles = {
   },
 };
 
-// Objeto de jogos com o novo `controlType`
+// Objeto de jogos com o controlType corrigido para Ping Pong
 const GAMES = {
   candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html', controlType: 'touch' },
   towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html', controlType: 'touch' },
-  pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html', controlType: 'touch' },
+  pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html', controlType: 'd-pad' }, // <<<--- CORRIGIDO
   tetris: { title: 'Tetris', src: '/games/tetris-new/index.html', controlType: 'd-pad' },
   snake: { title: 'Snake', src: '/games/snake-new/index.html', controlType: 'd-pad' },
 };
