@@ -33,7 +33,6 @@ const styles = {
     flex: '1 1 150px',
     maxWidth: '200px',
   },
-  // Novo estilo para o container do jogo em tela cheia
   fullScreenGameContainer: {
     position: 'fixed',
     top: 0,
@@ -41,25 +40,44 @@ const styles = {
     width: '100vw',
     height: '100vh',
     zIndex: 100,
-    background: '#000', 
+    background: '#000',
   },
-  // Iframe ocupa toda a tela
   gameIframe: {
     width: '100%',
     height: '100%',
     border: 'none',
   },
+  // Botão de voltar para jogos de toque
+  touchGoBackButton: {
+      position: 'fixed',
+      top: '15px',
+      left: '15px',
+      zIndex: 120,
+      background: 'rgba(30, 41, 59, 0.8)',
+      color: 'white',
+      border: '1px solid #4a5568',
+      borderRadius: '50%',
+      width: '45px',
+      height: '45px',
+      fontSize: '1.2em',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backdropFilter: 'blur(5px)',
+  },
 };
 
+// Objeto de jogos com o novo `controlType`
 const GAMES = {
-  candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html' },
-  towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html' },
-  pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html' },
-  tetris: { title: 'Tetris', src: '/games/tetris-new/index.html' },
-  snake: { title: 'Snake', src: '/games/snake-new/index.html' },
+  candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html', controlType: 'touch' },
+  towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html', controlType: 'touch' },
+  pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html', controlType: 'touch' },
+  tetris: { title: 'Tetris', src: '/games/tetris-new/index.html', controlType: 'd-pad' },
+  snake: { title: 'Snake', src: '/games/snake-new/index.html', controlType: 'd-pad' },
 };
 
-// Controles do Jogo com o novo botão Voltar
+// Controles do Jogo (para d-pad)
 const GameControls = ({ onControlPress, onGoBack }) => {
   const dPadButtonStyle = { width: '50px', height: '50px', background: '#facc15', border: '2px solid #eab308', borderRadius: '50%', color: 'black', fontSize: '1.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.2)' };
   const actionButtonStyle = { ...dPadButtonStyle, width: '60px', height: '60px' };
@@ -67,19 +85,19 @@ const GameControls = ({ onControlPress, onGoBack }) => {
   return (
     <div style={{
       position: 'fixed',
-      bottom: '80px', // Posiciona acima da barra de navegação principal
+      bottom: '80px',
       left: '50%',
       transform: 'translateX(-50%)',
       display: 'flex',
       justifyContent: 'space-around',
       alignItems: 'center',
-      background: 'rgba(30, 41, 59, 0.8)', // Fundo semi-transparente
+      background: 'rgba(30, 41, 59, 0.8)',
       padding: '15px',
       borderRadius: '20px',
       width: '90%',
       maxWidth: '420px',
-      zIndex: 110, // Garante que os controles fiquem sobre o iframe
-      backdropFilter: 'blur(5px)', // Efeito de desfoque no fundo
+      zIndex: 110,
+      backdropFilter: 'blur(5px)',
     }}>
       <div style={{ display: 'grid', gridTemplateAreas: `'. up .' 'left . right' '. down .'`, gap: '10px' }}>
         <button onClick={() => onControlPress('up')} style={{ ...dPadButtonStyle, gridArea: 'up' }}>▲</button>
@@ -142,7 +160,13 @@ export default function GamesPage({ onGameWin }) {
         style={styles.gameIframe} 
         title={selectedGame.title}
       ></iframe>
-      <GameControls onGoBack={() => setSelectedGame(null)} onControlPress={handleControlPress} />
+
+      {/* Renderização Condicional dos Controles */}
+      {selectedGame.controlType === 'd-pad' ? (
+        <GameControls onGoBack={() => setSelectedGame(null)} onControlPress={handleControlPress} />
+      ) : (
+        <button onClick={() => setSelectedGame(null)} style={styles.touchGoBackButton} title="Voltar">↩️</button>
+      )}
     </div>
   );
 }
