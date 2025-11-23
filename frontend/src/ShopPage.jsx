@@ -3,15 +3,15 @@ import React from 'react';
 export default function ShopPage({ handlePurchase }) {
 
   const standardCpuData = {
-    1: { name: 'Tier 1', price: '3.5', gain: '350', image: '/tier1.png', type: 'standard', tier: 1 },
-    2: { name: 'Tier 2', price: '9.0', gain: '650', image: '/tier2.png', type: 'standard', tier: 2 },
-    3: { name: 'Tier 3', price: '17.0', gain: '950', image: '/tier3.png', type: 'standard', tier: 3 },
+    1: { name: 'Tier 1', price: '3.5', gain: '450', image: '/tier1.png', tier: 1 },
+    2: { name: 'Tier 2', price: '9.0', gain: '750', image: '/tier2.png', tier: 2 },
+    3: { name: 'Tier 3', price: '17.0', gain: '1050', image: '/tier3.png', tier: 3 },
   };
 
   const specialCpuData = {
-    A: { name: 'CPU A', price: '10.0', gain: '1.300', image: '/special_a.png', type: 'special', tier: 1 },
-    B: { name: 'CPU B', price: '20.0', gain: '1.500', image: '/special_b.png', type: 'special', tier: 2 },
-    C: { name: 'CPU C', price: '30.0', gain: '1.800', image: '/special_c.png', type: 'special', tier: 3 },
+    A: { name: 'CPU A', price: '10.0', gain: '1450', image: '/specialA.png', tier: 'A' },
+    B: { name: 'CPU B', price: '20.0', gain: '1650', image: '/specialB.png', tier: 'B' },
+    C: { name: 'CPU C', price: '30.0', gain: '1950', image: '/specialC.png', tier: 'C' },
   };
 
   const styles = {
