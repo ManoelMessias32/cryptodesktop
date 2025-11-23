@@ -58,6 +58,15 @@ export default function UserPage({ address, coinBdg, username }) {
       marginBottom: '15px',
       fontSize: '0.9em', // Aumenta a fonte do link
       lineHeight: '1.5',
+    },
+    // Estilo para o novo aviso
+    disclaimer: {
+      fontSize: '0.8em',
+      color: '#a1a1aa',
+      marginTop: '20px',
+      borderTop: '1px solid #4a5568',
+      paddingTop: '15px',
+      lineHeight: '1.5',
     }
   };
 
@@ -105,6 +114,9 @@ export default function UserPage({ address, coinBdg, username }) {
         <p style={styles.infoLine}>
           <strong style={styles.infoLabel}>Contrato:</strong> 
           <span>0x9Fd1456F61a8c8212b691353249C411115C53aE8</span>
+        </p>
+        <p style={styles.disclaimer}>
+          <strong>Aviso:</strong> O token BDG será distribuído a cada 6 meses (podendo haver alteração na data).
         </p>
       </div>
     </div>
