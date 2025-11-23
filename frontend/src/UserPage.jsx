@@ -92,7 +92,8 @@ export default function UserPage({ address, coinBdg, username }) {
           <span>{address ? address : 'Não conectada'}</span>
         </p>
         <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Saldo:</strong> 
+          {/* Alterado para refletir o BDG TOKEN */}
+          <strong style={styles.infoLabel}>Saldo BDG Token:</strong> 
           <span>{coinBdg.toFixed(4)} BDG</span>
         </p>
       </div>

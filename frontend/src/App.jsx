@@ -7,233 +7,32 @@ import RankingsPage from './RankingsPage';
 import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
-const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 });
-const ONE_HOUR_IN_SECONDS = 3600; // <<<--- NOVA CONSTANTE
-const NEW_SLOT_COST = 500;
-
-// Shop constants
-const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
-const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000' }; // Prices in nanotons
-
-const STORAGE_VERSION = 'v16'; // Atualiza a versão para resetar o estado se necessário
+// ... (constantes e estado inicial)
 
 export default function App() {
-  const [route, setRoute] = useState('mine');
-  const [status, setStatus] = useState('Bem-vindo! Conecte sua carteira quando quiser.');
-  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem(`cryptoDesktopMined_${STORAGE_VERSION}`)) || 0);
-  const [slots, setSlots] = useState(() => {
-    try {
-      const savedSlots = localStorage.getItem(`cryptoDesktopSlots_${STORAGE_VERSION}`);
-      return savedSlots ? JSON.parse(savedSlots) : initialSlots;
-    } catch (e) { return initialSlots; }
-  });
-  const [username, setUsername] = useState(() => localStorage.getItem('cryptoDesktopUsername') || '');
-  const [tempUsername, setTempUsername] = useState('');
-  const [paidBoostTime, setPaidBoostTime] = useState(() => Number(localStorage.getItem(`paidBoostTime_${STORAGE_VERSION}`)) || 0);
-
-  // Game energy state
-  const [energyEarnedInSession, setEnergyEarnedInSession] = useState(() => Number(localStorage.getItem(`energyEarnedInSession_${STORAGE_VERSION}`)) || 0);
-  const [dailySessionsUsed, setDailySessionsUsed] = useState(() => Number(localStorage.getItem(`dailySessionsUsed_${STORAGE_VERSION}`)) || 0);
-  const [lastSessionReset, setLastSessionReset] = useState(() => localStorage.getItem(`lastSessionReset_${STORAGE_VERSION}`) || new Date().toISOString().split('T')[0]);
-
-  const userFriendlyAddress = useTonAddress();
-  const [tonConnectUI] = useTonConnectUI();
-
-  // Save state to localStorage
-  useEffect(() => { localStorage.setItem(`cryptoDesktopSlots_${STORAGE_VERSION}`, JSON.stringify(slots)); }, [slots]);
-  useEffect(() => { localStorage.setItem(`cryptoDesktopMined_${STORAGE_VERSION}`, coinBdg); }, [coinBdg]);
-  useEffect(() => { localStorage.setItem('cryptoDesktopUsername', username); }, [username]);
-  useEffect(() => { localStorage.setItem(`paidBoostTime_${STORAGE_VERSION}`, paidBoostTime); }, [paidBoostTime]);
-  useEffect(() => { localStorage.setItem(`energyEarnedInSession_${STORAGE_VERSION}`, energyEarnedInSession); }, [energyEarnedInSession]);
-  useEffect(() => { localStorage.setItem(`dailySessionsUsed_${STORAGE_VERSION}`, dailySessionsUsed); }, [dailySessionsUsed]);
-  useEffect(() => { localStorage.setItem(`lastSessionReset_${STORAGE_VERSION}`, lastSessionReset); }, [lastSessionReset]);
-
-  // Reset daily sessions
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    if (lastSessionReset !== today) {
-      setDailySessionsUsed(0);
-      setEnergyEarnedInSession(0);
-      setLastSessionReset(today);
-      setStatus('Suas sessões de energia de jogo foram resetadas!');
-    }
-  }, [lastSessionReset]);
-
-  const handleUsernameSubmit = () => { if (tempUsername.trim()) setUsername(tempUsername.trim()); };
-
-  const addNewSlot = () => {
-    if (slots.length >= 6) {
-        setStatus('❌ Limite de 6 gabinetes atingido!');
-        return;
-    }
-    if (coinBdg >= NEW_SLOT_COST) {
-        setCoinBdg(prev => prev - NEW_SLOT_COST);
-        setSlots(prev => [...prev, { name: `Slot ${prev.length + 1}`, filled: false, free: false, repairCooldown: 0 }]);
-        setStatus(`✅ Gabinete ${slots.length + 1} comprado com sucesso!`)
-    } else {
-        setStatus(`❌ BDG insuficiente! Você precisa de ${NEW_SLOT_COST} BDG.`)
-    }
-  };
-
-  const handlePurchase = async (tierToBuy) => {
-    if (!userFriendlyAddress) {
-        setStatus('❌ Por favor, conecte sua carteira para comprar.');
-        return;
-    }
-    const transaction = {
-        validUntil: Math.floor(Date.now() / 1000) + 60,
-        messages: [
-            {
-                address: SHOP_RECEIVER_ADDRESS,
-                amount: TIER_PRICES[tierToBuy]
-            }
-        ]
-    };
-    try {
-        setStatus('⏳ Enviando transação para sua carteira...');
-        await tonConnectUI.sendTransaction(transaction);
-        setStatus('✅ Transação enviada! Aguardando confirmação da compra.');
-        const emptySlotIndex = slots.findIndex(slot => !slot.filled);
-        if (emptySlotIndex !== -1) {
-            setSlots(prevSlots => prevSlots.map((slot, index) => {
-                if (index === emptySlotIndex) {
-                    // A CPU comprada agora vem com 1 HORA de energia
-                    return { ...slot, filled: true, type: 'paid', tier: tierToBuy, repairCooldown: ONE_HOUR_IN_SECONDS };
-                }
-                return slot;
-            }));
-            setStatus(`🎉 CPU Padrão Tier ${tierToBuy} comprado e montado com sucesso!`);
-        } else {
-            setStatus('✅ Compra aprovada, mas você não tem gabinetes vazios para instalar a CPU.');
-        }
-    } catch (error) {
-        console.error(error);
-        setStatus('❌ Transação cancelada ou falhou.');
-    }
-  };
-
-  const handleGameWin = useCallback(() => {
-    const today = new Date().toISOString().split('T')[0];
-    if (lastSessionReset !== today) {
-        setDailySessionsUsed(0);
-        setEnergyEarnedInSession(0);
-        setLastSessionReset(today);
-    }
-
-    if (dailySessionsUsed >= 3) {
-      setStatus('❌ Você já usou suas 3 sessões de recarga de hoje.');
-      return;
-    }
-    if (energyEarnedInSession >= 60) {
-      setStatus('🕒 Limite de 1h de recarga atingido nesta sessão. Use outra sessão amanhã!');
-      if(dailySessionsUsed < 3 && energyEarnedInSession >= 60) {
-          setDailySessionsUsed(prev => prev + 1);
-          setEnergyEarnedInSession(0);
-      }
-      return;
-    }
-
-    // Adiciona 10 minutos de energia a CADA slot, limitado a 1 hora por slot
-    setSlots(prevSlots => prevSlots.map(slot => {
-      if (slot.filled) {
-        const newCooldown = Math.min(slot.repairCooldown + 10 * 60, ONE_HOUR_IN_SECONDS);
-        return { ...slot, repairCooldown: newCooldown };
-      }
-      return slot;
-    }));
-
-    const newEnergyEarned = energyEarnedInSession + 10;
-    setEnergyEarnedInSession(newEnergyEarned);
-    setStatus(`🎉 Você ganhou 10 minutos de energia! Total na sessão: ${newEnergyEarned} min.`);
-
-    if (newEnergyEarned >= 60) {
-        setDailySessionsUsed(prev => prev + 1);
-        setEnergyEarnedInSession(0);
-        setStatus('✨ Sessão de recarga completa! Use as próximas amanhã.');
-    }
-
-  }, [dailySessionsUsed, energyEarnedInSession, lastSessionReset]);
-
-  const gameLoop = useCallback(() => {
-    setSlots(currentSlots => {
-      let totalGain = 0;
-      const updatedSlots = currentSlots.map(slot => {
-        if (slot.filled && slot.repairCooldown > 0) {
-          const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
-          let gainRate = (economyData[econKey]?.gainPerHour || 0) / 3600; // Dividido por 3600 para ganho por segundo
-          if (paidBoostTime > 0) gainRate *= 1.5;
-          totalGain += gainRate;
-          return { ...slot, repairCooldown: slot.repairCooldown - 1 };
-        }
-        return slot;
-      });
-      if (totalGain > 0) setCoinBdg(prev => prev + totalGain);
-      return updatedSlots;
-    });
-    if (paidBoostTime > 0) setPaidBoostTime(prev => prev - 1);
-  }, [paidBoostTime]);
-
-  useEffect(() => {
-    const gameInterval = setInterval(gameLoop, 1000);
-    return () => clearInterval(gameInterval);
-  }, [gameLoop]);
-
-  const navButtonStyle = (page) => ({
-    background: route === page ? '#5a67d8' : '#4a5568',
-    color: 'white',
-    border: 'none',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1, 
-    padding: '10px 0',
-    margin: '0 4px',
-    fontSize: '1.5em',
-    maxWidth: '60px',
-  });
-
-  const renderPage = () => {
-    switch (route) {
-      case 'mine':
-        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
-      case 'shop':
-        return <ShopPage handlePurchase={handlePurchase} />;
-      case 'games':
-        return <GamesPage onGameWin={handleGameWin} />;
-      case 'user':
-        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} username={username} />;
-      case 'rankings':
-        return <RankingsPage />;
-      default:
-        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
-    }
-  };
-
-  const loginScreen = (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px' }}>
-       {/* ... (código da tela de login) */}
-    </div>
-  );
+  // ... (toda a lógica de estado e funções)
 
   const mainApp = (
     <>
+      {/* --- CABEÇALHO RESTAURADO -- */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
         <p>Bem-vindo, {username}!</p>
         <TonConnectButton />
       </header>
+
       <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: status.startsWith('❌') ? '#f87171' : '#34d399' }}>
         <p>{status}</p>
       </div>
+
       {renderPage()}
+
       <nav style={{ 
           position: 'fixed', 
           bottom: 0, 
           left: 0, 
           right: 0, 
           display: 'flex',
-          justifyContent: 'space-around', 
+          justifyContent: 'space-around',
           padding: '0.5rem', 
           background: '#2d3748', 
           gap: '5px'
@@ -247,9 +46,5 @@ export default function App() {
     </>
   );
 
-  return (
-    <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', paddingBottom: '100px' }}>
-      {!username ? loginScreen : mainApp}
-    </div>
-  );
+  // ... (resto do código, incluindo renderPage, loginScreen, etc.)
 }
