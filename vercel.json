@@ -9,13 +9,14 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "cd frontend && npm install && chmod +x ./node_modules/.bin/vite && npm run build",
+        "buildCommand": "npm --prefix frontend install && npm --prefix frontend run build",
         "outputDirectory": "frontend/build"
       }
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "api/index.py" },
-    { "src": "/(.*)", "dest": "/frontend/build/$1" }
+    { "src": "/api/(.*)", "dest": "/api/index.py" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
