@@ -4,14 +4,14 @@ export default function ShopPage({ handlePurchase }) {
 
   const standardCpuData = {
     1: { name: 'Tier 1', price: '3.5', gain: '450', image: '/tier1.png', tier: 1 },
-    2: { name: 'Tier 2', price: '9.0', gain: '750', image: '/tier2.png', tier: 2 },
+    2: { name: 'Tier 2', price: '9.0', gain: '750', image: '/tier2.jpg', tier: 2 }, // Corrigido para .jpg
     3: { name: 'Tier 3', price: '17.0', gain: '1050', image: '/tier3.png', tier: 3 },
   };
 
   const specialCpuData = {
-    A: { name: 'CPU A', price: '10.0', gain: '1450', image: '/specialA.png', tier: 'A' },
-    B: { name: 'CPU B', price: '20.0', gain: '1650', image: '/specialB.png', tier: 'B' },
-    C: { name: 'CPU C', price: '30.0', gain: '1950', image: '/specialC.png', tier: 'C' },
+    A: { name: 'CPU A', price: '10.0', gain: '1450', image: '/especial_a.jpg', tier: 'A' }, // Corrigido para especial_a.jpg
+    B: { name: 'CPU B', price: '20.0', gain: '1650', image: '/especial_b.jpg', tier: 'B' }, // Corrigido para especial_b.jpg
+    C: { name: 'CPU C', price: '30.0', gain: '1950', image: '/especial_c.png', tier: 'C' }, // Corrigido para especial_c.png
   };
 
   const styles = {
