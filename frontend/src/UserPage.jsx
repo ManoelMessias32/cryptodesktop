@@ -11,7 +11,8 @@ export default function UserPage({ address, coinBdg, username }) {
     title: { color: '#facc15', borderBottom: '1px solid #4a5568', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.1em', wordBreak: 'break-word', fontFamily: '"Press Start 2P", cursive' },
     infoLine: { margin: '15px 0', fontSize: '1em', color: '#e4e4e7', wordBreak: 'break-word', lineHeight: '1.6' },
     infoLabel: { color: '#a1a1aa', marginRight: '8px', display: 'block', marginBottom: '5px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' },
-    disclaimer: { fontSize: '0.8em', color: '#a1a1aa', marginTop: '20px', borderTop: '1px solid #4a5568', paddingTop: '15px', lineHeight: '1.5' }
+    disclaimer: { fontSize: '0.8em', color: '#a1a1aa', marginTop: '20px', borderTop: '1px solid #4a5568', paddingTop: '15px', lineHeight: '1.5' },
+    footer: { textAlign: 'center', fontSize: '0.7em', color: '#a1a1aa', marginTop: '30px' } // Estilo para o rodapé
   };
 
   return (
@@ -50,6 +51,8 @@ export default function UserPage({ address, coinBdg, username }) {
           <strong>Aviso:</strong> O token BDG será distribuído a cada 6 meses (podendo haver alteração na data).
         </p>
       </div>
+      {/* Adicionando um número de versão para forçar a atualização */}
+      <p style={styles.footer}>App Version: 1.0.1</p>
     </div>
   );
 }
