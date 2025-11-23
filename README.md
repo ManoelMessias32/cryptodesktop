@@ -1,4 +1,4 @@
-# CryptoDesktop 🖥️
+ # CryptoDesktop 🖥️
 
 CryptoDesktop é um jogo de simulação de mineração Web3 onde você constrói e gerencia sua própria fazenda de mineração de criptomoedas virtual.
 

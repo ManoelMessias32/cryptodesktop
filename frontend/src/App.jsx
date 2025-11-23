@@ -8,15 +8,14 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, repairCooldown: 0 });
-const SECONDS_IN_AN_HOUR = 3600;
-const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * SECONDS_IN_AN_HOUR;
+const ONE_HOUR_IN_SECONDS = 3600; // <<<--- NOVA CONSTANTE
 const NEW_SLOT_COST = 500;
 
 // Shop constants
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000' }; // Prices in nanotons
 
-const STORAGE_VERSION = 'v15'; // <<-- VERSÃO ATUALIZADA
+const STORAGE_VERSION = 'v16'; // Atualiza a versão para resetar o estado se necessário
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -98,7 +97,8 @@ export default function App() {
         if (emptySlotIndex !== -1) {
             setSlots(prevSlots => prevSlots.map((slot, index) => {
                 if (index === emptySlotIndex) {
-                    return { ...slot, filled: true, type: 'paid', tier: tierToBuy, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS };
+                    // A CPU comprada agora vem com 1 HORA de energia
+                    return { ...slot, filled: true, type: 'paid', tier: tierToBuy, repairCooldown: ONE_HOUR_IN_SECONDS };
                 }
                 return slot;
             }));
@@ -121,11 +121,11 @@ export default function App() {
     }
 
     if (dailySessionsUsed >= 3) {
-      setStatus('❌ Você já usou suas 3 sessões de energia de hoje.');
+      setStatus('❌ Você já usou suas 3 sessões de recarga de hoje.');
       return;
     }
     if (energyEarnedInSession >= 60) {
-      setStatus('🕒 Limite de 1h de energia atingido nesta sessão. Use outra sessão mais tarde!');
+      setStatus('🕒 Limite de 1h de recarga atingido nesta sessão. Use outra sessão amanhã!');
       if(dailySessionsUsed < 3 && energyEarnedInSession >= 60) {
           setDailySessionsUsed(prev => prev + 1);
           setEnergyEarnedInSession(0);
@@ -133,9 +133,10 @@ export default function App() {
       return;
     }
 
+    // Adiciona 10 minutos de energia a CADA slot, limitado a 1 hora por slot
     setSlots(prevSlots => prevSlots.map(slot => {
       if (slot.filled) {
-        const newCooldown = Math.min(slot.repairCooldown + 10 * 60, TWENTY_FOUR_HOURS_IN_SECONDS);
+        const newCooldown = Math.min(slot.repairCooldown + 10 * 60, ONE_HOUR_IN_SECONDS);
         return { ...slot, repairCooldown: newCooldown };
       }
       return slot;
@@ -148,7 +149,7 @@ export default function App() {
     if (newEnergyEarned >= 60) {
         setDailySessionsUsed(prev => prev + 1);
         setEnergyEarnedInSession(0);
-        setStatus('✨ Sessão de energia completa! Use as próximas mais tarde.');
+        setStatus('✨ Sessão de recarga completa! Use as próximas amanhã.');
     }
 
   }, [dailySessionsUsed, energyEarnedInSession, lastSessionReset]);
@@ -159,7 +160,7 @@ export default function App() {
       const updatedSlots = currentSlots.map(slot => {
         if (slot.filled && slot.repairCooldown > 0) {
           const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
-          let gainRate = (economyData[econKey]?.gainPerHour || 0) / SECONDS_IN_AN_HOUR;
+          let gainRate = (economyData[econKey]?.gainPerHour || 0) / 3600; // Dividido por 3600 para ganho por segundo
           if (paidBoostTime > 0) gainRate *= 1.5;
           totalGain += gainRate;
           return { ...slot, repairCooldown: slot.repairCooldown - 1 };
@@ -186,11 +187,11 @@ export default function App() {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1, // Faz com que todos os botões tenham o mesmo tamanho
-    padding: '10px 0', // Ajusta o preenchimento vertical
-    margin: '0 4px',   // Espaçamento horizontal
-    fontSize: '1.5em', // Aumenta o tamanho do ícone
-    maxWidth: '60px', // Limita a largura máxima
+    flex: 1, 
+    padding: '10px 0',
+    margin: '0 4px',
+    fontSize: '1.5em',
+    maxWidth: '60px',
   });
 
   const renderPage = () => {
@@ -202,7 +203,7 @@ export default function App() {
       case 'games':
         return <GamesPage onGameWin={handleGameWin} />;
       case 'user':
-        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} username={username} />; // <<<--- CORRIGIDO
+        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} username={username} />;
       case 'rankings':
         return <RankingsPage />;
       default:
@@ -212,7 +213,7 @@ export default function App() {
 
   const loginScreen = (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px' }}>
-       {/* ... (seu código da tela de login) */}
+       {/* ... (código da tela de login) */}
     </div>
   );
 
@@ -231,11 +232,11 @@ export default function App() {
           bottom: 0, 
           left: 0, 
           right: 0, 
-          display: 'flex', 
-          justifyContent: 'space-around', // Distribui o espaço igualmente
+          display: 'flex',
+          justifyContent: 'space-around', 
           padding: '0.5rem', 
           background: '#2d3748', 
-          gap: '5px' // Pequeno espaço entre os botões
+          gap: '5px'
       }}>
         <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
         <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')} title="Loja">🛒</button>

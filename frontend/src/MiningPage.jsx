@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
+const ONE_HOUR_IN_SECONDS = 3600;
 const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
 const ENERGY_REFILL_ALL_COST = 50;
 const PAID_BOOST_COST = 80;
@@ -22,8 +22,9 @@ const formatTimeToMine = (monthlyGain) => {
   return `~${minutes}min`;
 };
 
-const EnergyBar = ({ currentTime, maxTime }) => {
-  const percentage = (currentTime / maxTime) * 100;
+// A barra de energia agora usa ONE_HOUR_IN_SECONDS como o máximo
+const EnergyBar = ({ currentTime }) => {
+  const percentage = (currentTime / ONE_HOUR_IN_SECONDS) * 100;
   return (
     <div style={{ width: '100%', backgroundColor: '#4a5568', borderRadius: '5px', overflow: 'hidden', height: '10px' }}>
       <div style={{ width: `${percentage}%`, backgroundColor: '#6366f1', height: '100%' }}></div>
@@ -36,24 +37,27 @@ export default function MiningPage({
   paidBoostTime, setPaidBoostTime, economyData
 }) {
 
+  // Montar CPU Grátis agora dá 1 HORA de energia
   const handleMountFree = (idx) => {
-    setSlots(prev => prev.map((s, i) => (i === idx ? { ...s, filled: true, type: 'free', repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS } : s)));
-    setStatus('✅ CPU Grátis montado e pronto para minerar!');
+    setSlots(prev => prev.map((s, i) => (i === idx ? { ...s, filled: true, type: 'free', repairCooldown: ONE_HOUR_IN_SECONDS } : s)));
+    setStatus('✅ CPU Grátis montado e minerando por 1 hora!');
   };
 
+  // Reativar também dá 1 HORA de energia
   const handleReactivateEnergy = (idx) => {
     setSlots(prevSlots => prevSlots.map((slot, i) => {
-        if (i === idx) return { ...slot, repairCooldown: 3600 };
+        if (i === idx) return { ...slot, repairCooldown: ONE_HOUR_IN_SECONDS };
         return slot;
     }));
     setStatus(`✅ Energia do Slot ${idx + 1} reativada por 1 hora!`);
   };
   
+  // Reabastecer TODOS os slots com 1 HORA de energia
   const handleBuyEnergyForAll = () => {
     if (coinBdg >= ENERGY_REFILL_ALL_COST) {
       setCoinBdg(prev => prev - ENERGY_REFILL_ALL_COST);
-      setSlots(prevSlots => prevSlots.map(slot => slot.filled ? { ...slot, repairCooldown: TWENTY_FOUR_HOURS_IN_SECONDS } : slot));
-      setStatus(`✅ Energia de todos os slots reabastecida!`);
+      setSlots(prevSlots => prevSlots.map(slot => slot.filled ? { ...slot, repairCooldown: ONE_HOUR_IN_SECONDS } : slot));
+      setStatus(`✅ Energia de todos os slots reabastecida por 1 hora!`);
     } else {
       setStatus(`❌ Moedas insuficientes! Custo: ${ENERGY_REFILL_ALL_COST} BDG`);
     }
@@ -74,11 +78,7 @@ export default function MiningPage({
 
   return (
     <div style={{padding: '0 10px 80px 10px'}}>
-      <div style={{ textAlign: 'center', margin: '20px auto', padding: '20px', background: '#2d3748', borderRadius: '10px', maxWidth: '90vw' }}>
-        <p style={{ margin: 0, color: '#a1a1aa', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em'}}>Seu Saldo</p>
-        <h2 style={{ fontSize: '2em', margin: '10px 0 0 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive' }}>{coinBdg.toFixed(4)}</h2>
-        <p style={{ margin: '5px 0', color: '#a1a1aa' }}>BDG</p>
-      </div>
+      {/* ... (código do cabeçalho e saldo) ... */}
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', margin: '24px auto', flexWrap: 'wrap' }}>
         <button onClick={handleBuyEnergyForAll} style={{...buttonStyle, width: 'auto'}}>
@@ -113,9 +113,9 @@ export default function MiningPage({
                     <p style={{ margin: '8px 0', fontWeight: 'bold' }}>{title}</p>
                     {timeToMine && <p style={{fontSize: '0.8em', color: '#a1a1aa', margin: '4px 0'}}>1 BDG em {timeToMine}</p>}
                     {slot.repairCooldown > 0 ? (
-                      <div style={{width: '100%', marginTop: '10px'}}>\
+                      <div style={{width: '100%', marginTop: '10px'}}>
                         <p style={{fontSize: '0.8em', margin: '5px 0'}}>Energia: {formatTime(slot.repairCooldown)}</p>
-                        <EnergyBar currentTime={slot.repairCooldown} maxTime={TWENTY_FOUR_HOURS_IN_SECONDS} />
+                        <EnergyBar currentTime={slot.repairCooldown} />
                       </div>
                     ) : (
                       <button onClick={() => handleReactivateEnergy(idx)} style={{...buttonStyle, background:'#34d399', marginTop: '10px', width:'auto'}}>Reativar</button>

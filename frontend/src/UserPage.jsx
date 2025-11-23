@@ -59,7 +59,6 @@ export default function UserPage({ address, coinBdg, username }) {
       fontSize: '0.9em', // Aumenta a fonte do link
       lineHeight: '1.5',
     },
-    // Estilo para o novo aviso
     disclaimer: {
       fontSize: '0.8em',
       color: '#a1a1aa',
@@ -112,8 +111,12 @@ export default function UserPage({ address, coinBdg, username }) {
       <div style={styles.container}>
         <h2 style={{...styles.title, fontSize: '1em'}}>🐾 BAD DOG COIN (BDG)</h2>
         <p style={styles.infoLine}>
+          <strong style={styles.infoLabel}>Rede:</strong> 
+          <span>BNB Smart Chain</span>
+        </p>
+        <p style={styles.infoLine}>
           <strong style={styles.infoLabel}>Contrato:</strong> 
-          <span>0x9Fd1456F61a8c8212b691353249C411115C53aE8</span>
+          <span style={{wordBreak: 'break-all'}}>0x9Fd1456F61a8c8212b691353249C411115C53aE8</span>
         </p>
         <p style={styles.disclaimer}>
           <strong>Aviso:</strong> O token BDG será distribuído a cada 6 meses (podendo haver alteração na data).
