@@ -1,4 +1,7 @@
 {
+  "analytics": {
+    "disabled": true
+  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "../api/index.py" }
   ]
