@@ -202,7 +202,7 @@ export default function App() {
       case 'games':
         return <GamesPage onGameWin={handleGameWin} />;
       case 'user':
-        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} username={username} />;
+        return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} username={username} />; // <<<--- CORRIGIDO
       case 'rankings':
         return <RankingsPage />;
       default:
