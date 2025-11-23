@@ -69,13 +69,11 @@ export default function UserPage({ address, coinBdg, username }) {
     }
   };
 
-  // <<<--- CORREÇÃO APLICADA AQUI
-  // Só cria o link de referência se o username existir
-  const referralLink = username ? `${window.location.origin}/?ref=${encodeURIComponent(username)}` : "";
-
+  // A função de copiar agora cria o link sob demanda
   const handleCopyToClipboard = () => {
-    if (!referralLink) return; // Não faz nada se o link estiver vazio
-    navigator.clipboard.writeText(referralLink).then(() => {
+    if (!username) return; // Proteção extra
+    const link = `${window.location.origin}/?ref=${encodeURIComponent(username)}`;
+    navigator.clipboard.writeText(link).then(() => {
       alert('Link de referência copiado!');
     }, () => {
       alert('Falha ao copiar o link.');
@@ -100,12 +98,14 @@ export default function UserPage({ address, coinBdg, username }) {
         </p>
       </div>
 
+      {/* A seção de referência só renderiza se o username existir */}
       {username && (
           <div style={styles.container}>
             <h3 style={{...styles.title, fontSize: '1em'}}>Seu Link de Referência</h3>
             <p style={{...styles.infoLine, fontSize: '0.9em', fontFamily: '"Press Start 2P", cursive'}}>Compartilhe para ganhar recompensas!</p>
             <div style={styles.linkBox}>
-              {referralLink}
+              {/* O link é criado aqui, na hora de exibir */}
+              {`${window.location.origin}/?ref=${encodeURIComponent(username)}`}
             </div>
             <button onClick={handleCopyToClipboard} style={styles.button}>Copiar Link</button>
           </div>
