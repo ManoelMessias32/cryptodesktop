@@ -5,7 +5,29 @@ const SECONDS_IN_A_MONTH = 30 * 24 * 3600;
 const ENERGY_REFILL_ALL_COST = 50;
 const PAID_BOOST_COST = 80;
 
-// ... (funções formatTime, formatTimeToMine, EnergyBar)
+const formatTime = (seconds) => {
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return `${d > 0 ? `${d}d ` : ''}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+const formatTimeToMine = (seconds) => {
+    if (seconds <= 0) return "Completo";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`;
+};
+
+const EnergyBar = ({ current, max }) => {
+    const percentage = max > 0 ? (current / max) * 100 : 0;
+    return (
+        <div style={{ background: '#4a5568', borderRadius: '5px', overflow: 'hidden', width: '100%', height: '10px' }}>
+            <div style={{ width: `${percentage}%`, background: '#48bb78', height: '100%' }}></div>
+        </div>
+    );
+};
 
 export default function MiningPage({ 
   coinBdg, setCoinBdg, slots, setSlots, addNewSlot, setStatus, 
@@ -15,10 +37,12 @@ export default function MiningPage({
   const handleBuyEnergyForAll = () => {
     if (coinBdg >= ENERGY_REFILL_ALL_COST) {
       setCoinBdg(coinBdg - ENERGY_REFILL_ALL_COST);
-      const updatedSlots = slots.map(slot => ({
-        ...slot,
-        energy: slot.maxEnergy 
-      }));
+      const updatedSlots = slots.map(slot => {
+        if (slot.filled) {
+          return { ...slot, repairCooldown: ONE_HOUR_IN_SECONDS };
+        }
+        return slot;
+      });
       setSlots(updatedSlots);
       setStatus("Energia de todos os slots foi reabastecida!");
     } else {
@@ -63,7 +87,23 @@ export default function MiningPage({
 
       <div style={{ marginTop: 24 }}>
         <h3 style={{ textAlign: 'center', color: '#e4e4e7', fontFamily: '"Press Start 2P", cursive', fontSize: '1em' }}>Sua Sala de Mineração</h3>
-        {/* ... (resto do código para renderizar os slots) ... */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', padding: '0 10px' }}>
+          {slots.map((slot, index) => (
+            <div key={index} style={{ background: '#2d3748', padding: '15px', borderRadius: '8px', border: `1px solid ${slot.filled ? '#4a5568' : '#6366f1'}` }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive', fontSize: '0.9em' }}>{slot.name}</h4>
+              {slot.filled ? (
+                <>
+                  <p style={{ margin: '5px 0', color: '#a1a1aa' }}>Tier: {slot.tier}</p>
+                  <p style={{ margin: '5px 0', color: '#a1a1aa' }}>Tipo: {slot.type === 'free' ? 'Grátis' : (slot.type === 'special' ? 'Especial' : 'Pago')}</p>
+                  <EnergyBar current={slot.repairCooldown} max={ONE_HOUR_IN_SECONDS} />
+                  <p style={{ margin: '10px 0 0', color: '#e4e4e7', textAlign: 'center' }}>{formatTimeToMine(slot.repairCooldown)}</p>
+                </>
+              ) : (
+                <p style={{ color: '#a1a1aa', textAlign: 'center', margin: '20px 0' }}>Vazio</p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

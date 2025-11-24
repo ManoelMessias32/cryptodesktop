@@ -152,7 +152,7 @@ export default function App() {
       case 'mine': return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
       case 'shop': return <ShopPage handlePurchase={handlePurchase} />;
       case 'games': return <GamesPage onGameWin={handleGameWin} />;
-      case 'user': return <div style={{padding: '20px', textAlign: 'center'}}><h2>Página de Perfil em Manutenção</h2><p>Voltará em breve.</p></div>;
+      case 'user': return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} username={username} />;
       case 'rankings': return <RankingsPage />;
       default: return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
     }
