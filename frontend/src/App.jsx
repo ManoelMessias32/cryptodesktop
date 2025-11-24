@@ -12,12 +12,13 @@ const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', 
 const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000', 'A': '10000000000', 'B': '20000000000', 'C': '30000000000' };
-const STORAGE_VERSION = 'v25'; // Versão para corrigir loop duplicado
+const STORAGE_VERSION = 'v26';
 
 export default function App() {
   const [route, setRoute] = useState('mine');
   const [status, setStatus] = useState('Bem-vindo! Conecte sua carteira quando quiser.');
   const [coinBdg, setCoinBdg] = useState(0);
+  const [claimableBdg, setClaimableBdg] = useState(0);
   const [slots, setSlots] = useState([]);
   const [username, setUsername] = useState('');
   const [tempUsername, setTempUsername] = useState('');
@@ -29,9 +30,9 @@ export default function App() {
 
   const saveData = useCallback(() => {
     if (!isInitialized || !username) return;
-    const gameState = { slots, coinBdg, username, paidBoostTime, lastSaveTimestamp: Date.now() };
+    const gameState = { slots, coinBdg, claimableBdg, username, paidBoostTime, lastSaveTimestamp: Date.now() };
     localStorage.setItem(`gameState_${STORAGE_VERSION}`, JSON.stringify(gameState));
-  }, [isInitialized, username, slots, coinBdg, paidBoostTime]);
+  }, [isInitialized, username, slots, coinBdg, claimableBdg, paidBoostTime]);
 
   useEffect(() => {
     const savedStateJSON = localStorage.getItem(`gameState_${STORAGE_VERSION}`);
@@ -42,16 +43,16 @@ export default function App() {
         const lastSave = savedState.lastSaveTimestamp || now;
         const offlineSeconds = Math.floor((now - lastSave) / 1000);
 
-        let { coinBdg: savedCoinBdg, slots: savedSlots, paidBoostTime: savedPaidBoostTime } = savedState;
+        let { coinBdg: savedCoinBdg, claimableBdg: savedClaimableBdg, slots: savedSlots, paidBoostTime: savedPaidBoostTime } = savedState;
+        savedClaimableBdg = savedClaimableBdg || 0;
 
-        if (offlineSeconds > 1) { // Apenas 1 segundo para garantir que não haja sobreposição
+        if (offlineSeconds > 1) {
           let accumulatedGain = 0;
           const updatedOfflineSlots = savedSlots.map(slot => {
             if (slot.filled && slot.repairCooldown > 0) {
               const secondsToMine = Math.min(slot.repairCooldown, offlineSeconds);
               const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
               const gainRatePerSecond = (economyData[econKey]?.gainPerHour || 0) / 3600;
-
               let gainFromThisSlot = 0;
               if (savedPaidBoostTime > 0) {
                   const boostDuration = Math.min(secondsToMine, savedPaidBoostTime);
@@ -62,20 +63,20 @@ export default function App() {
                   gainFromThisSlot += gainRatePerSecond * secondsToMine;
               }
               accumulatedGain += gainFromThisSlot;
-              return { ...slot, repairCooldown: Math.max(0, slot.repairCooldown - secondsToMine) }; // CORRIGIDO: Usar secondsToMine
+              return { ...slot, repairCooldown: Math.max(0, slot.repairCooldown - secondsToMine) };
             }
             return slot;
           });
           
           setSlots(updatedOfflineSlots);
           setCoinBdg(savedCoinBdg + accumulatedGain);
+          setClaimableBdg(savedClaimableBdg + accumulatedGain);
           setPaidBoostTime(Math.max(0, savedPaidBoostTime - offlineSeconds));
           if (accumulatedGain > 0.0001) setStatus(`Você ganhou ${accumulatedGain.toFixed(4)} BDG enquanto esteve fora!`);
-
         } else {
           setSlots(savedSlots);
           setCoinBdg(savedCoinBdg);
-          setPaidBoostTime(savedPaidBoostTime);
+          setClaimableBdg(savedClaimableBdg);
         }
         setUsername(savedState.username);
       } else {
@@ -102,18 +103,16 @@ export default function App() {
         setUsername(newUsername);
         setSlots(initialSlots);
         setCoinBdg(0);
-        setPaidBoostTime(0);
-        const initialGameState = { slots: initialSlots, coinBdg: 0, username: newUsername, paidBoostTime: 0, lastSaveTimestamp: Date.now() };
+        setClaimableBdg(0);
+        const initialGameState = { slots: initialSlots, coinBdg: 0, claimableBdg: 0, username: newUsername, paidBoostTime: 0, lastSaveTimestamp: Date.now() };
         localStorage.setItem(`gameState_${STORAGE_VERSION}`, JSON.stringify(initialGameState));
     }
   };
 
-  // O gameLoop permanece, mas o cálculo offline já fez a maior parte do trabalho
   const gameLoop = useCallback(() => {
     if (!isInitialized || !username) return;
-    // Apenas para a contagem em tempo real, 1 segundo por vez.
+    let totalGain = 0;
     setSlots(currentSlots => {
-        let totalGain = 0;
         const updatedSlots = currentSlots.map(slot => {
             if (slot.filled && slot.repairCooldown > 0) {
                 const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
@@ -124,7 +123,10 @@ export default function App() {
             }
             return slot;
         });
-        if (totalGain > 0) setCoinBdg(prev => prev + totalGain);
+        if (totalGain > 0) {
+            setCoinBdg(prev => prev + totalGain);
+            setClaimableBdg(prev => prev + totalGain);
+        }
         return updatedSlots;
     });
     if (paidBoostTime > 0) setPaidBoostTime(prev => prev - 1);
@@ -137,6 +139,7 @@ export default function App() {
 
   const handleGameWin = useCallback(() => {
     setCoinBdg(prev => prev + 10);
+    setClaimableBdg(prev => prev + 10);
     setStatus("🎉 Você ganhou 10 BDG!");
   }, []);
 
@@ -198,12 +201,12 @@ export default function App() {
       <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: status.startsWith('❌') ? '#f87171' : '#34d399' }}><p>{status}</p></div>
         {(() => {
             switch (route) {
-                 case 'mine': return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} />;
+                 case 'mine': return <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} />;
                 case 'shop': return <ShopPage handlePurchase={handlePurchase} />;
                 case 'games': return <GamesPage onGameWin={handleGameWin} />;
-                case 'user': return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} username={username} />;
+                case 'user': return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} claimableBdg={claimableBdg} username={username} />;
                 case 'rankings': return <RankingsPage />;
-                default: return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} />;
+                default: return <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} />;
             }
         })()}
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0.5rem', background: '#2d3748', gap: '5px' }}>
