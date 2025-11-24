@@ -11,8 +11,8 @@ const initialSlots = Array(1).fill({ name: 'Slot 1', filled: false, free: true, 
 const ONE_HOUR_IN_SECONDS = 3600;
 const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
-const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000' };
-const STORAGE_VERSION = 'v17'; // Versão incrementada
+const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000', 'A': '10000000000', 'B': '20000000000', 'C': '30000000000' };
+const STORAGE_VERSION = 'v18'; // Incrementa a versão para garantir que não haja conflitos de estado
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -78,9 +78,92 @@ export default function App() {
     return () => clearInterval(gameInterval);
   }, [gameLoop]);
 
-  const handleGameWin = useCallback(() => { /* ... (código existente) ... */ }, [dailySessionsUsed, energyEarnedInSession, lastSessionReset]);
-  const addNewSlot = () => { /* ... (código existente) ... */ };
-  const handlePurchase = async (tierToBuy) => { /* ... (código existente) ... */ };
+  const handleGameWin = useCallback(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (lastSessionReset !== today) {
+      setDailySessionsUsed(0);
+      setEnergyEarnedInSession(0);
+      setLastSessionReset(today);
+    }
+    if (dailySessionsUsed >= 3) {
+      setStatus('❌ Você já usou suas 3 sessões de recarga de hoje.');
+      return;
+    }
+    if (energyEarnedInSession >= 60) {
+      setStatus('🕒 Limite de 1h de recarga atingido nesta sessão. Use outra sessão amanhã!');
+      if(dailySessionsUsed < 3 && energyEarnedInSession >= 60) {
+          setDailySessionsUsed(prev => prev + 1);
+          setEnergyEarnedInSession(0);
+      }
+      return;
+    }
+    setSlots(prevSlots => prevSlots.map(slot => {
+      if (slot.filled) {
+        const newCooldown = Math.min(slot.repairCooldown + 10 * 60, ONE_HOUR_IN_SECONDS);
+        return { ...slot, repairCooldown: newCooldown };
+      }
+      return slot;
+    }));
+    const newEnergyEarned = energyEarnedInSession + 10;
+    setEnergyEarnedInSession(newEnergyEarned);
+    setStatus(`🎉 Você ganhou 10 minutos de energia! Total na sessão: ${newEnergyEarned} min.`);
+    if (newEnergyEarned >= 60) {
+        setDailySessionsUsed(prev => prev + 1);
+        setEnergyEarnedInSession(0);
+        setStatus('✨ Sessão de recarga completa! Use as próximas amanhã.');
+    }
+  }, [dailySessionsUsed, energyEarnedInSession, lastSessionReset]);
+
+  const addNewSlot = () => {
+    if (slots.length >= 6) {
+        setStatus('❌ Limite de 6 gabinetes atingido!');
+        return;
+    }
+    if (coinBdg >= NEW_SLOT_COST) {
+        setCoinBdg(prev => prev - NEW_SLOT_COST);
+        setSlots(prev => [...prev, { name: `Slot ${prev.length + 1}`, filled: false, free: false, repairCooldown: 0 }]);
+        setStatus(`✅ Gabinete ${slots.length + 1} comprado com sucesso!`)
+    } else {
+        setStatus(`❌ BDG insuficiente! Você precisa de ${NEW_SLOT_COST} BDG.`)
+    }
+  };
+
+  const handlePurchase = async (tierToBuy) => {
+    if (!userFriendlyAddress) {
+        setStatus('❌ Por favor, conecte sua carteira para comprar.');
+        return;
+    }
+    const transaction = {
+        validUntil: Math.floor(Date.now() / 1000) + 60,
+        messages: [
+            {
+                address: SHOP_RECEIVER_ADDRESS,
+                amount: TIER_PRICES[tierToBuy]
+            }
+        ]
+    };
+    try {
+        setStatus('⏳ Enviando transação para sua carteira...');
+        await tonConnectUI.sendTransaction(transaction);
+        setStatus('✅ Transação enviada! Aguardando confirmação da compra.');
+        const emptySlotIndex = slots.findIndex(slot => !slot.filled);
+        if (emptySlotIndex !== -1) {
+            setSlots(prevSlots => prevSlots.map((slot, index) => {
+                if (index === emptySlotIndex) {
+                    const isSpecial = ['A', 'B', 'C'].includes(tierToBuy);
+                    return { ...slot, filled: true, type: isSpecial ? 'special' : 'paid', tier: tierToBuy, repairCooldown: ONE_HOUR_IN_SECONDS };
+                }
+                return slot;
+            }));
+            setStatus(`🎉 CPU comprada e montada com sucesso!`);
+        } else {
+            setStatus('✅ Compra aprovada, mas você não tem gabinetes vazios para instalar a CPU.');
+        }
+    } catch (error) {
+        console.error(error);
+        setStatus('❌ Transação cancelada ou falhou.');
+    }
+  };
 
   const navButtonStyle = (page) => ({
     background: route === page ? '#5a67d8' : '#4a5568',
@@ -107,7 +190,7 @@ export default function App() {
         value={tempUsername}
         onChange={(e) => setTempUsername(e.target.value)}
         placeholder="Seu nome aqui"
-        style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white', marginBottom: '20px', width: '80%' }}
+        style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white', marginBottom: '20px', width: '90%', maxWidth: '350px' }}
       />
       <button onClick={handleUsernameSubmit} style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#6366f1', color: 'white', cursor: 'pointer', fontFamily: '"Press Start 2P", cursive' }}>Entrar</button>
     </div>
