@@ -16,7 +16,7 @@ const formatTime = (seconds) => {
 const EnergyBar = ({ current, max }) => {
     const percentage = max > 0 ? (current / max) * 100 : 0;
     return (
-        <div style={{ background: '#4a5568', borderRadius: '5px', overflow: 'hidden', width: '100%', height: '10px' }}>
+        <div style={{ background: '#4a5568', borderRadius: '5px', overflow: 'hidden', width: '100%', height: '8px' }}>
             <div style={{ width: `${percentage}%`, background: '#48bb78', height: '100%' }}></div>
         </div>
     );
@@ -73,7 +73,7 @@ export default function MiningPage({
     return `/tier${slot.tier}.png`;
   };
 
-  const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', width: '100%', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' };
+  const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' };
 
   return (
     <div style={{padding: '0 10px 80px 10px'}}>
@@ -94,27 +94,27 @@ export default function MiningPage({
       </div>
       <div style={{textAlign: 'center', minHeight: '20px'}}>{paidBoostTime > 0 && <p>Boost: {formatTime(paidBoostTime)}</p>}</div>
 
-      <div style={{ textAlign: 'center', margin: '24px 0' }}>
-        <button onClick={addNewSlot} disabled={slots.length >= 6} style={buttonStyle}>Comprar Gabinete ({slots.length}/6)</button>
+      <div style={{ textAlign: 'center', margin: '24px auto', maxWidth: '400px' }}>
+        <button onClick={addNewSlot} disabled={slots.length >= 6} style={{...buttonStyle, width: '100%'}}>Comprar Gabinete ({slots.length}/6)</button>
       </div>
 
       <div style={{ marginTop: 24 }}>
         <h3 style={{ textAlign: 'center', color: '#e4e4e7', fontFamily: '"Press Start 2P", cursive', fontSize: '1em' }}>Sua Sala de Mineração</h3>
-        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '20px', padding: '20px 10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '15px', padding: '20px 10px' }}>
           {slots.map((slot, index) => (
-            <div key={index} style={{ background: '#2d3748', padding: '15px', borderRadius: '8px', border: `1px solid ${slot.filled ? '#4a5568' : '#6366f1'}`, width: '280px', textAlign: 'center' }}>
-              <h4 style={{ margin: '0 0 10px 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive', fontSize: '0.9em' }}>{slot.name}</h4>
+            <div key={index} style={{ background: '#2d3748', padding: '15px', borderRadius: '8px', border: `1px solid ${slot.filled ? '#4a5568' : '#6366f1'}`, width: '220px', textAlign: 'center' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' }}>{slot.name}</h4>
               {slot.filled ? (
                 <>
-                  <img src={getImagePath(slot)} alt={`CPU ${slot.tier}`} style={{width: '80px', height: '80px', margin: '10px auto', objectFit: 'contain'}} />
-                  <p style={{ margin: '15px 0', color: '#e4e4e7', fontSize: '1em' }}>CPU Grátis</p>
-                  <p style={{ margin: '15px 0', color: '#a1a1aa', fontSize: '0.9em' }}>{calculateTimeForOneBDG(slot)}</p>
-                  <p style={{ margin: '15px 0', color: '#a1a1aa' }}>|</p>
-                  <p style={{ margin: '5px 0', color: '#e4e4e7' }}>Energia: {formatTime(slot.repairCooldown)}</p>
+                  <img src={getImagePath(slot)} alt={`CPU ${slot.tier}`} style={{width: '70px', height: '70px', margin: '10px auto', objectFit: 'contain'}} />
+                  <p style={{ margin: '10px 0', color: '#e4e4e7', fontSize: '0.9em' }}>CPU Grátis</p>
+                  <p style={{ margin: '10px 0', color: '#a1a1aa', fontSize: '0.8em' }}>{calculateTimeForOneBDG(slot)}</p>
+                  <p style={{ margin: '10px 0', color: '#a1a1aa' }}>|</p>
+                  <p style={{ margin: '5px 0', color: '#e4e4e7', fontSize: '0.9em' }}>Energia: {formatTime(slot.repairCooldown)}</p>
                   <EnergyBar current={slot.repairCooldown} max={ONE_HOUR_IN_SECONDS} />
                 </>
               ) : (
-                <p style={{ color: '#a1a1aa', textAlign: 'center', margin: '20px 0', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Vazio</p>
+                <p style={{ color: '#a1a1aa', textAlign: 'center', margin: '20px 0', height: '190px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Vazio</p>
               )}
             </div>
           ))}
