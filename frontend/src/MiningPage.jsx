@@ -13,13 +13,6 @@ const formatTime = (seconds) => {
     return `${d > 0 ? `${d}d ` : ''}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-const formatTimeToMine = (seconds) => {
-    if (seconds <= 0) return "Completo";
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`;
-};
-
 const EnergyBar = ({ current, max }) => {
     const percentage = max > 0 ? (current / max) * 100 : 0;
     return (
@@ -59,6 +52,19 @@ export default function MiningPage({
       setStatus("Você não tem moedas suficientes para ativar o boost.");
     }
   };
+  
+  const calculateTimeForOneBDG = (slot) => {
+    if (!slot.filled || !economyData) return '';
+    const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
+    const gainPerHour = economyData[econKey]?.gainPerHour || 0;
+    if (gainPerHour <= 0) return '';
+    
+    const hoursForOneBDG = 1 / gainPerHour;
+    const h = Math.floor(hoursForOneBDG);
+    const m = Math.floor((hoursForOneBDG * 60) % 60);
+
+    return `1 BDG em ~${h}h ${m}min`;
+  };
 
   const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', width: '100%', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' };
 
@@ -87,19 +93,21 @@ export default function MiningPage({
 
       <div style={{ marginTop: 24 }}>
         <h3 style={{ textAlign: 'center', color: '#e4e4e7', fontFamily: '"Press Start 2P", cursive', fontSize: '1em' }}>Sua Sala de Mineração</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', padding: '0 10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '20px', padding: '20px 10px' }}>
           {slots.map((slot, index) => (
-            <div key={index} style={{ background: '#2d3748', padding: '15px', borderRadius: '8px', border: `1px solid ${slot.filled ? '#4a5568' : '#6366f1'}` }}>
+            <div key={index} style={{ background: '#2d3748', padding: '15px', borderRadius: '8px', border: `1px solid ${slot.filled ? '#4a5568' : '#6366f1'}`, width: '280px', textAlign: 'center' }}>
               <h4 style={{ margin: '0 0 10px 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive', fontSize: '0.9em' }}>{slot.name}</h4>
               {slot.filled ? (
                 <>
-                  <p style={{ margin: '5px 0', color: '#a1a1aa' }}>Tier: {slot.tier}</p>
-                  <p style={{ margin: '5px 0', color: '#a1a1aa' }}>Tipo: {slot.type === 'free' ? 'Grátis' : (slot.type === 'special' ? 'Especial' : 'Pago')}</p>
+                  <div style={{width: '80px', height: '80px', margin: '10px auto', background: '#1a202c', border: '1px solid #4a5568', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a1a1aa'}}>CPU</div>
+                  <p style={{ margin: '15px 0', color: '#e4e4e7', fontSize: '1em' }}>CPU Grátis</p>
+                  <p style={{ margin: '15px 0', color: '#a1a1aa', fontSize: '0.9em' }}>{calculateTimeForOneBDG(slot)}</p>
+                  <p style={{ margin: '15px 0', color: '#a1a1aa' }}>|</p>
+                  <p style={{ margin: '5px 0', color: '#e4e4e7' }}>Energia: {formatTime(slot.repairCooldown)}</p>
                   <EnergyBar current={slot.repairCooldown} max={ONE_HOUR_IN_SECONDS} />
-                  <p style={{ margin: '10px 0 0', color: '#e4e4e7', textAlign: 'center' }}>{formatTimeToMine(slot.repairCooldown)}</p>
                 </>
               ) : (
-                <p style={{ color: '#a1a1aa', textAlign: 'center', margin: '20px 0' }}>Vazio</p>
+                <p style={{ color: '#a1a1aa', textAlign: 'center', margin: '20px 0', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Vazio</p>
               )}
             </div>
           ))}
