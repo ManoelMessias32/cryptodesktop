@@ -17,28 +17,18 @@ export default function UserPage({
 
   return (
     <div style={styles.pageContainer}>
+      {/* Perfil do Jogador */}
       <div style={styles.container}>
         <h2 style={styles.title}>Perfil do Jogador</h2>
-        <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Nome:</strong>
-          <span>{username}</span>
-        </p>
-        <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Carteira:</strong>
-          <span>{address || 'Não conectada'}</span>
-        </p>
-        <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Saldo BDG Token:</strong>
-          <span>{Number(coinBdg).toFixed(4)} BDG</span>
-        </p>
+        <p style={styles.infoLine}><strong style={styles.infoLabel}>Nome:</strong> {username}</p>
+        <p style={styles.infoLine}><strong style={styles.infoLabel}>Carteira:</strong> {address || 'Não conectada'}</p>
+        <p style={styles.infoLine}><strong style={styles.infoLabel}>Saldo BDG:</strong> {(Number(coinBdg) || 0).toFixed(4)} BDG</p>
       </div>
 
+      {/* Infos do Token */}
       <div style={styles.container}>
         <h2 style={{...styles.title, fontSize: '1em'}}>BAD DOG COIN (BDG)</h2>
-        <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Rede:</strong>
-          <span>BNB Smart Chain</span>
-        </p>
+        <p style={styles.infoLine}><strong style={styles.infoLabel}>Rede:</strong> BNB Smart Chain</p>
         <p style={styles.infoLine}>
           <strong style={styles.infoLabel}>Contrato:</strong>
           <span style={{wordBreak: 'break-all'}}>0x9Fd1456F61a8c8212b691353249C411115C53aE8</span>
