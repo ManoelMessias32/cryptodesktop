@@ -15,6 +15,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative; /* Adicionado para posicionar os controles */
 }
 
 canvas {
@@ -52,22 +53,15 @@ canvas {
   background-color: #3e8e41;
 }
 
-.modal-content {
-    background-color: #2d3748;
-    color: #e2e8f0;
-}
-.modal-header, .modal-footer {
-    border-color: #4a5568;
-}
-
 /* Touch Controls */
 .touch-controls {
-  display: none; /* Escondido por padrão em telas grandes */
+  display: none; /* Escondido por padrão */
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  bottom: 10px;
+  right: 10px;
   flex-direction: column;
   gap: 10px;
+  z-index: 10; /* Garante que fiquem por cima */
 }
 
 .control-btn {
@@ -75,11 +69,20 @@ canvas {
   width: 60px;
   height: 60px;
   opacity: 0.7;
+  border-radius: 50%;
 }
 
-/* Mostra os controles de toque apenas em telas de celular */
+/* Estilos do Modal (permanece o mesmo) */
+.modal-content { background-color: #2d3748; color: #e2e8f0; }
+.modal-header, .modal-footer { border-color: #4a5568; }
+
+
+/* Media Query para telas pequenas */
 @media (max-width: 768px) {
+  .button-container {
+    display: none; /* Esconde os botões Start/Pause/Restart */
+  }
   .touch-controls {
-    display: flex;
+    display: flex; /* Mostra os controles de toque */
   }
 }

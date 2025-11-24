@@ -1,23 +1,23 @@
 body {
   overflow: hidden;
   background: #d7d7d7;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  margin: 0;
 }
 
 #game-container {
+    width: 100vw;
+    height: 100vh;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
 }
 
 #tetris {
-  width: 360px;
   border: 1px solid black;
   padding: 20px;
   display: flex;
+  background: #f0f0f0;
 }
 
 #canvas {
@@ -28,71 +28,101 @@ body {
   color: #fff;
 }
 
-#canvas h1 {
-  margin: 0;
-  padding: 0;
-  text-align: center;
-  font-size: 30px;
-  padding-top: 200px;
+#info {
+  background-color: #000;
+  color: #fff;
+  width: 110px;
+  height: 420px;
+  padding: 10px;
+  margin-left: 20px; /* Espaço entre o jogo e o placar */
 }
 
-.piece { border: 1px solid white; position: absolute; }
-#start { animation: blink 0.7s steps(2, start) infinite; background: #e1ff5f; border-radius: 2px; color: #202020; cursor: pointer; font-size: 28px; }
-@keyframes blink { to { outline: #e1ff5f solid 1px; } }
-.red { color: #f00000; }
+#next_shape { 
+    position: relative; 
+    background-color: #000; 
+    border: 1px solid white; 
+    width: 100px; /* Ajustado */
+    height: 100px; /* Ajustado */
+    margin: 0 auto 10px auto;
+}
 
-.square { position: absolute; width: 19px; height: 19px; border: 1px solid white; }
-.type0 { background-color: #a000f0; }
-.type1 { background-color: #00f0f0; }
-.type2 { background-color: #f0a000; }
-.type3 { background-color: #0000f0; }
-.type4 { background-color: #00f000; }
-.type5 { background-color: #f00000; }
-.type6 { background-color: #f0f000; }
+.square, .piece { position: absolute; }
+.square { width: 19px; height: 19px; border: 1px solid white; }
 
-#next_shape { position: relative; background-color: #000; border: 1px solid white; width: 110px; height: 110px; }
-#info { background-color: #000; color: #fff; width: 110px; height: 420px; padding: 10px; margin-left: 20px; }
+/* Cores das peças (sem alteração) */
+.type0{background-color:#a000f0;}.type1{background-color:#00f0f0;}.type2{background-color:#f0a000;}.type3{background-color:#0000f0;}.type4{background-color:#00f000;}.type5{background-color:#f00000;}.type6{background-color:#f0f000;}
 
-/* Touch Controls */
-.touch-controls {
-    display: none; /* Escondido em telas grandes */
+#start { 
+    animation: blink 0.7s steps(2, start) infinite; 
+    background: #e1ff5f; 
+    border-radius: 2px; 
+    color: #202020; 
+    cursor: pointer; 
+    font-size: 24px; /* Ajustado */
     width: 100%;
-    justify-content: space-between;
+    margin-top: 10px;
+}
+@keyframes blink { to { outline: #e1ff5f solid 1px; } }
+
+.red { color: #f00000; font-size: 12px; }
+
+/* --- Touch Controls --- */
+.touch-controls {
+    display: none; /* Escondido por padrão */
+    width: 100%;
+    justify-content: space-around; /* Distribuição uniforme */
     align-items: center;
-    padding: 20px;
-    margin-top: 20px;
+    padding: 10px 0;
+    margin-top: 15px;
 }
 
-.d-pad {
-    display: grid;
-    grid-template-columns: repeat(3, 60px);
-    grid-template-rows: repeat(2, 60px);
-    gap: 5px;
+.d-pad, .action-btn {
+    display: flex;
+    gap: 15px;
 }
 
 .d-pad button, .action-btn button {
-    font-size: 24px;
+    font-size: 22px;
     border: 2px solid #555;
-    background-color: #f0f0f0;
-    border-radius: 10px;
-    opacity: 0.8;
+    background-color: #e0e0e0;
+    border-radius: 50%; /* Botões redondos */
+    opacity: 0.9;
     user-select: none;
+    width: 65px;
+    height: 65px;
 }
-
-#touch-left { grid-column: 1; grid-row: 2; }
-#touch-right { grid-column: 3; grid-row: 2; }
-#touch-down { grid-column: 2; grid-row: 2; }
 
 .action-btn button {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
+    font-size: 28px;
 }
 
+/* Media Query para Celular */
 @media (max-width: 768px) {
-    body { display: block; }
-    #tetris { width: 100%; padding: 10px; }
-    #canvas { flex-grow: 1; height: 80vh; }
-    #info { height: 80vh; }
-    .touch-controls { display: flex; }
+    body {
+        background: #333; /* Fundo escuro para imersão */
+    }
+    #game-container {
+        justify-content: flex-start; /* Alinha ao topo */
+        padding-top: 10px;
+    }
+    #tetris {
+        width: 95vw; /* Ocupa a largura da tela */
+        padding: 10px;
+        height: auto;
+        justify-content: center;
+    }
+    #canvas {
+        width: 60vw; /* Área de jogo com 60% da largura */
+        height: calc(60vw * 2.2); /* Mantém proporção de altura */
+    }
+    #info {
+        width: 30vw; /* Placar com 30% da largura */
+        height: calc(60vw * 2.2);
+        margin-left: 10px;
+    }
+    .touch-controls {
+        display: flex; /* Mostra os controles */
+    }
 }
