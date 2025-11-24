@@ -66,6 +66,13 @@ export default function MiningPage({
     return `1 BDG em ~${h}h ${m}min`;
   };
 
+  const getImagePath = (slot) => {
+    if (!slot.filled) return '';
+    if (slot.type === 'free') return '/cpu gratis.png';
+    if (slot.type === 'special') return `/especial_${slot.tier.toLowerCase()}.jpg`;
+    return `/tier${slot.tier}.png`;
+  };
+
   const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', width: '100%', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' };
 
   return (
@@ -99,7 +106,7 @@ export default function MiningPage({
               <h4 style={{ margin: '0 0 10px 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive', fontSize: '0.9em' }}>{slot.name}</h4>
               {slot.filled ? (
                 <>
-                  <div style={{width: '80px', height: '80px', margin: '10px auto', background: '#1a202c', border: '1px solid #4a5568', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a1a1aa'}}>CPU</div>
+                  <img src={getImagePath(slot)} alt={`CPU ${slot.tier}`} style={{width: '80px', height: '80px', margin: '10px auto', objectFit: 'contain'}} />
                   <p style={{ margin: '15px 0', color: '#e4e4e7', fontSize: '1em' }}>CPU Grátis</p>
                   <p style={{ margin: '15px 0', color: '#a1a1aa', fontSize: '0.9em' }}>{calculateTimeForOneBDG(slot)}</p>
                   <p style={{ margin: '15px 0', color: '#a1a1aa' }}>|</p>
