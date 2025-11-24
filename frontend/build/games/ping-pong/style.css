@@ -1,38 +1,63 @@
-.container {
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Previne scroll */
+  background-color: #1a1a1a;
+  font-family: sans-serif;
+}
+
+.game-wrapper {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-.button {
+canvas {
+  background: #000;
+  /* Canvas responsivo que mantém a proporção */
+  width: 95%;
+  max-width: 600px; /* Largura máxima do jogo */
+  aspect-ratio: 600 / 400; /* Proporção original (largura / altura) */
+  border: 1px solid #4caf50;
+}
+
+.button-container {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap; /* Quebra a linha em telas pequenas */
   margin-top: 15px;
+  width: 100%;
+  padding: 0 10px;
 }
 
 .btn {
   background-color: #4caf50;
   border: none;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 15px;
   text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 10px;
+  font-size: 14px;
+  margin: 5px;
   cursor: pointer;
   border-radius: 5px;
+  flex-grow: 1; /* Faz os botões ocuparem o espaço */
+  max-width: 150px; /* Largura máxima por botão */
 }
 
 .btn:hover {
   background-color: #3e8e41;
 }
 
-.control {
-  text-align: center;
+/* Estilos do Modal (janela de mensagem) */
+.modal-content {
+    background-color: #2d3748;
+    color: #e2e8f0;
 }
-
-canvas {
-  background: #000;
+.modal-header, .modal-footer {
+    border-color: #4a5568;
 }
