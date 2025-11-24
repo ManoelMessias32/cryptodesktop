@@ -1,33 +1,15 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
+    { "src": "api/index.py", "use": "@vercel/python" },
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": {
-        "buildCommand": "npm install --prefix ./frontend && npx --prefix ./frontend vite build --outDir build",
-        "outputDirectory": "frontend/build"
-      }
+      "config": { "distDir": "frontend/build" }
     }
   ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "api/index.py" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "script-src 'self' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; font-src 'self' https: data:;"
-        }
-      ]
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/(.*)", "destination": "/frontend/build/index.html" }
   ]
 }
