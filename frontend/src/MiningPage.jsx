@@ -13,6 +13,20 @@ export default function MiningPage({
 }) {
 
   // ... (todas as funções handle*)
+  
+  const handleBuyEnergyForAll = () => {
+    if (coinBdg >= ENERGY_REFILL_ALL_COST) {
+      setCoinBdg(coinBdg - ENERGY_REFILL_ALL_COST);
+      const updatedSlots = slots.map(slot => ({
+        ...slot,
+        energy: slot.maxEnergy 
+      }));
+      setSlots(updatedSlots);
+      setStatus("Energia de todos os slots foi reabastecida!");
+    } else {
+      setStatus("Você não tem moedas suficientes para reabastecer a energia de todos os slots.");
+    }
+  };
 
   const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', width: '100%', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' };
 
