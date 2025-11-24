@@ -12,7 +12,7 @@ const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', 
 const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000', 'A': '10000000000', 'B': '20000000000', 'C': '30000000000' };
-const STORAGE_VERSION = 'v21'; // Versão incrementada para cálculo offline
+const STORAGE_VERSION = 'v22'; // Versão incrementada para cálculo offline
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -30,75 +30,104 @@ export default function App() {
   const userFriendlyAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
 
+  // Função para salvar os dados
+  const saveData = useCallback(() => {
+    if (!isInitialized) return;
+    const dataToSave = {
+        slots,
+        coinBdg,
+        username,
+        paidBoostTime,
+        energyEarnedInSession,
+        dailySessionsUsed,
+        lastSessionReset,
+        lastSaveTimestamp: Date.now()
+    };
+    localStorage.setItem(`gameState_${STORAGE_VERSION}`, JSON.stringify(dataToSave));
+  }, [isInitialized, slots, coinBdg, username, paidBoostTime, energyEarnedInSession, dailySessionsUsed, lastSessionReset]);
+
+  // Efeito para carregar e calcular ganhos offline
   useEffect(() => {
-    const now = Date.now();
-    const lastSave = Number(localStorage.getItem(`lastSaveTimestamp_${STORAGE_VERSION}`)) || now;
-    const offlineSeconds = Math.floor((now - lastSave) / 1000);
-
-    // Carregar estados do localStorage
-    let savedCoinBdg = Number(localStorage.getItem(`cryptoDesktopMined_${STORAGE_VERSION}`)) || 0;
-    const savedSlots = JSON.parse(localStorage.getItem(`cryptoDesktopSlots_${STORAGE_VERSION}`)) || initialSlots;
-    let savedPaidBoostTime = Number(localStorage.getItem(`paidBoostTime_${STORAGE_VERSION}`)) || 0;
-
-    if (offlineSeconds > 5) { // Só calcular se ficou offline por mais de 5 segundos
-      let accumulatedGain = 0;
-      const updatedOfflineSlots = savedSlots.map(slot => {
-        if (slot.filled && slot.repairCooldown > 0) {
-          const secondsToMine = Math.min(slot.repairCooldown, offlineSeconds);
-          const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
-          const gainRatePerSecond = (economyData[econKey]?.gainPerHour || 0) / 3600;
-
-          const boostWasActiveFor = Math.min(secondsToMine, savedPaidBoostTime);
-          let gainFromThisSlot = 0;
-
-          if (boostWasActiveFor > 0) {
-            gainFromThisSlot += (gainRatePerSecond * 1.5) * boostWasActiveFor;
-          }
-          const nonBoostedTime = secondsToMine - boostWasActiveFor;
-          if (nonBoostedTime > 0) {
-            gainFromThisSlot += gainRatePerSecond * nonBoostedTime;
-          }
-
-          accumulatedGain += gainFromThisSlot;
-          return { ...slot, repairCooldown: Math.max(0, slot.repairCooldown - offlineSeconds) };
-        }
-        return slot;
-      });
-
-      setSlots(updatedOfflineSlots);
-      setCoinBdg(savedCoinBdg + accumulatedGain);
-      setPaidBoostTime(Math.max(0, savedPaidBoostTime - offlineSeconds));
-      setStatus(`Você ganhou ${accumulatedGain.toFixed(4)} BDG enquanto esteve fora!`);
+    const savedStateJSON = localStorage.getItem(`gameState_${STORAGE_VERSION}`);
+    let savedState = {};
+    if (savedStateJSON) {
+        savedState = JSON.parse(savedStateJSON);
     } else {
-      setSlots(savedSlots);
-      setCoinBdg(savedCoinBdg);
-      setPaidBoostTime(savedPaidBoostTime);
+        // Se não houver estado salvo, configure o estado inicial
+        setSlots(initialSlots);
+        setCoinBdg(0);
+        setPaidBoostTime(0);
+        setUsername('');
+        setEnergyEarnedInSession(0);
+        setDailySessionsUsed(0);
+        setLastSessionReset(new Date().toISOString().split('T')[0]);
+        setIsInitialized(true);
+        return;
     }
 
-    setUsername(localStorage.getItem('cryptoDesktopUsername') || '');
-    setEnergyEarnedInSession(Number(localStorage.getItem(`energyEarnedInSession_${STORAGE_VERSION}`)) || 0);
-    setDailySessionsUsed(Number(localStorage.getItem(`dailySessionsUsed_${STORAGE_VERSION}`)) || 0);
-    setLastSessionReset(localStorage.getItem(`lastSessionReset_${STORAGE_VERSION}`) || new Date().toISOString().split('T')[0]);
+    const now = Date.now();
+    const lastSave = savedState.lastSaveTimestamp || now;
+    const offlineSeconds = Math.floor((now - lastSave) / 1000);
+
+    let { coinBdg: savedCoinBdg, slots: savedSlots, paidBoostTime: savedPaidBoostTime } = savedState;
+
+    if (offlineSeconds > 5) { // Só calcular se ficou offline por mais de 5 segundos
+        let accumulatedGain = 0;
+        const updatedOfflineSlots = savedSlots.map(slot => {
+            if (slot.filled && slot.repairCooldown > 0) {
+                const secondsToMine = Math.min(slot.repairCooldown, offlineSeconds);
+                const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
+                const gainRatePerSecond = (economyData[econKey]?.gainPerHour || 0) / 3600;
+                
+                let gainFromThisSlot = 0;
+                if(savedPaidBoostTime > 0) {
+                    const boostDuration = Math.min(secondsToMine, savedPaidBoostTime);
+                    gainFromThisSlot += (gainRatePerSecond * 1.5) * boostDuration;
+                    const remainingMineTime = secondsToMine - boostDuration;
+                    if (remainingMineTime > 0) {
+                        gainFromThisSlot += gainRatePerSecond * remainingMineTime;
+                    }
+                } else {
+                    gainFromThisSlot += gainRatePerSecond * secondsToMine;
+                }
+
+                accumulatedGain += gainFromThisSlot;
+                return { ...slot, repairCooldown: Math.max(0, slot.repairCooldown - offlineSeconds) };
+            }
+            return slot;
+        });
+
+        setSlots(updatedOfflineSlots);
+        setCoinBdg(savedCoinBdg + accumulatedGain);
+        setPaidBoostTime(Math.max(0, savedPaidBoostTime - offlineSeconds));
+        if(accumulatedGain > 0.0001) {
+            setStatus(`Você ganhou ${accumulatedGain.toFixed(4)} BDG enquanto esteve fora!`);
+        }
+    } else {
+        setSlots(savedSlots);
+        setCoinBdg(savedCoinBdg);
+        setPaidBoostTime(savedPaidBoostTime);
+    }
+
+    setUsername(savedState.username || '');
+    setEnergyEarnedInSession(savedState.energyEarnedInSession || 0);
+    setDailySessionsUsed(savedState.dailySessionsUsed || 0);
+    setLastSessionReset(savedState.lastSessionReset || new Date().toISOString().split('T')[0]);
 
     setIsInitialized(true);
   }, []);
 
-  const saveData = useCallback(() => {
-    if (!isInitialized) return;
-    localStorage.setItem(`cryptoDesktopSlots_${STORAGE_VERSION}`, JSON.stringify(slots));
-    localStorage.setItem(`cryptoDesktopMined_${STORAGE_VERSION}`, coinBdg);
-    localStorage.setItem('cryptoDesktopUsername', username);
-    localStorage.setItem(`paidBoostTime_${STORAGE_VERSION}`, paidBoostTime);
-    localStorage.setItem(`energyEarnedInSession_${STORAGE_VERSION}`, energyEarnedInSession);
-    localStorage.setItem(`dailySessionsUsed_${STORAGE_VERSION}`, dailySessionsUsed);
-    localStorage.setItem(`lastSessionReset_${STORAGE_VERSION}`, lastSessionReset);
-    localStorage.setItem(`lastSaveTimestamp_${STORAGE_VERSION}`, Date.now());
-  }, [isInitialized, slots, coinBdg, username, paidBoostTime, energyEarnedInSession, dailySessionsUsed, lastSessionReset]);
-
+  // Efeitos para salvar os dados
   useEffect(() => {
-    const saveInterval = setInterval(saveData, 5000); // Salvar a cada 5 segundos
-    return () => clearInterval(saveInterval);
+    const saveInterval = setInterval(saveData, 5000);
+    window.addEventListener('beforeunload', saveData);
+
+    return () => {
+      clearInterval(saveInterval);
+      window.removeEventListener('beforeunload', saveData);
+    };
   }, [saveData]);
+
 
   const gameLoop = useCallback(() => {
     if (!isInitialized) return;
@@ -126,9 +155,7 @@ export default function App() {
   }, [gameLoop]);
 
   // ... (O resto das funções como handleGameWin, addNewSlot, etc. permanecem iguais)
-
   const handleUsernameSubmit = () => { if (tempUsername.trim()) setUsername(tempUsername.trim()); };
-
   const handleGameWin = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     if (lastSessionReset !== today) {
@@ -164,7 +191,6 @@ export default function App() {
         setStatus('✨ Sessão de recarga completa! Use as próximas amanhã.');
     }
   }, [dailySessionsUsed, energyEarnedInSession, lastSessionReset]);
-
   const addNewSlot = () => {
     if (slots.length >= 6) {
         setStatus('❌ Limite de 6 gabinetes atingido!');
@@ -178,7 +204,6 @@ export default function App() {
         setStatus(`❌ BDG insuficiente! Você precisa de ${NEW_SLOT_COST} BDG.`);
     }
   };
-
   const handlePurchase = async (tierToBuy) => {
     if (!userFriendlyAddress) {
         setStatus('❌ Por favor, conecte sua carteira para comprar.');
@@ -208,7 +233,6 @@ export default function App() {
         setStatus('❌ Transação cancelada ou falhou.');
     }
   };
-
   const navButtonStyle = (page) => ({ background: route === page ? '#5a67d8' : '#4a5568', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '10px 0', margin: '0 4px', fontSize: '1.5em', maxWidth: '60px' });
 
   const renderPage = () => {
@@ -249,7 +273,7 @@ export default function App() {
 
   return (
     <div style={{ background: '#18181b', color: '#f4f4f5', minHeight: '100vh', paddingBottom: '100px' }}>
-      {!username ? loginScreen : mainApp}
+      {!username || !isInitialized ? loginScreen : mainApp}
     </div>
   );
 }
