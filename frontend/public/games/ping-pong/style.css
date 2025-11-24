@@ -3,7 +3,7 @@ html, body {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden; /* Previne scroll */
+  overflow: hidden;
   background-color: #1a1a1a;
   font-family: sans-serif;
 }
@@ -19,17 +19,16 @@ html, body {
 
 canvas {
   background: #000;
-  /* Canvas responsivo que mantém a proporção */
   width: 95%;
-  max-width: 600px; /* Largura máxima do jogo */
-  aspect-ratio: 600 / 400; /* Proporção original (largura / altura) */
+  max-width: 600px;
+  aspect-ratio: 600 / 400;
   border: 1px solid #4caf50;
 }
 
 .button-container {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap; /* Quebra a linha em telas pequenas */
+  flex-wrap: wrap;
   margin-top: 15px;
   width: 100%;
   padding: 0 10px;
@@ -45,19 +44,42 @@ canvas {
   margin: 5px;
   cursor: pointer;
   border-radius: 5px;
-  flex-grow: 1; /* Faz os botões ocuparem o espaço */
-  max-width: 150px; /* Largura máxima por botão */
+  flex-grow: 1;
+  max-width: 150px;
 }
 
 .btn:hover {
   background-color: #3e8e41;
 }
 
-/* Estilos do Modal (janela de mensagem) */
 .modal-content {
     background-color: #2d3748;
     color: #e2e8f0;
 }
 .modal-header, .modal-footer {
     border-color: #4a5568;
+}
+
+/* Touch Controls */
+.touch-controls {
+  display: none; /* Escondido por padrão em telas grandes */
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.control-btn {
+  font-size: 24px;
+  width: 60px;
+  height: 60px;
+  opacity: 0.7;
+}
+
+/* Mostra os controles de toque apenas em telas de celular */
+@media (max-width: 768px) {
+  .touch-controls {
+    display: flex;
+  }
 }

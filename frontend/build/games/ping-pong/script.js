@@ -2,9 +2,13 @@
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
+// Buttons
 var startBtn = document.getElementById("start-btn");
 var pauseBtn = document.getElementById("pause-btn");
 var restartBtn = document.getElementById("restart-btn");
+var moveUpBtn = document.getElementById("move-up-btn");
+var moveDownBtn = document.getElementById("move-down-btn");
+
 var animationId;
 var gameRunning = false;
 
@@ -27,70 +31,67 @@ const paddleSpeed = 10;
 let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
 let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
 
-// Key state
-let wPressed = false;
-let sPressed = false;
+// Key and Touch state
+let moveUp = false;
+let moveDown = false;
 
 // Event Listeners
 startBtn.addEventListener("click", () => { if (!gameRunning) { gameRunning = true; loop(); } });
 pauseBtn.addEventListener("click", () => { gameRunning = false; cancelAnimationFrame(animationId); });
 restartBtn.addEventListener("click", () => document.location.reload());
+
+// Keyboard controls
 document.addEventListener("keydown", e => {
-    if (e.key === "w" || e.key === "W") wPressed = true;
-    if (e.key === "s" || e.key === "S") sPressed = true;
+    if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") moveUp = true;
+    if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") moveDown = true;
 });
 document.addEventListener("keyup", e => {
-    if (e.key === "w" || e.key === "W") wPressed = false;
-    if (e.key === "s" || e.key === "S") sPressed = false;
+    if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") moveUp = false;
+    if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") moveDown = false;
 });
+
+// Touch controls
+moveUpBtn.addEventListener("touchstart", e => { e.preventDefault(); moveUp = true; });
+moveUpBtn.addEventListener("touchend", e => { e.preventDefault(); moveUp = false; });
+moveDownBtn.addEventListener("touchstart", e => { e.preventDefault(); moveDown = true; });
+moveDownBtn.addEventListener("touchend", e => { e.preventDefault(); moveDown = false; });
+
 window.addEventListener("load", draw);
 
 function update() {
     // Move left paddle (player)
-    if (wPressed && leftPaddleY > 0) {
+    if (moveUp && leftPaddleY > 0) {
         leftPaddleY -= paddleSpeed;
     }
-    if (sPressed && leftPaddleY + paddleHeight < canvas.height) {
+    if (moveDown && leftPaddleY + paddleHeight < canvas.height) {
         leftPaddleY += paddleSpeed;
     }
 
     // AI for right paddle
     const rightPaddleCenter = rightPaddleY + paddleHeight / 2;
     if (rightPaddleCenter < ballY - 10 && rightPaddleY + paddleHeight < canvas.height) {
-        rightPaddleY += paddleSpeed * 0.8; // AI is slightly slower
+        rightPaddleY += paddleSpeed * 0.8;
     } else if (rightPaddleCenter > ballY + 10 && rightPaddleY > 0) {
         rightPaddleY -= paddleSpeed * 0.8;
     }
 
-    // Move ball
+    // (Resto da função update, draw, loop, etc. permanece o mesmo)
     ballX += ballSpeedX;
     ballY += ballSpeedY;
 
-    // Ball collision with top/bottom walls
     if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
         ballSpeedY = -ballSpeedY;
     }
 
-    // Ball collision with paddles
-    if (
-        ballX - ballRadius < paddleWidth &&
-        ballY > leftPaddleY &&
-        ballY < leftPaddleY + paddleHeight
-    ) {
+    if (ballX - ballRadius < paddleWidth && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
         ballSpeedX = -ballSpeedX;
-        // Increase speed slightly after hit
         ballSpeedX *= 1.05;
         ballSpeedY *= 1.05;
     }
-    if (
-        ballX + ballRadius > canvas.width - paddleWidth &&
-        ballY > rightPaddleY &&
-        ballY < rightPaddleY + paddleHeight
-    ) {
+    if (ballX + ballRadius > canvas.width - paddleWidth && ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
         ballSpeedX = -ballSpeedX;
     }
 
-    // Score points
     if (ballX - ballRadius < 0) {
         rightPlayerScore++;
         resetBall();
@@ -99,7 +100,6 @@ function update() {
         resetBall();
     }
 
-    // Check for winner
     if (leftPlayerScore === maxScore) {
         playerWin("You");
         window.parent.postMessage('gameWon', '*');
@@ -118,7 +118,6 @@ function playerWin(player) {
 function resetBall() {
     ballX = canvas.width / 2;
     ballY = canvas.height / 2;
-    // Serve to the player who won the point
     ballSpeedX = (ballSpeedX > 0) ? -5 : 5;
     ballSpeedY = Math.random() > 0.5 ? 5 : -5;
 }
@@ -126,8 +125,6 @@ function resetBall() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#FFF";
-
-    // Draw center line
     ctx.beginPath();
     ctx.setLineDash([5, 15]);
     ctx.moveTo(canvas.width / 2, 0);
@@ -136,18 +133,12 @@ function draw() {
     ctx.stroke();
     ctx.closePath();
     ctx.setLineDash([]);
-
-    // Draw ball
     ctx.beginPath();
     ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
     ctx.fill();
     ctx.closePath();
-
-    // Draw paddles
     ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
     ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
-
-    // Draw scores
     ctx.font = "20px Arial";
     ctx.fillText(leftPlayerScore.toString(), canvas.width / 2 - 50, 30);
     ctx.fillText(rightPlayerScore.toString(), canvas.width / 2 + 30, 30);

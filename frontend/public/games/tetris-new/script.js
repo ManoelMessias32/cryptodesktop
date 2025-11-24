@@ -1,52 +1,56 @@
 (function () {
-  var isStart = false;
-  var tetris = {
-    // ... (propriedades existentes)
-    SCORE_TO_WIN: 300, // <<<--- META DE PONTUAÇÃO
-    isGameOver: false, // Flag para controlar o fim do jogo
+    var isStart = false;
+    var tetris = {
+        // ... (propriedades existentes)
+        SCORE_TO_WIN: 300,
+        isGameOver: false,
+        shape: null, // Adicionado para referência
+        canvas: document.getElementById('canvas'),
+        // ... (resto das propriedades)
 
-    // ... (funções existentes)
+        init: function () {
+            this.isGameOver = false;
+            // ... (resto do init)
+            this.play();
+        },
 
-    init: function () {
-      // ... (código de inicialização existente)
-      this.isGameOver = false; // Reseta o estado do jogo
-      this.play();
-    },
+        // ... (funções existentes)
+        incScore: function(amount) { /* ... */ },
+        checkWinCondition: function() { /* ... */ },
+        gameOver: function() { /* ... */ },
+        play: function() { /* ... */ },
 
-    // ... (funções existentes)
+        key: function (e) {
+            if (!isStart || this.isGameOver) return;
+            var code = this.keyCode(e);
+            switch (code) {
+                case 37: this.shape.goLeft(); break;
+                case 39: this.shape.goRight(); break;
+                case 40: this.shape.goDown(); break;
+                case 38: this.shape.rotate(); break;
+                case 32: this.shape.goBottom(); break;
+                case 27: this.pause(); break;
+            }
+        },
+        // ... (resto das funções)
+    };
 
-    incScore: function (amount) {
-      if (this.isGameOver) return;
-      this.score = this.score + amount;
-      this.setInfo("score");
-      this.checkWinCondition(); // <<--- Verifica se venceu após pontuar
-    },
-
-    checkWinCondition: function() {
-        if (this.score >= this.SCORE_TO_WIN && !this.isGameOver) {
-            this.isGameOver = true;
-            this.clearTimers();
-            this.canvas.innerHTML = "<h1>VOCÊ VENCEU!</h1>";
-            window.parent.postMessage('gameWon', '*'); // Envia a mensagem de vitória
+    document.getElementById('start').onclick = function () {
+        if (isStart) {
+            // (lógica de pause/resume)
+        } else {
+            tetris.init();
+            isStart = true;
+            this.innerHTML = "Pause";
         }
-    },
+    };
 
-    gameOver: function () {
-      if(this.isGameOver) return; // Não faz nada se já venceu
-      this.isGameOver = true;
-      this.clearTimers();
-      isStart = false;
-      this.canvas.innerHTML = "<h1>GAME OVER</h1>";
-    },
+    // Adicionar listeners para os controles de toque
+    document.getElementById('touch-left').addEventListener('click', () => tetris.key({ keyCode: 37 }));
+    document.getElementById('touch-right').addEventListener('click', () => tetris.key({ keyCode: 39 }));
+    document.getElementById('touch-down').addEventListener('click', () => tetris.key({ keyCode: 40 }));
+    document.getElementById('touch-rotate').addEventListener('click', () => tetris.key({ keyCode: 38 }));
 
-    play: function () {
-      // ... (código do loop de jogo existente)
-    },
-
-    // ... (resto das funções existentes)
-  };
-
-  // ... (código do listener do botão existente)
 })();
 
 // ... (código dos prototypes existentes)

@@ -1,12 +1,25 @@
 body {
   overflow: hidden;
   background: #d7d7d7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 #tetris {
   width: 360px;
   border: 1px solid black;
   padding: 20px;
+  display: flex;
 }
+
 #canvas {
   width: 200px;
   height: 440px;
@@ -14,6 +27,7 @@ body {
   position: relative;
   color: #fff;
 }
+
 #canvas h1 {
   margin: 0;
   padding: 0;
@@ -21,69 +35,64 @@ body {
   font-size: 30px;
   padding-top: 200px;
 }
-.piece {
-  border: 1px solid white;
-  position: absolute;
+
+.piece { border: 1px solid white; position: absolute; }
+#start { animation: blink 0.7s steps(2, start) infinite; background: #e1ff5f; border-radius: 2px; color: #202020; cursor: pointer; font-size: 28px; }
+@keyframes blink { to { outline: #e1ff5f solid 1px; } }
+.red { color: #f00000; }
+
+.square { position: absolute; width: 19px; height: 19px; border: 1px solid white; }
+.type0 { background-color: #a000f0; }
+.type1 { background-color: #00f0f0; }
+.type2 { background-color: #f0a000; }
+.type3 { background-color: #0000f0; }
+.type4 { background-color: #00f000; }
+.type5 { background-color: #f00000; }
+.type6 { background-color: #f0f000; }
+
+#next_shape { position: relative; background-color: #000; border: 1px solid white; width: 110px; height: 110px; }
+#info { background-color: #000; color: #fff; width: 110px; height: 420px; padding: 10px; margin-left: 20px; }
+
+/* Touch Controls */
+.touch-controls {
+    display: none; /* Escondido em telas grandes */
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    margin-top: 20px;
 }
 
-#start {
-  animation: blink 0.7s steps(2, start) infinite;
-  background: #e1ff5f;
-  border-radius: 2px;
-  color: #202020;
-  cursor: pointer;
-  font-size: 28px;
+.d-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 60px);
+    grid-template-rows: repeat(2, 60px);
+    gap: 5px;
 }
 
-@keyframes blink {
-  to {
-    outline: #e1ff5f solid 1px;
-  }
+.d-pad button, .action-btn button {
+    font-size: 24px;
+    border: 2px solid #555;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    opacity: 0.8;
+    user-select: none;
 }
 
-.red {
-  color: #f00000;
+#touch-left { grid-column: 1; grid-row: 2; }
+#touch-right { grid-column: 3; grid-row: 2; }
+#touch-down { grid-column: 2; grid-row: 2; }
+
+.action-btn button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
 }
 
-.square {
-  position: absolute;
-  width: 19px;
-  height: 19px;
-  border: 1px solid white;
-}
-.type0 {
-  background-color: #a000f0;
-}
-.type1 {
-  background-color: #00f0f0;
-}
-.type2 {
-  background-color: #f0a000;
-}
-.type3 {
-  background-color: #0000f0;
-}
-.type4 {
-  background-color: #00f000;
-}
-.type5 {
-  background-color: #f00000;
-}
-.type6 {
-  background-color: #f0f000;
-}
-#next_shape {
-  position: relative;
-  background-color: #000;
-  border: 1px solid white;
-  width: 110px;
-  height: 110px;
-}
-#info {
-  background-color: #000;
-  color: #fff;
-  float: right;
-  width: 110px;
-  height: 420px;
-  padding: 10px;
+@media (max-width: 768px) {
+    body { display: block; }
+    #tetris { width: 100%; padding: 10px; }
+    #canvas { flex-grow: 1; height: 80vh; }
+    #info { height: 80vh; }
+    .touch-controls { display: flex; }
 }
