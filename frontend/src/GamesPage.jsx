@@ -1,23 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
-// Estilos para o novo layout
 const styles = {
-  container: {
-    textAlign: 'center',
-    padding: '20px',
-  },
-  title: {
-    marginBottom: '30px',
-    color: '#e4e4e7',
-    fontFamily: '"Press Start 2P", cursive'
-  },
-  gameMenu: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: '15px',
-    marginBottom: '30px',
-  },
+  container: { textAlign: 'center', padding: '20px' },
+  title: { marginBottom: '30px', color: '#e4e4e7', fontFamily: '"Press Start 2P", cursive' },
+  gameMenu: { display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '15px', marginBottom: '30px' },
   gameCard: {
     padding: '20px',
     fontSize: '1.2em',
@@ -33,21 +19,8 @@ const styles = {
     flex: '1 1 150px',
     maxWidth: '200px',
   },
-  fullScreenGameContainer: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    height: '100vh',
-    zIndex: 100,
-    background: '#000',
-  },
-  gameIframe: {
-    width: '100%',
-    height: '100%',
-    border: 'none',
-  },
-  // Botão de voltar para jogos de toque
+  fullScreenGameContainer: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 100, background: '#000' },
+  gameIframe: { width: '100%', height: '100%', border: 'none' },
   touchGoBackButton: {
       position: 'fixed',
       top: '15px',
@@ -68,16 +41,12 @@ const styles = {
   },
 };
 
-// Objeto de jogos com o controlType corrigido para Ping Pong
 const GAMES = {
   candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html', controlType: 'touch' },
   towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html', controlType: 'touch' },
-  pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html', controlType: 'd-pad' }, // <<<--- CORRIGIDO
-  tetris: { title: 'Tetris', src: '/games/tetris-new/index.html', controlType: 'd-pad' },
   snake: { title: 'Snake', src: '/games/snake-new/index.html', controlType: 'd-pad' },
 };
 
-// Controles do Jogo (para d-pad)
 const GameControls = ({ onControlPress, onGoBack }) => {
   const dPadButtonStyle = { width: '50px', height: '50px', background: '#facc15', border: '2px solid #eab308', borderRadius: '50%', color: 'black', fontSize: '1.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.2)' };
   const actionButtonStyle = { ...dPadButtonStyle, width: '60px', height: '60px' };
@@ -131,7 +100,6 @@ export default function GamesPage({ onGameWin }) {
     }
   }, []);
 
-  // Se nenhum jogo estiver selecionado, mostra o menu
   if (!selectedGame) {
     return (
       <div style={styles.container}>
@@ -151,7 +119,6 @@ export default function GamesPage({ onGameWin }) {
     );
   }
 
-  // Se um jogo estiver selecionado, renderiza a tela de jogo imersiva
   return (
     <div style={styles.fullScreenGameContainer}>
       <iframe 
@@ -160,8 +127,6 @@ export default function GamesPage({ onGameWin }) {
         style={styles.gameIframe} 
         title={selectedGame.title}
       ></iframe>
-
-      {/* Renderização Condicional dos Controles */}
       {selectedGame.controlType === 'd-pad' ? (
         <GameControls onGoBack={() => setSelectedGame(null)} onControlPress={handleControlPress} />
       ) : (
