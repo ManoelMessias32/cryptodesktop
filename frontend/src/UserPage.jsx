@@ -31,7 +31,6 @@ export default function UserPage({ address, coinBdg, username }) {
         </p>
       </div>
 
-      {/* A SEÇÃO DE LINK DE REFERÊNCIA FOI COMPLETAMENTE REMOVIDA */}
 
       {/* Seção de Informações do Token */}
       <div style={styles.container}>
