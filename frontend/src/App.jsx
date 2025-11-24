@@ -12,7 +12,7 @@ const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', 
 const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000', 'A': '10000000000', 'B': '20000000000', 'C': '30000000000' };
-const STORAGE_VERSION = 'v19'; // Versão incrementada para limpar estado antigo
+const STORAGE_VERSION = 'v20'; // Versão incrementada para limpar estado antigo
 
 export default function App() {
   const [route, setRoute] = useState('mine');
