@@ -1,0 +1,1 @@
+Este arquivo força o Git a reconhecer uma nova alteração.

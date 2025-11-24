@@ -1,4 +1,4 @@
-// VERSÃO DE EMERGÊNCIA 1.1 - Forçando a atualização para remover o crash da tela branca
+// VERSÃO DE EMERGÊNCIA 1.2 - Forçando a atualização para remover o crash da tela branca
 import React from 'react';
 
 export default function UserPage({ address, coinBdg, username }) {
