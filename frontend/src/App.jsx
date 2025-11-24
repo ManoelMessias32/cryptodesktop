@@ -12,36 +12,96 @@ const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', 
 const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000', 'A': '10000000000', 'B': '20000000000', 'C': '30000000000' };
-const STORAGE_VERSION = 'v20'; // Versão incrementada para limpar estado antigo
+const STORAGE_VERSION = 'v21'; // Versão incrementada para cálculo offline
 
 export default function App() {
   const [route, setRoute] = useState('mine');
   const [status, setStatus] = useState('Bem-vindo! Conecte sua carteira quando quiser.');
-  const [coinBdg, setCoinBdg] = useState(() => Number(localStorage.getItem(`cryptoDesktopMined_${STORAGE_VERSION}`)) || 0);
-  const [slots, setSlots] = useState(() => {
-    try {
-      const savedSlots = localStorage.getItem(`cryptoDesktopSlots_${STORAGE_VERSION}`);
-      return savedSlots ? JSON.parse(savedSlots) : initialSlots;
-    } catch (e) { return initialSlots; }
-  });
-  const [username, setUsername] = useState(() => localStorage.getItem('cryptoDesktopUsername') || '');
+  const [coinBdg, setCoinBdg] = useState(0);
+  const [slots, setSlots] = useState([]);
+  const [username, setUsername] = useState('');
   const [tempUsername, setTempUsername] = useState('');
-  const [paidBoostTime, setPaidBoostTime] = useState(() => Number(localStorage.getItem(`paidBoostTime_${STORAGE_VERSION}`)) || 0);
-  const [energyEarnedInSession, setEnergyEarnedInSession] = useState(() => Number(localStorage.getItem(`energyEarnedInSession_${STORAGE_VERSION}`)) || 0);
-  const [dailySessionsUsed, setDailySessionsUsed] = useState(() => Number(localStorage.getItem(`dailySessionsUsed_${STORAGE_VERSION}`)) || 0);
-  const [lastSessionReset, setLastSessionReset] = useState(() => localStorage.getItem(`lastSessionReset_${STORAGE_VERSION}`) || new Date().toISOString().split('T')[0]);
+  const [paidBoostTime, setPaidBoostTime] = useState(0);
+  const [energyEarnedInSession, setEnergyEarnedInSession] = useState(0);
+  const [dailySessionsUsed, setDailySessionsUsed] = useState(0);
+  const [lastSessionReset, setLastSessionReset] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const userFriendlyAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
 
-  useEffect(() => { localStorage.setItem(`cryptoDesktopSlots_${STORAGE_VERSION}`, JSON.stringify(slots)); }, [slots]);
-  useEffect(() => { localStorage.setItem(`cryptoDesktopMined_${STORAGE_VERSION}`, coinBdg); }, [coinBdg]);
-  useEffect(() => { localStorage.setItem('cryptoDesktopUsername', username); }, [username]);
-  // ... outros useEffects
+  useEffect(() => {
+    const now = Date.now();
+    const lastSave = Number(localStorage.getItem(`lastSaveTimestamp_${STORAGE_VERSION}`)) || now;
+    const offlineSeconds = Math.floor((now - lastSave) / 1000);
 
-  const handleUsernameSubmit = () => { if (tempUsername.trim()) setUsername(tempUsername.trim()); };
+    // Carregar estados do localStorage
+    let savedCoinBdg = Number(localStorage.getItem(`cryptoDesktopMined_${STORAGE_VERSION}`)) || 0;
+    const savedSlots = JSON.parse(localStorage.getItem(`cryptoDesktopSlots_${STORAGE_VERSION}`)) || initialSlots;
+    let savedPaidBoostTime = Number(localStorage.getItem(`paidBoostTime_${STORAGE_VERSION}`)) || 0;
+
+    if (offlineSeconds > 5) { // Só calcular se ficou offline por mais de 5 segundos
+      let accumulatedGain = 0;
+      const updatedOfflineSlots = savedSlots.map(slot => {
+        if (slot.filled && slot.repairCooldown > 0) {
+          const secondsToMine = Math.min(slot.repairCooldown, offlineSeconds);
+          const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
+          const gainRatePerSecond = (economyData[econKey]?.gainPerHour || 0) / 3600;
+
+          const boostWasActiveFor = Math.min(secondsToMine, savedPaidBoostTime);
+          let gainFromThisSlot = 0;
+
+          if (boostWasActiveFor > 0) {
+            gainFromThisSlot += (gainRatePerSecond * 1.5) * boostWasActiveFor;
+          }
+          const nonBoostedTime = secondsToMine - boostWasActiveFor;
+          if (nonBoostedTime > 0) {
+            gainFromThisSlot += gainRatePerSecond * nonBoostedTime;
+          }
+
+          accumulatedGain += gainFromThisSlot;
+          return { ...slot, repairCooldown: Math.max(0, slot.repairCooldown - offlineSeconds) };
+        }
+        return slot;
+      });
+
+      setSlots(updatedOfflineSlots);
+      setCoinBdg(savedCoinBdg + accumulatedGain);
+      setPaidBoostTime(Math.max(0, savedPaidBoostTime - offlineSeconds));
+      setStatus(`Você ganhou ${accumulatedGain.toFixed(4)} BDG enquanto esteve fora!`);
+    } else {
+      setSlots(savedSlots);
+      setCoinBdg(savedCoinBdg);
+      setPaidBoostTime(savedPaidBoostTime);
+    }
+
+    setUsername(localStorage.getItem('cryptoDesktopUsername') || '');
+    setEnergyEarnedInSession(Number(localStorage.getItem(`energyEarnedInSession_${STORAGE_VERSION}`)) || 0);
+    setDailySessionsUsed(Number(localStorage.getItem(`dailySessionsUsed_${STORAGE_VERSION}`)) || 0);
+    setLastSessionReset(localStorage.getItem(`lastSessionReset_${STORAGE_VERSION}`) || new Date().toISOString().split('T')[0]);
+
+    setIsInitialized(true);
+  }, []);
+
+  const saveData = useCallback(() => {
+    if (!isInitialized) return;
+    localStorage.setItem(`cryptoDesktopSlots_${STORAGE_VERSION}`, JSON.stringify(slots));
+    localStorage.setItem(`cryptoDesktopMined_${STORAGE_VERSION}`, coinBdg);
+    localStorage.setItem('cryptoDesktopUsername', username);
+    localStorage.setItem(`paidBoostTime_${STORAGE_VERSION}`, paidBoostTime);
+    localStorage.setItem(`energyEarnedInSession_${STORAGE_VERSION}`, energyEarnedInSession);
+    localStorage.setItem(`dailySessionsUsed_${STORAGE_VERSION}`, dailySessionsUsed);
+    localStorage.setItem(`lastSessionReset_${STORAGE_VERSION}`, lastSessionReset);
+    localStorage.setItem(`lastSaveTimestamp_${STORAGE_VERSION}`, Date.now());
+  }, [isInitialized, slots, coinBdg, username, paidBoostTime, energyEarnedInSession, dailySessionsUsed, lastSessionReset]);
+
+  useEffect(() => {
+    const saveInterval = setInterval(saveData, 5000); // Salvar a cada 5 segundos
+    return () => clearInterval(saveInterval);
+  }, [saveData]);
 
   const gameLoop = useCallback(() => {
+    if (!isInitialized) return;
     setSlots(currentSlots => {
       let totalGain = 0;
       const updatedSlots = currentSlots.map(slot => {
@@ -58,14 +118,18 @@ export default function App() {
       return updatedSlots;
     });
     if (paidBoostTime > 0) setPaidBoostTime(prev => prev - 1);
-  }, [paidBoostTime]);
+  }, [isInitialized, paidBoostTime]);
 
   useEffect(() => {
     const gameInterval = setInterval(gameLoop, 1000);
     return () => clearInterval(gameInterval);
   }, [gameLoop]);
 
-    const handleGameWin = useCallback(() => {
+  // ... (O resto das funções como handleGameWin, addNewSlot, etc. permanecem iguais)
+
+  const handleUsernameSubmit = () => { if (tempUsername.trim()) setUsername(tempUsername.trim()); };
+
+  const handleGameWin = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     if (lastSessionReset !== today) {
       setDailySessionsUsed(0);
@@ -148,6 +212,7 @@ export default function App() {
   const navButtonStyle = (page) => ({ background: route === page ? '#5a67d8' : '#4a5568', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '10px 0', margin: '0 4px', fontSize: '1.5em', maxWidth: '60px' });
 
   const renderPage = () => {
+    if (!isInitialized) return <div style={{textAlign: 'center', padding: '50px', fontFamily: '"Press Start 2P", cursive'}}>Carregando...</div>;
     switch (route) {
       case 'mine': return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
       case 'shop': return <ShopPage handlePurchase={handlePurchase} />;

@@ -1,79 +1,83 @@
 /* Import Google font */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: 'Open Sans', sans-serif;
 }
+
 body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: #9ead86; /* <<-- COR CORRIGIDA */
+  background: #171B26; /* Fundo escuro para imersão */
+  overflow: hidden; /* Prevenir scroll */
 }
+
 .wrapper {
-  width: 65vmin;
-  height: 70vmin;
+  width: 100vw; /* Largura total */
+  height: 100vh; /* Altura total */
   display: flex;
-  overflow: hidden;
   flex-direction: column;
-  justify-content: center;
-  border-radius: 5px;
+  justify-content: center; /* Centralizar conteúdo principal */
   background: #293447;
-  box-shadow: 0 20px 40px rgba(52, 87, 220, 0.2);
+  /* Resetar estilos antigos */
+  border-radius: 0;
+  box-shadow: none;
 }
+
 .game-details {
   color: #B8C6DC;
   font-weight: 500;
   font-size: 1.2rem;
-  padding: 20px 27px;
+  padding: 15px 25px;
   display: flex;
   justify-content: space-between;
+  flex-shrink: 0; /* Não encolher */
 }
+
 .play-board {
-  height: 100%;
-  width: 100%;
+  /* Área de jogo quadrada e responsiva */
+  width: 95vmin;
+  height: 95vmin;
+  max-width: 800px; /* Limite em telas muito grandes */
+  max-height: 800px;
+  margin: auto; /* Centraliza no espaço disponível */
   display: grid;
   background: #212837;
   grid-template: repeat(30, 1fr) / repeat(30, 1fr);
+  border: 1px solid #B8C6DC;
 }
+
 .play-board .food {
   background: #FF003D;
+  border-radius: 50%;
 }
+
 .play-board .head {
   background: #60CBFF;
+  border-radius: 2px;
 }
 
 .controls {
-  display: none;
-  justify-content: space-between;
-}
-.controls i {
-  padding: 25px 0;
-  text-align: center;
-  font-size: 1.3rem;
-  color: #B8C6DC;
-  width: calc(100% / 4);
-  cursor: pointer;
-  border-right: 1px solid #171B26;
+  display: flex; /* Sempre mostrar os controles */
+  justify-content: space-evenly;
+  padding: 10px 0;
+  flex-shrink: 0; /* Não encolher */
 }
 
-@media screen and (max-width: 800px) {
-  .wrapper {
-    width: 90vmin;
-    height: 115vmin;
-  }
-  .game-details {
-    font-size: 1rem;
-    padding: 15px 27px;
-  }
-  .controls {
-    display: flex;
-  }
-  .controls i {
-    padding: 15px 0;
-    font-size: 1rem;
-  }
+.controls i {
+  padding: 15px 25px;
+  text-align: center;
+  font-size: 1.5rem; /* Ícones maiores */
+  color: #B8C6DC;
+  cursor: pointer;
+  border-radius: 8px;
+  width: calc(100% / 4 - 10px);
 }
+
+.controls i:hover {
+    background: #4a5568;
+}
+
+/* Media query não é mais necessária para mostrar os controles */
+@media screen and (max-width: 800px) {}
