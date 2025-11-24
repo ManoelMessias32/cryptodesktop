@@ -12,7 +12,7 @@ const ONE_HOUR_IN_SECONDS = 3600;
 const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000', 'A': '10000000000', 'B': '20000000000', 'C': '30000000000' };
-const STORAGE_VERSION = 'v18'; // Incrementa a versão para garantir que não haja conflitos de estado
+const STORAGE_VERSION = 'v18'; // Versão incrementada
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -185,8 +185,8 @@ export default function App() {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px', background: '#18181b', color: '#f4f4f5' }}>
       <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15' }}>CryptoDesk</h1>
       <p style={{ marginBottom: '30px' }}>Digite seu nome de usuário para começar</p>
-      <input 
-        type="text" 
+      <input
+        type="text"
         value={tempUsername}
         onChange={(e) => setTempUsername(e.target.value)}
         placeholder="Seu nome aqui"
@@ -222,3 +222,4 @@ export default function App() {
     </div>
   );
 }
+
