@@ -10,41 +10,30 @@ import { economyData } from './economy';
 // ... (constantes e estado inicial)
 
 export default function App() {
-  // ... (toda a lógica de estado e funções)
+  // ... (lógica de estado e funções)
 
-  const mainApp = (
-    <>
-      {/* --- CABEÇALHO RESTAURADO -- */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
-        <p>Bem-vindo, {username}!</p>
-        <TonConnectButton />
-      </header>
+  const renderPage = () => {
+    switch (route) {
+      case 'mine':
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
+      case 'shop':
+        return <ShopPage handlePurchase={handlePurchase} />;
+      case 'games':
+        return <GamesPage onGameWin={handleGameWin} />;
+      case 'user':
+        // <<<--- PÁGINA DESATIVADA TEMPORARIAMENTE ---
+        return (
+          <div style={{ padding: '20px', textAlign: 'center' }}>
+            <h2>Página em Manutenção</h2>
+            <p>A página de perfil está sendo ajustada e voltará em breve.</p>
+          </div>
+        );
+      case 'rankings':
+        return <RankingsPage />;
+      default:
+        return <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} />;
+    }
+  };
 
-      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: status.startsWith('❌') ? '#f87171' : '#34d399' }}>
-        <p>{status}</p>
-      </div>
-
-      {renderPage()}
-
-      <nav style={{ 
-          position: 'fixed', 
-          bottom: 0, 
-          left: 0, 
-          right: 0, 
-          display: 'flex',
-          justifyContent: 'space-around',
-          padding: '0.5rem', 
-          background: '#2d3748', 
-          gap: '5px'
-      }}>
-        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
-        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')} title="Loja">🛒</button>
-        <button onClick={() => setRoute('games')} style={navButtonStyle('games')} title="Jogos">🎮</button>
-        <button onClick={() => setRoute('user')} style={navButtonStyle('user')} title="Perfil">👤</button>
-        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
-      </nav>
-    </>
-  );
-
-  // ... (resto do código, incluindo renderPage, loginScreen, etc.)
+  // ... (resto do código, incluindo mainApp, loginScreen, etc.)
 }
