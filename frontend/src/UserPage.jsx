@@ -1,7 +1,10 @@
-// VERSÃO DE EMERGÊNCIA 1.2 - Forçando a atualização para remover o crash da tela branca
 import React from 'react';
 
-export default function UserPage({ address, coinBdg, username }) {
+export default function UserPage({
+  address = '',
+  coinBdg = 0,
+  username = 'Jogador Anônimo'
+} = {}) {
 
   const styles = {
     pageContainer: { padding: '10px', maxWidth: '700px', margin: '0 auto', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' },
@@ -14,33 +17,30 @@ export default function UserPage({ address, coinBdg, username }) {
 
   return (
     <div style={styles.pageContainer}>
-      {/* Seção de Perfil do Jogador */}
       <div style={styles.container}>
-        <h2 style={styles.title}>👤 Perfil do Jogador</h2>
+        <h2 style={styles.title}>Perfil do Jogador</h2>
         <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Nome:</strong> 
-          <span>{username || 'Não definido'}</span>
+          <strong style={styles.infoLabel}>Nome:</strong>
+          <span>{username}</span>
         </p>
         <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Carteira:</strong> 
-          <span>{address ? address : 'Não conectada'}</span>
+          <strong style={styles.infoLabel}>Carteira:</strong>
+          <span>{address || 'Não conectada'}</span>
         </p>
         <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Saldo BDG Token:</strong> 
-          <span>{(coinBdg || 0).toFixed(4)} BDG</span>
+          <strong style={styles.infoLabel}>Saldo BDG Token:</strong>
+          <span>{Number(coinBdg).toFixed(4)} BDG</span>
         </p>
       </div>
 
-
-      {/* Seção de Informações do Token */}
       <div style={styles.container}>
-        <h2 style={{...styles.title, fontSize: '1em'}}>🐾 BAD DOG COIN (BDG)</h2>
+        <h2 style={{...styles.title, fontSize: '1em'}}>BAD DOG COIN (BDG)</h2>
         <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Rede:</strong> 
+          <strong style={styles.infoLabel}>Rede:</strong>
           <span>BNB Smart Chain</span>
         </p>
         <p style={styles.infoLine}>
-          <strong style={styles.infoLabel}>Contrato:</strong> 
+          <strong style={styles.infoLabel}>Contrato:</strong>
           <span style={{wordBreak: 'break-all'}}>0x9Fd1456F61a8c8212b691353249C411115C53aE8</span>
         </p>
         <p style={styles.disclaimer}>
