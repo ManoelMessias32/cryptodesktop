@@ -12,8 +12,6 @@ export default function MiningPage({
   paidBoostTime, setPaidBoostTime, economyData
 }) {
 
-  // ... (todas as funções handle*)
-  
   const handleBuyEnergyForAll = () => {
     if (coinBdg >= ENERGY_REFILL_ALL_COST) {
       setCoinBdg(coinBdg - ENERGY_REFILL_ALL_COST);
@@ -25,6 +23,16 @@ export default function MiningPage({
       setStatus("Energia de todos os slots foi reabastecida!");
     } else {
       setStatus("Você não tem moedas suficientes para reabastecer a energia de todos os slots.");
+    }
+  };
+
+  const handleBuyPaidBoost = () => {
+    if (coinBdg >= PAID_BOOST_COST) {
+      setCoinBdg(coinBdg - PAID_BOOST_COST);
+      setPaidBoostTime(SECONDS_IN_A_MONTH);
+      setStatus("Boost ativado por um mês!");
+    } else {
+      setStatus("Você não tem moedas suficientes para ativar o boost.");
     }
   };
 
