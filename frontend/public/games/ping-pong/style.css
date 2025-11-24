@@ -15,7 +15,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative; /* Adicionado para posicionar os controles */
+  position: relative;
 }
 
 canvas {
@@ -26,6 +26,7 @@ canvas {
   border: 1px solid #4caf50;
 }
 
+/* Contêiner dos botões Start/Pause amarelos */
 .button-container {
   display: flex;
   justify-content: center;
@@ -48,12 +49,9 @@ canvas {
   flex-grow: 1;
   max-width: 150px;
 }
+.btn:hover { background-color: #3e8e41; }
 
-.btn:hover {
-  background-color: #3e8e41;
-}
-
-/* Touch Controls */
+/* Controles de Toque (Setas) */
 .touch-controls {
   display: none; /* Escondido por padrão */
   position: absolute;
@@ -61,7 +59,7 @@ canvas {
   right: 10px;
   flex-direction: column;
   gap: 10px;
-  z-index: 10; /* Garante que fiquem por cima */
+  z-index: 10;
 }
 
 .control-btn {
@@ -72,17 +70,16 @@ canvas {
   border-radius: 50%;
 }
 
-/* Estilos do Modal (permanece o mesmo) */
+/* Modal (inalterado) */
 .modal-content { background-color: #2d3748; color: #e2e8f0; }
 .modal-header, .modal-footer { border-color: #4a5568; }
 
-
-/* Media Query para telas pequenas */
+/* Regra para Telas Pequenas (Celular) */
 @media (max-width: 768px) {
   .button-container {
-    display: none; /* Esconde os botões Start/Pause/Restart */
+    display: none; /* ESCONDE os botões amarelos */
   }
   .touch-controls {
-    display: flex; /* Mostra os controles de toque */
+    display: flex; /* MOSTRA os controles de toque */
   }
 }
