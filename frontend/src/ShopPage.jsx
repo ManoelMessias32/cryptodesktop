@@ -1,8 +1,9 @@
 import React from 'react';
 
-export default function ShopPage({ handlePurchase }) {
+export default function ShopPage({ handlePurchase, handleBuyBdgCoin }) {
 
-  const standardCpuData = {
+  // ... (dados das CPUs e estilos permanecem os mesmos)
+    const standardCpuData = {
     1: { name: 'Tier 1', price: '3.5', gain: '450', image: '/tier1.png', tier: 1 },
     2: { name: 'Tier 2', price: '9.0', gain: '750', image: '/tier2.jpg', tier: 2 }, // Corrigido para .jpg
     3: { name: 'Tier 3', price: '17.0', gain: '1050', image: '/tier3.png', tier: 3 },
@@ -25,11 +26,24 @@ export default function ShopPage({ handlePurchase }) {
     buyButton: { background: '#6366f1', color: 'white', border: 'none', padding: '8px', borderRadius: '6px', cursor: 'pointer', marginTop: '10px', width: '100%' }
   };
 
+
   return (
     <div style={styles.shopContainer}>
       <h1>Loja</h1>
-      <p style={{color: '#a1a1aa', marginTop: '-10px'}}>Compre uma CPU para seu gabinete.</p>
       
+      <h2 style={styles.sectionTitle}>Pacotes de Moedas</h2>
+      <div style={styles.cardContainer}>
+          <div style={styles.card}>
+            <div>
+              <img src="/bdg_coin_item.png" alt="BDG Coin" style={{...styles.cardImage, borderRadius: '50%'}} />
+              <h3 style={styles.cardTitle}>150 BDG Coin</h3>
+              <p style={styles.cardText}><strong>Preço:</strong> 1 TON</p>
+              <p style={styles.cardText}>Use para reparos e compras no jogo.</p>
+            </div>
+            <button onClick={handleBuyBdgCoin} style={styles.buyButton}>Comprar</button>
+          </div>
+      </div>
+
       <h2 style={styles.sectionTitle}>CPUs Especiais</h2>
       <div style={styles.cardContainer}>
         {Object.values(specialCpuData).map(item => (
