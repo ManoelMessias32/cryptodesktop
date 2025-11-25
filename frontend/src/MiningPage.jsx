@@ -26,9 +26,33 @@ export default function MiningPage({
   paidBoostTime, setPaidBoostTime, economyData, handleBuyEnergyForAll, handleRepairCpu
 }) {
 
-  const handleBuyPaidBoost = () => { /* ... */ };
-  const calculateTimeForOneBDG = (slot) => { /* ... */ };
-  const getImagePath = (slot) => { /* ... */ };
+  const handleBuyPaidBoost = () => {
+    if (coinBdg >= PAID_BOOST_COST) {
+      setCoinBdg(coinBdg - PAID_BOOST_COST);
+      setPaidBoostTime(30 * 24 * 3600);
+      setStatus("Boost ativado por um mês!");
+    } else {
+      setStatus("Você não tem moedas suficientes para ativar o boost.");
+    }
+  };
+  
+  const calculateTimeForOneBDG = (slot) => {
+    if (!slot.filled || !economyData) return '';
+    const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
+    const gainPerHour = economyData[econKey]?.gainPerHour || 0;
+    if (gainPerHour <= 0) return '';
+    const hoursForOneBDG = 1 / gainPerHour;
+    const h = Math.floor(hoursForOneBDG);
+    const m = Math.floor((hoursForOneBDG * 60) % 60);
+    return `1 BDG em ~${h}h ${m}min`;
+  };
+
+  const getImagePath = (slot) => {
+    if (!slot.filled) return '';
+    if (slot.type === 'free') return '/cpu gratis.png';
+    if (slot.type === 'special') return `/especial_${slot.tier.toLowerCase()}.jpg`;
+    return `/tier${slot.tier}.png`;
+  };
 
   const buttonStyle = { background: '#6366f1', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' };
   const repairButtonStyle = { ...buttonStyle, background: '#f56565', fontSize: '0.7em', padding: '8px 12px', marginTop: '10px' };
@@ -37,7 +61,25 @@ export default function MiningPage({
 
   return (
     <div style={{padding: '0 10px 80px 10px'}}>
-      {/* ... (Seção de Saldo e Botões Principais) ... */}
+      <div style={{ textAlign: 'center', margin: '20px auto', padding: '20px', background: '#2d3748', borderRadius: '10px', maxWidth: '90vw' }}>
+        <p style={{ margin: 0, color: '#a1a1aa', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em'}}>Seu Saldo</p>
+        <h2 style={{ fontSize: '2em', margin: '10px 0 0 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive' }}>{coinBdg.toFixed(4)}</h2>
+        <p style={{ margin: '5px 0', color: '#a1a1aa' }}>BDG Coin</p>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', margin: '24px auto', flexWrap: 'wrap' }}>
+        <button onClick={handleBuyEnergyForAll} style={{...buttonStyle, width: 'auto'}}>
+          Reabastecer Energia ({refillCost} BDG)
+        </button>
+        <button onClick={handleBuyPaidBoost} disabled={paidBoostTime > 0} style={{...buttonStyle, width: 'auto'}}>
+          Ativar Boost ({PAID_BOOST_COST} BDG)
+        </button>
+      </div>
+      <div style={{textAlign: 'center', minHeight: '20px'}}>{paidBoostTime > 0 && <p>Boost: {formatTime(paidBoostTime)}</p>}</div>
+
+      <div style={{ textAlign: 'center', margin: '24px auto', maxWidth: '400px' }}>
+        <button onClick={addNewSlot} disabled={slots.length >= 6} style={{...buttonStyle, width: '100%'}}>Comprar Gabinete ({slots.length}/6)</button>
+      </div>
 
       <div style={{ marginTop: 24 }}>
         <h3 style={{ textAlign: 'center', color: '#e4e4e7', fontFamily: '"Press Start 2P", cursive', fontSize: '1em' }}>Sua Sala de Mineração</h3>
