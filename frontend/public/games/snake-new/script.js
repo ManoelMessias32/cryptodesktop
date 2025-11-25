@@ -10,24 +10,11 @@ let snakeBody = [];
 let setIntervalId;
 let score = 0;
 
-// --- Nova Lógica de Velocidade ---
-let gameSpeed = 100; // Velocidade inicial
-let speedMilestone = 500; // Pontuação para aumentar a velocidade
+// Velocidade inicial mais lenta
+let gameSpeed = 150; 
 
 let highScore = localStorage.getItem("high-score") || 0;
 highScoreElement.innerText = `High Score: ${highScore}`;
-
-// Função para ajustar a velocidade
-const adjustSpeed = () => {
-    // A cada `speedMilestone` pontos, aumenta a velocidade em 10%
-    if (score > 0 && score % speedMilestone === 0) {
-        gameSpeed = Math.max(30, gameSpeed * 0.9); // Velocidade mínima de 30ms
-        clearInterval(setIntervalId);
-        setIntervalId = setInterval(initGame, gameSpeed);
-        // Aumenta o próximo marco
-        speedMilestone += 500;
-    }
-}
 
 const updateFoodPosition = () => {
     foodX = Math.floor(Math.random() * 30) + 1;
@@ -67,11 +54,11 @@ const initGame = () => {
     let html = `<div class="food" style="grid-area: ${foodY} / ${foodX}"></div>`;
 
     if(snakeX === foodX && snakeY === foodY) {
-        window.parent.postMessage('gameWon', '*');
+        // Apenas para o propósito do jogo principal, não pontua aqui
+        window.parent.postMessage('gameWon', '*'); 
         updateFoodPosition();
         snakeBody.push([foodY, foodX]);
-        score++;
-        adjustSpeed(); // <<--- Chama a função para verificar e ajustar a velocidade
+        score++; 
         highScore = score >= highScore ? score : highScore;
         localStorage.setItem("high-score", highScore);
         scoreElement.innerText = `Score: ${score}`;
