@@ -10,7 +10,7 @@ let snakeBody = [];
 let setIntervalId;
 let score = 0;
 
-// Velocidade inicial mais lenta
+// Velocidade inicial mais lenta (de 100 para 150)
 let gameSpeed = 150; 
 
 let highScore = localStorage.getItem("high-score") || 0;
@@ -28,16 +28,17 @@ const handleGameOver = () => {
 }
 
 const changeDirection = e => {
-    if(e.key === "ArrowUp" && velocityY != 1) {
+    const key = e.key;
+    if((key === "ArrowUp" || key.toLowerCase() === 'w') && velocityY != 1) {
         velocityX = 0;
         velocityY = -1;
-    } else if(e.key === "ArrowDown" && velocityY != -1) {
+    } else if((key === "ArrowDown" || key.toLowerCase() === 's') && velocityY != -1) {
         velocityX = 0;
         velocityY = 1;
-    } else if(e.key === "ArrowLeft" && velocityX != 1) {
+    } else if((key === "ArrowLeft" || key.toLowerCase() === 'a') && velocityX != 1) {
         velocityX = -1;
         velocityY = 0;
-    } else if(e.key === "ArrowRight" && velocityX != -1) {
+    } else if((key === "ArrowRight" || key.toLowerCase() === 'd') && velocityX != -1) {
         velocityX = 1;
         velocityY = 0;
     }
@@ -54,7 +55,6 @@ const initGame = () => {
     let html = `<div class="food" style="grid-area: ${foodY} / ${foodX}"></div>`;
 
     if(snakeX === foodX && snakeY === foodY) {
-        // Apenas para o propósito do jogo principal, não pontua aqui
         window.parent.postMessage('gameWon', '*'); 
         updateFoodPosition();
         snakeBody.push([foodY, foodX]);

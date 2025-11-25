@@ -36,13 +36,16 @@ function candyCrushGame() {
 
     let colorBeingDragged, colorBeingReplaced, squareIdBeingDragged, squareIdBeingReplaced;
 
-    function dragStart() { /* ... */ }
+    function dragStart() {
+        colorBeingDragged = this.style.backgroundImage;
+        squareIdBeingDragged = parseInt(this.id);
+    }
+
     function dragOver(e) { e.preventDefault(); }
     function dragEnter(e) { e.preventDefault(); }
-    function dragLeave() { /* ... */ }
-    
+    function dragLeave() {}
+
     function dragDrop() {
-        if (isGameWon) return;
         colorBeingReplaced = this.style.backgroundImage;
         squareIdBeingReplaced = parseInt(this.id);
         this.style.backgroundImage = colorBeingDragged;
@@ -50,7 +53,6 @@ function candyCrushGame() {
     }
 
     function dragEnd() {
-        if (isGameWon) return;
         let validMoves = [squareIdBeingDragged - 1, squareIdBeingDragged - width, squareIdBeingDragged + 1, squareIdBeingDragged + width];
         let validMove = validMoves.includes(squareIdBeingReplaced);
 
@@ -64,42 +66,47 @@ function candyCrushGame() {
         }
     }
 
-    // --- Touch Logic ---
     function touchStart(e) {
-        if (isGameWon) return;
         e.preventDefault();
         squareIdBeingDragged = parseInt(this.id);
         colorBeingDragged = this.style.backgroundImage;
     }
 
     function touchMove(e) {
-        if (isGameWon) return;
         e.preventDefault();
         const touch = e.touches[0];
         const element = document.elementFromPoint(touch.clientX, touch.clientY);
         if (element && squares.includes(element)) {
             squareIdBeingReplaced = parseInt(element.id);
+        } else {
+            squareIdBeingReplaced = null;
         }
     }
 
     function touchEnd() {
-        if (isGameWon || !squareIdBeingReplaced) return;
-        // Simula o drop e o end
-        dragDrop.call(squares[squareIdBeingReplaced]);
-        dragEnd();
+        if (squareIdBeingReplaced !== null) {
+            const squareToReplace = squares[squareIdBeingReplaced];
+            dragDrop.call(squareToReplace);
+            dragEnd();
+        }
     }
 
-    // (Resto do código: game mechanics, scoring, etc. permanece o mesmo)
-    function moveIntoSquareBelow() { /*...*/ }
-    function updateScoreboard() { /*...*/ }
-    function levelUp() { /*...*/ }
-    function handleMatch(count) { /*...*/ }
-    function checkMatches(forLength) { /*...*/ }
-    function gameLoop() { /*...*/ }
+    // ... (Resto do código como moveIntoSquareBelow, checkMatches, etc. permanece igual)
+    function moveIntoSquareBelow(){}
+    function updateScoreboard(){}
+    function levelUp(){}
+    function handleMatch(){}
+    function checkMatches(){}
+    function gameLoop(){}
 
     function startGame() {
         createBoard();
-        // ... (resto da inicialização)
+        score = 0;
+        currentLevel = 1;
+        scoreToWin = 100;
+        isGameWon = false;
+        updateScoreboard();
+
         squares.forEach(square => {
             square.addEventListener('dragstart', dragStart);
             square.addEventListener('dragover', dragOver);
