@@ -44,7 +44,7 @@ const styles = {
 const GAMES = {
   candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html', controlType: 'touch' },
   towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html', controlType: 'touch' },
-  snake: { title: 'Snake', src: '/games/snake/index.html', controlType: 'd-pad' },
+  snake: { title: 'Snake', src: '/games/snake-new/index.html', controlType: 'd-pad' },
   tetris: { title: 'Tetris', src: '/games/tetris/index.html', controlType: 'd-pad' },
   pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html', controlType: 'd-pad' },
 };
@@ -62,13 +62,13 @@ const GameControls = ({ onControlPress, onGoBack }) => {
       display: 'flex',
       justifyContent: 'space-around',
       alignItems: 'center',
-      background: 'rgba(30, 41, 59, 0.8)',
-      padding: '15px',
+      background: 'transparent', // Fundo transparente
+      padding: '0', // Remove o padding
       borderRadius: '20px',
       width: '90%',
       maxWidth: '420px',
       zIndex: 110,
-      backdropFilter: 'blur(5px)',
+      backdropFilter: 'none', // Remove o desfoque
     }}>
       <div style={{ display: 'grid', gridTemplateAreas: `'. up .' 'left . right' '. down .'`, gap: '10px' }}>
         <button onClick={() => onControlPress('up')} style={{ ...dPadButtonStyle, gridArea: 'up' }}>▲</button>
