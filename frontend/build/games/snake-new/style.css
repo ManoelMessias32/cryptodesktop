@@ -14,7 +14,6 @@ html, body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Empurra placar para cima e controles para baixo */
   background: #293447;
 }
 
@@ -22,27 +21,28 @@ html, body {
   color: #B8C6DC;
   font-size: 1.1rem;
   padding: 10px 20px;
-  flex-shrink: 0; /* Impede que o placar encolha */
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
 }
 
+/* Container para centralizar o tabuleiro */
 .play-board-container {
-    flex-grow: 1; /* Faz esta div ocupar todo o espaço central */
+    flex-grow: 1; /* Ocupa todo o espaço do meio */
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden; /* Garante que nada transborde */
-    padding: 5px;
+    min-height: 0; /* Correção para flexbox em alguns navegadores */
 }
 
 .play-board {
-  /* A área de jogo agora é um quadrado perfeito que se ajusta ao centro */
-  width: 100%;
-  height: 100%;
+  /* Força o tabuleiro a ser um quadrado perfeito que cabe na tela */
+  width: 95vmin;
+  height: 95vmin;
+  max-width: calc(100vh - 120px); /* Garante que não ultrapasse a altura disponível */
+  max-height: calc(100vw - 20px); /* Garante que não ultrapasse a largura disponível */
   aspect-ratio: 1 / 1;
-  max-width: 100%;
-  max-height: 100%;
+  
   display: grid;
   background: #212837;
   grid-template: repeat(30, 1fr) / repeat(30, 1fr);
@@ -56,7 +56,7 @@ html, body {
   display: flex;
   justify-content: space-evenly;
   padding: 10px 5px;
-  flex-shrink: 0; /* Impede que os controles encolham */
+  flex-shrink: 0;
 }
 
 .controls i {
