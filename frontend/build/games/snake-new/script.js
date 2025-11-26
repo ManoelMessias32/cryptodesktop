@@ -65,20 +65,24 @@ const initGame = () => {
         highScoreElement.innerText = `Pontuação Máxima: ${highScore}`;
     }
 
-    snakeX += velocityX;
-    snakeY += velocityY;
-    
+    // Move o corpo da cobra
     for (let i = snakeBody.length - 1; i > 0; i--) {
         snakeBody[i] = snakeBody[i - 1];
     }
+    // Atualiza a cabeça da cobra com a nova posição
     snakeBody[0] = [snakeX, snakeY];
 
+    snakeX += velocityX;
+    snakeY += velocityY;
+    
     if(snakeX <= 0 || snakeX > 30 || snakeY <= 0 || snakeY > 30) {
         return gameOver = true;
     }
 
+    // Renderiza a cobra e a comida
     for (let i = 0; i < snakeBody.length; i++) {
         html += `<div class="head" style="grid-area: ${snakeBody[i][1]} / ${snakeBody[i][0]}"></div>`;
+        // Verifica a colisão com o corpo
         if (i !== 0 && snakeBody[0][1] === snakeBody[i][1] && snakeBody[0][0] === snakeBody[i][0]) {
             gameOver = true;
         }

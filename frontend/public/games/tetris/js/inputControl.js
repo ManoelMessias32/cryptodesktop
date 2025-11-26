@@ -7,6 +7,30 @@ let pressLeft = false
 let pressDown = false
 let pressUp = false
 
+// Listener for controls from the main application
+window.addEventListener('message', function(event) {
+    if (!timerId && event.data !== 'action') return; // Only allow action if paused
+
+    switch(event.data) {
+        case 'left':
+            moveLeft();
+            break;
+        case 'right':
+            moveRight();
+            break;
+        case 'down':
+            moveDown();
+            break;
+        case 'up':
+            rotateShape();
+            break;
+        case 'action':
+            // The 'A' button will function as Start/Pause
+            pauseGame();
+            break;
+    }
+});
+
 function onKeyUp(event) {
     mustBeRotate = true
 
