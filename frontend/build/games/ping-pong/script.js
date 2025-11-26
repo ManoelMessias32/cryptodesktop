@@ -6,8 +6,6 @@ var ctx = canvas.getContext("2d");
 var startBtn = document.getElementById("start-btn");
 var pauseBtn = document.getElementById("pause-btn");
 var restartBtn = document.getElementById("restart-btn");
-var moveUpBtn = document.getElementById("move-up-btn");
-var moveDownBtn = document.getElementById("move-down-btn");
 
 var animationId;
 var gameRunning = false;
@@ -27,7 +25,8 @@ let ballSpeedY = 5;
 // Paddle properties
 const paddleHeight = 80;
 const paddleWidth = 10;
-const paddleSpeed = 20; // Aumentei a velocidade para melhor resposta
+const playerPaddleSpeed = 30; // Increased speed for better response
+const opponentPaddleSpeed = 20;
 let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
 let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
 
@@ -48,9 +47,9 @@ restartBtn.addEventListener("click", () => document.location.reload());
 window.addEventListener('message', function(event) {
     if (gameRunning) {
         if (event.data === 'up') {
-            leftPaddleY -= paddleSpeed;
+            leftPaddleY -= playerPaddleSpeed;
         } else if (event.data === 'down') {
-            leftPaddleY += paddleSpeed;
+            leftPaddleY += playerPaddleSpeed;
         }
     }
     if (event.data === 'action') {
@@ -64,9 +63,9 @@ function update() {
     // AI for right paddle
     const rightPaddleCenter = rightPaddleY + paddleHeight / 2;
     if (rightPaddleCenter < ballY - 10 && rightPaddleY + paddleHeight < canvas.height) {
-        rightPaddleY += paddleSpeed * 0.6;
+        rightPaddleY += opponentPaddleSpeed * 0.6;
     } else if (rightPaddleCenter > ballY + 10 && rightPaddleY > 0) {
-        rightPaddleY -= paddleSpeed * 0.6;
+        rightPaddleY -= opponentPaddleSpeed * 0.6;
     }
 
     ballX += ballSpeedX;

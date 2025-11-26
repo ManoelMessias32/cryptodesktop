@@ -44,7 +44,7 @@ const styles = {
 const GAMES = {
   candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html', controlType: 'touch' },
   towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html', controlType: 'touch' },
-  tetris: { title: 'Tetris', src: '/games/tetris/index.html', controlType: 'd-pad' },
+  tetris: { title: 'Tetris', src: '/games/tetris/index.html', controlType: 'native' }, // Controle nativo do jogo
   pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html', controlType: 'd-pad' },
 };
 
@@ -61,13 +61,13 @@ const GameControls = ({ onControlPress, onGoBack }) => {
       display: 'flex',
       justifyContent: 'space-around',
       alignItems: 'center',
-      background: 'transparent', // Fundo transparente
-      padding: '0', // Remove o padding
+      background: 'transparent',
+      padding: '0',
       borderRadius: '20px',
       width: '90%',
       maxWidth: '420px',
       zIndex: 110,
-      backdropFilter: 'none', // Remove o desfoque
+      backdropFilter: 'none',
     }}>
       <div style={{ display: 'grid', gridTemplateAreas: `'. up .' 'left . right' '. down .'`, gap: '10px' }}>
         <button onClick={() => onControlPress('up')} style={{ ...dPadButtonStyle, gridArea: 'up' }}>▲</button>
@@ -128,10 +128,11 @@ export default function GamesPage({ onGameWin }) {
         style={styles.gameIframe} 
         title={selectedGame.title}
       ></iframe>
-      {selectedGame.controlType === 'd-pad' ? (
+      {selectedGame.controlType === 'd-pad' && (
         <GameControls onGoBack={() => setSelectedGame(null)} onControlPress={handleControlPress} />
-      ) : (
-        <button onClick={() => setSelectedGame(null)} style={styles.touchGoBackButton} title="Voltar">↩️</button>
+      )}
+      {selectedGame.controlType !== 'native' && selectedGame.controlType !== 'd-pad' && (
+          <button onClick={() => setSelectedGame(null)} style={styles.touchGoBackButton} title="Voltar">↩️</button>
       )}
     </div>
   );
