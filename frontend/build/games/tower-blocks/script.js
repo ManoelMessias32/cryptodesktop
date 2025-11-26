@@ -76,7 +76,14 @@ window.addEventListener('DOMContentLoaded', () => {
             this.position.y = this.dimension.height * this.index;
             this.position.x = this.targetBlock ? this.targetBlock.position.x : 0;
             this.position.z = this.targetBlock ? this.targetBlock.position.z : 0;
-            this.color = new THREE.Color(0x333333);
+            
+            // set color
+            this.color = new THREE.Color(0x66ccff);
+            if (this.targetBlock) {
+                let hue = this.targetBlock.color.getHSL().h;
+                this.color.setHSL(hue + 0.1, 1, 0.8);
+            }
+
             // set direction
             this.speed = -0.1 - (this.index * 0.005);
             if (this.speed < -4) this.speed = -4;
@@ -114,6 +121,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 this.position.z = this.targetBlock.position.z;
                 this.dimension.width = this.targetBlock.dimension.width;
                 this.dimension.depth = this.targetBlock.dimension.depth;
+                this.color = this.targetBlock.color;
             }
 
             if (overlap > 0) {
@@ -231,18 +239,20 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         };
         Game.prototype.restartGame = function () {
-            var _this = this;
             this.updateState(this.STATES.RESETTING);
-            var oldBlocks = this.placedBlocks.children;
-            var newBlocks = this.newBlocks.children;
-            var futureBlocks = this.choppedBlocks.children;
-            this.blocks.forEach(function(block){
-                _this.stage.remove(block.mesh)
-            })
+
+            // Remove all children from the groups
+            while (this.newBlocks.children.length > 0) {
+                this.newBlocks.remove(this.newBlocks.children[0]);
+            }
+            while (this.placedBlocks.children.length > 0) {
+                this.placedBlocks.remove(this.placedBlocks.children[0]);
+            }
+            while (this.choppedBlocks.children.length > 0) {
+                this.choppedBlocks.remove(this.choppedBlocks.children[0]);
+            }
+
             this.blocks = [];
-            this.placedBlocks.children = [];
-            this.newBlocks.children = [];
-            this.choppedBlocks.children = [];
 
             this.addBlock();
             this.stage.setCamera(2);
@@ -259,7 +269,14 @@ window.addEventListener('DOMContentLoaded', () => {
             }
             if (newBlocks.chopped) {
                 this.choppedBlocks.add(newBlocks.chopped);
-                var positionParams = { y: '+=30', ease: Power1.easeIn };
+                var positionParams = { 
+                    y: '+=30', 
+                    ease: Power1.easeIn, 
+                    onComplete: function() { 
+                        // Remove the chopped block from the scene after the animation
+                        _this.choppedBlocks.remove(newBlocks.chopped);
+                    }
+                };
                 var rotateRandomness = 10;
                 var rotationParams = {
                     delay: 0.05,
