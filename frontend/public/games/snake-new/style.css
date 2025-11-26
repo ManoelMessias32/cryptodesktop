@@ -9,18 +9,22 @@
 }
 
 body {
-  background: #171B26; /* Fundo escuro para imersão */
-  overflow: hidden; /* Prevenir scroll */
+  background: #171B26;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wrapper {
-  width: 100vw; /* Largura total */
-  height: 100vh; /* Altura total */
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centralizar conteúdo principal */
+  justify-content: space-between; /* <<< CORREÇÃO PRINCIPAL */
   background: #293447;
-  /* Resetar estilos antigos */
   border-radius: 0;
   box-shadow: none;
 }
@@ -29,55 +33,42 @@ body {
   color: #B8C6DC;
   font-weight: 500;
   font-size: 1.2rem;
-  padding: 15px 25px;
+  padding: 10px 25px;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
-  flex-shrink: 0; /* Não encolher */
 }
 
 .play-board {
-  /* Área de jogo quadrada e responsiva */
-  width: 95vmin;
-  height: 95vmin;
-  max-width: 800px; /* Limite em telas muito grandes */
-  max-height: 800px;
-  margin: auto; /* Centraliza no espaço disponível */
+  width: 98vmin; /* Um pouco maior para ocupar espaço */
+  height: 98vmin; /* Mantém quadrado */
+  max-width: calc(100vh - 120px); /* Garante que não ultrapasse a altura */
+  max-height: calc(100vh - 120px);
+  margin: 0 auto; /* Centraliza horizontalmente */
   display: grid;
   background: #212837;
   grid-template: repeat(30, 1fr) / repeat(30, 1fr);
   border: 1px solid #B8C6DC;
 }
 
-.play-board .food {
-  background: #FF003D;
-  border-radius: 50%;
-}
-
-.play-board .head {
-  background: #60CBFF;
-  border-radius: 2px;
-}
+.play-board .food { background: #FF003D; border-radius: 50%; }
+.play-board .head { background: #60CBFF; border-radius: 2px; }
 
 .controls {
-  display: flex; /* Sempre mostrar os controles */
+  display: flex;
   justify-content: space-evenly;
   padding: 10px 0;
-  flex-shrink: 0; /* Não encolher */
+  flex-shrink: 0;
 }
 
 .controls i {
   padding: 15px 25px;
   text-align: center;
-  font-size: 1.5rem; /* Ícones maiores */
+  font-size: 1.5rem;
   color: #B8C6DC;
   cursor: pointer;
   border-radius: 8px;
   width: calc(100% / 4 - 10px);
 }
 
-.controls i:hover {
-    background: #4a5568;
-}
-
-/* Media query não é mais necessária para mostrar os controles */
-@media screen and (max-width: 800px) {}
+.controls i:hover { background: #4a5568; }
