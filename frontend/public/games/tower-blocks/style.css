@@ -6,59 +6,48 @@ html, body {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  background-color: #d0cbc7; /* Cor de fundo base do jogo */
   font-family: "Comfortaa", cursive;
 }
 
-/* O container principal que segura tudo */
-#container {
-  width: 100%;
-  height: 100%;
-  position: relative; /* Contexto para elementos absolutos */
-}
-
-/* A área 3D do jogo. O z-index: 1 a coloca como camada de fundo. */
-#game {
+#container, #game {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
 }
 
-/* Todos os elementos de UI ficam por cima, com z-index maior */
+#game {
+  z-index: 1; /* Camada de fundo */
+}
+
+/* UI por cima do jogo */
 #score, #instructions, .game-over, .game-ready, .touch-controls {
     position: absolute;
     width: 100%;
     left: 0;
-    z-index: 10; 
+    z-index: 10;
     text-align: center;
     color: #334;
 }
 
-/* Posicionamento de cada elemento da UI */
 #score { top: 20px; font-size: 10vh; }
-#instructions { top: 18vh; font-size: 1rem; }
-.game-over, .game-ready { top: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+#instructions { top: 18vh; }
+.game-over, .game-ready { top: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
 
-#start-button { 
-    border: 3px solid #334;
+#start-button {
+    pointer-events: auto; /* Botão de start é sempre clicável */
+    border: 3px solid #334; 
     padding: 10px 20px; 
-    background: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.7);
     font-size: 30px; 
-    border-radius: 5px;
+    border-radius: 5px; 
     cursor: pointer;
 }
 
-/* Lógica de visibilidade (transições suaves) */
-.game-over *, .game-ready #start-button, #instructions {
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-#container.ready .game-ready #start-button, #container.playing #instructions, #container.ended .game-over * {
-    opacity: 1;
-}
+/* Lógica de visibilidade */
+.game-over *, .game-ready #start-button, #instructions { opacity: 0; transition: opacity 0.5s ease; }
+#container.ready .game-ready #start-button, #container.playing #instructions, #container.ended .game-over * { opacity: 1; }
 
 /* Controles de Toque */
 .touch-controls {
@@ -77,7 +66,7 @@ html, body {
     background: #facc15;
     border: 3px solid #eab308;
     border-radius: 50%;
-    font-size: 1.5rem;
+    font-size: 1.5rem; 
     font-weight: bold;
     color: #333;
     cursor: pointer;
