@@ -36,17 +36,6 @@ export default function MiningPage({
     }
   };
   
-  const calculateTimeForOneBDG = (slot) => {
-    if (!slot.filled || !economyData) return '';
-    const econKey = slot.type === 'free' ? 'free' : (slot.type === 'special' ? slot.tier.toString().toUpperCase() : slot.tier);
-    const gainPerHour = economyData[econKey]?.gainPerHour || 0;
-    if (gainPerHour <= 0) return '';
-    const hoursForOneBDG = 1 / gainPerHour;
-    const h = Math.floor(hoursForOneBDG);
-    const m = Math.floor((hoursForOneBDG * 60) % 60);
-    return `1 BDG em ~${h}h ${m}min`;
-  };
-
   const getImagePath = (slot) => {
     if (!slot.filled) return '';
     if (slot.type === 'free') return '/cpu gratis.png';
@@ -64,15 +53,15 @@ export default function MiningPage({
       <div style={{ textAlign: 'center', margin: '20px auto', padding: '20px', background: '#2d3748', borderRadius: '10px', maxWidth: '90vw' }}>
         <p style={{ margin: 0, color: '#a1a1aa', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em'}}>Seu Saldo</p>
         <h2 style={{ fontSize: '2em', margin: '10px 0 0 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive' }}>{coinBdg.toFixed(4)}</h2>
-        <p style={{ margin: '5px 0', color: '#a1a1aa' }}>BDG Coin</p>
+        <p style={{ margin: '5px 0', color: '#a1a1aa' }}>Token Coin</p>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', margin: '24px auto', flexWrap: 'wrap' }}>
         <button onClick={handleBuyEnergyForAll} style={{...buttonStyle, width: 'auto'}}>
-          Reabastecer Energia ({refillCost} BDG)
+          Reabastecer Energia ({refillCost} TC)
         </button>
         <button onClick={handleBuyPaidBoost} disabled={paidBoostTime > 0} style={{...buttonStyle, width: 'auto'}}>
-          Ativar Boost ({PAID_BOOST_COST} BDG)
+          Ativar Boost ({PAID_BOOST_COST} TC)
         </button>
       </div>
       <div style={{textAlign: 'center', minHeight: '20px'}}>{paidBoostTime > 0 && <p>Boost: {formatTime(paidBoostTime)}</p>}</div>
