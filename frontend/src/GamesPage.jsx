@@ -44,7 +44,6 @@ const styles = {
 const GAMES = {
   candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html', controlType: 'touch' },
   towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html', controlType: 'touch' },
-  snake: { title: 'Snake', src: '/games/snake-new/index.html', controlType: 'd-pad' },
   tetris: { title: 'Tetris', src: '/games/tetris/index.html', controlType: 'd-pad' },
   pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html', controlType: 'd-pad' },
 };

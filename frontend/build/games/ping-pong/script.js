@@ -27,13 +27,9 @@ let ballSpeedY = 5;
 // Paddle properties
 const paddleHeight = 80;
 const paddleWidth = 10;
-const paddleSpeed = 10;
+const paddleSpeed = 20; // Aumentei a velocidade para melhor resposta
 let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
 let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
-
-// Key and Touch state
-let moveUp = false;
-let moveDown = false;
 
 // Game start function
 function startGame() {
@@ -50,49 +46,27 @@ restartBtn.addEventListener("click", () => document.location.reload());
 
 // D-pad controls from the main application
 window.addEventListener('message', function(event) {
-    if (event.data === 'up') {
-        moveUp = true;
-    } else if (event.data === 'down') {
-        moveDown = false; // Continuously moving down, stop when released
+    if (gameRunning) {
+        if (event.data === 'up') {
+            leftPaddleY -= paddleSpeed;
+        } else if (event.data === 'down') {
+            leftPaddleY += paddleSpeed;
+        }
     }
     if (event.data === 'action') {
         startGame();
     }
 });
 
-// Keyboard controls
-document.addEventListener("keydown", e => {
-    if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") moveUp = true;
-    if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") moveDown = true;
-});
-document.addEventListener("keyup", e => {
-    if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") moveUp = false;
-    if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") moveDown = false;
-});
-
-// Touch controls
-moveUpBtn.addEventListener("touchstart", e => { e.preventDefault(); moveUp = true; });
-moveUpBtn.addEventListener("touchend", e => { e.preventDefault(); moveUp = false; });
-moveDownBtn.addEventListener("touchstart", e => { e.preventDefault(); moveDown = true; });
-moveDownBtn.addEventListener("touchend", e => { e.preventDefault(); moveDown = false; });
-
 window.addEventListener("load", draw);
 
 function update() {
-    // Move left paddle (player)
-    if (moveUp && leftPaddleY > 0) {
-        leftPaddleY -= paddleSpeed;
-    }
-    if (moveDown && leftPaddleY + paddleHeight < canvas.height) {
-        leftPaddleY += paddleSpeed;
-    }
-
     // AI for right paddle
     const rightPaddleCenter = rightPaddleY + paddleHeight / 2;
     if (rightPaddleCenter < ballY - 10 && rightPaddleY + paddleHeight < canvas.height) {
-        rightPaddleY += paddleSpeed * 0.8;
+        rightPaddleY += paddleSpeed * 0.6;
     } else if (rightPaddleCenter > ballY + 10 && rightPaddleY > 0) {
-        rightPaddleY -= paddleSpeed * 0.8;
+        rightPaddleY -= paddleSpeed * 0.6;
     }
 
     ballX += ballSpeedX;
@@ -104,8 +78,6 @@ function update() {
 
     if (ballX - ballRadius < paddleWidth && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
         ballSpeedX = -ballSpeedX;
-        ballSpeedX *= 1.05;
-        ballSpeedY *= 1.05;
     }
     if (ballX + ballRadius > canvas.width - paddleWidth && ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
         ballSpeedX = -ballSpeedX;
