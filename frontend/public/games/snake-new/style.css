@@ -1,12 +1,6 @@
-/* Import Google font */
+/* Estilos base (inalterados) */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Open Sans', sans-serif;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Open Sans', sans-serif; }
 
 body {
   background: #171B26;
@@ -23,32 +17,28 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* <<< CORREÇÃO PRINCIPAL */
+  justify-content: space-between; /* Espaço entre os elementos */
   background: #293447;
-  border-radius: 0;
-  box-shadow: none;
 }
 
 .game-details {
   color: #B8C6DC;
-  font-weight: 500;
   font-size: 1.2rem;
-  padding: 10px 25px;
+  padding: 15px 25px;
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
 }
 
 .play-board {
-  width: 98vmin; /* Um pouco maior para ocupar espaço */
-  height: 98vmin; /* Mantém quadrado */
-  max-width: calc(100vh - 120px); /* Garante que não ultrapasse a altura */
-  max-height: calc(100vh - 120px);
-  margin: 0 auto; /* Centraliza horizontalmente */
+  width: 100%;
+  /* A altura será controlada pelo flexbox */
+  margin: 0 auto;
   display: grid;
   background: #212837;
   grid-template: repeat(30, 1fr) / repeat(30, 1fr);
-  border: 1px solid #B8C6DC;
+  border-top: 1px solid #B8C6DC;
+  border-bottom: 1px solid #B8C6DC;
 }
 
 .play-board .food { background: #FF003D; border-radius: 50%; }
@@ -62,13 +52,12 @@ body {
 }
 
 .controls i {
-  padding: 15px 25px;
+  padding: 10px 20px; /* Reduzido para caber melhor */
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   color: #B8C6DC;
   cursor: pointer;
   border-radius: 8px;
-  width: calc(100% / 4 - 10px);
 }
 
 .controls i:hover { background: #4a5568; }
