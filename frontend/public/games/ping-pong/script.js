@@ -35,8 +35,16 @@ let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
 let moveUp = false;
 let moveDown = false;
 
+// Game start function
+function startGame() {
+    if (!gameRunning) {
+        gameRunning = true;
+        loop();
+    }
+}
+
 // Event Listeners
-startBtn.addEventListener("click", () => { if (!gameRunning) { gameRunning = true; loop(); } });
+startBtn.addEventListener("click", startGame);
 pauseBtn.addEventListener("click", () => { gameRunning = false; cancelAnimationFrame(animationId); });
 restartBtn.addEventListener("click", () => document.location.reload());
 
@@ -45,7 +53,10 @@ window.addEventListener('message', function(event) {
     if (event.data === 'up') {
         moveUp = true;
     } else if (event.data === 'down') {
-        moveDown = true;
+        moveDown = false; // Continuously moving down, stop when released
+    }
+    if (event.data === 'action') {
+        startGame();
     }
 });
 
@@ -84,7 +95,6 @@ function update() {
         rightPaddleY -= paddleSpeed * 0.8;
     }
 
-    // (Resto da função update, draw, loop, etc. permanece o mesmo)
     ballX += ballSpeedX;
     ballY += ballSpeedY;
 

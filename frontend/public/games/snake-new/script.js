@@ -57,22 +57,25 @@ const initGame = () => {
     if(snakeX === foodX && snakeY === foodY) {
         window.parent.postMessage('gameWon', '*'); 
         updateFoodPosition();
-        snakeBody.push([foodX, foodY]); // Correção aqui
+        snakeBody.push([foodY, foodX]);
         score++; 
         highScore = score >= highScore ? score : highScore;
         localStorage.setItem("high-score", highScore);
         scoreElement.innerText = `Pontuação: ${score}`;
         highScoreElement.innerText = `Pontuação Máxima: ${highScore}`;
     }
-
+    
+    // Atualiza a posição da cobra
     snakeX += velocityX;
     snakeY += velocityY;
 
+    // Move o corpo da cobra
     for (let i = snakeBody.length - 1; i > 0; i--) {
         snakeBody[i] = snakeBody[i - 1];
     }
     snakeBody[0] = [snakeX, snakeY];
 
+    // Verifica se a cobra bateu na parede
     if(snakeX <= 0 || snakeX > 30 || snakeY <= 0 || snakeY > 30) {
         return gameOver = true;
     }
