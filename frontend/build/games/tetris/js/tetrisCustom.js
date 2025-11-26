@@ -10,10 +10,13 @@ let timeMoveDown = 500;
 let timerId = null;
 const $startStopButton = document.getElementById("start-button");
 const $restartButton = document.getElementById("restart-button");
+const $backButton = document.getElementById("back-button");
 
-// Play/Pause button click event
+// Button click events
 $startStopButton.addEventListener("click", () => pauseGame());
 $restartButton.addEventListener("click", () => window.location.reload());
+$backButton.addEventListener("click", () => window.parent.postMessage('goBack', '*'));
+
 
 // Function to pause the game
 function pauseGame() {

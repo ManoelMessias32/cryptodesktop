@@ -23,23 +23,33 @@ html, body {
 .empty { background-color: transparent; border: none;
 }
 
-
-/* Estilo para o contêiner de áudio */
-#audio-container {
+/* Estilo para o contêiner de áudio e botão Voltar */
+#header-buttons {
     position: absolute;
     top: 2%; 
     left: 20%; 
     z-index: 9999;
+    display: flex;
+    gap: 10px;
 }
 
-/* Estilo base para o botão de mute */
-#mute-button {
+#mute-button, #back-button {
     background-color: transparent;
     border: none;
     cursor: pointer;
     font-size: 24px;
     position: relative;
+    color: white;
 }
+
+#back-button {
+    font-family: 'Press Start 2P', sans-serif;
+    font-size: 14px;
+    background: rgba(0,0,0,0.5);
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
 /* Estilo para o ícone de alto-falante (padrão) e "mute"*/
 #audio-icon.audio-on::before { content: "\1F50A"; } /* Ícone (🔊) */
 #audio-icon.audio-off::before { content: "\1F507";} /* Ícone (🔇) */
@@ -87,8 +97,7 @@ html, body {
     
 }
 /* Efeito de hover nos botões */
-.buttons-container button:hover { filter: brightness(0.8);
-}
+.buttons-container button:hover { filter: brightness(0.8);}
 /* Estilo para botões desabilitados */
 button:disabled{ cursor: not-allowed; opacity: 1.0;
 }

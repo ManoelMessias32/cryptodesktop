@@ -63,9 +63,9 @@ function update() {
     // AI for right paddle
     const rightPaddleCenter = rightPaddleY + paddleHeight / 2;
     if (rightPaddleCenter < ballY - 10 && rightPaddleY + paddleHeight < canvas.height) {
-        rightPaddleY += opponentPaddleSpeed * 0.6;
+        rightPaddleY += opponentPaddleSpeed * 0.4; // Reduced speed for fairness
     } else if (rightPaddleCenter > ballY + 10 && rightPaddleY > 0) {
-        rightPaddleY -= opponentPaddleSpeed * 0.6;
+        rightPaddleY -= opponentPaddleSpeed * 0.4; // Reduced speed for fairness
     }
 
     ballX += ballSpeedX;
