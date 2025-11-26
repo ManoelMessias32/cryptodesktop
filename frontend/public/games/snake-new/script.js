@@ -57,7 +57,7 @@ const initGame = () => {
     if(snakeX === foodX && snakeY === foodY) {
         window.parent.postMessage('gameWon', '*'); 
         updateFoodPosition();
-        snakeBody.push([foodY, foodX]);
+        snakeBody.push([foodX, foodY]); // Correção aqui
         score++; 
         highScore = score >= highScore ? score : highScore;
         localStorage.setItem("high-score", highScore);
@@ -65,16 +65,14 @@ const initGame = () => {
         highScoreElement.innerText = `Pontuação Máxima: ${highScore}`;
     }
 
-    // Move o corpo da cobra
+    snakeX += velocityX;
+    snakeY += velocityY;
+
     for (let i = snakeBody.length - 1; i > 0; i--) {
         snakeBody[i] = snakeBody[i - 1];
     }
-    // Atualiza a cabeça da cobra com a nova posição
     snakeBody[0] = [snakeX, snakeY];
 
-    snakeX += velocityX;
-    snakeY += velocityY;
-    
     if(snakeX <= 0 || snakeX > 30 || snakeY <= 0 || snakeY > 30) {
         return gameOver = true;
     }
@@ -82,7 +80,6 @@ const initGame = () => {
     // Renderiza a cobra e a comida
     for (let i = 0; i < snakeBody.length; i++) {
         html += `<div class="head" style="grid-area: ${snakeBody[i][1]} / ${snakeBody[i][0]}"></div>`;
-        // Verifica a colisão com o corpo
         if (i !== 0 && snakeBody[0][1] === snakeBody[i][1] && snakeBody[0][0] === snakeBody[i][0]) {
             gameOver = true;
         }

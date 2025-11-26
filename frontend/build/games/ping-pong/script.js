@@ -40,6 +40,15 @@ startBtn.addEventListener("click", () => { if (!gameRunning) { gameRunning = tru
 pauseBtn.addEventListener("click", () => { gameRunning = false; cancelAnimationFrame(animationId); });
 restartBtn.addEventListener("click", () => document.location.reload());
 
+// D-pad controls from the main application
+window.addEventListener('message', function(event) {
+    if (event.data === 'up') {
+        moveUp = true;
+    } else if (event.data === 'down') {
+        moveDown = true;
+    }
+});
+
 // Keyboard controls
 document.addEventListener("keydown", e => {
     if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") moveUp = true;
