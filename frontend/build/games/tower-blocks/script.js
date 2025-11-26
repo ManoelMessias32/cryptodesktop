@@ -48,9 +48,16 @@ window.addEventListener('DOMContentLoaded', () => {
             this.newBlocks = new THREE.Group(); this.placedBlocks = new THREE.Group(); this.choppedBlocks = new THREE.Group();
             this.stage.add(this.newBlocks); this.stage.add(this.placedBlocks); this.stage.add(this.choppedBlocks);
             this.addBlock(); this.tick(); this.updateState(this.STATES.READY);
+
+            window.addEventListener('message', function(event) {
+                if (event.data === 'action') {
+                    _this.onAction();
+                }
+            });
+
             document.addEventListener("keydown", function (e) { if (e.keyCode == 32) _this.onAction(); });
-            document.addEventListener("click", function (e) { _this.onAction(); });
-            this.actionButton.addEventListener("click", function() { _this.onAction(); });
+            document.addEventListener("pointerdown", function (e) { _this.onAction(); });
+            this.actionButton.addEventListener("pointerdown", function() { _this.onAction(); });
         }
         Game.prototype.updateState = function (newState) { for (var key in this.STATES) this.mainContainer.classList.remove(this.STATES[key]); this.mainContainer.classList.add(newState); this.state = newState; };
         Game.prototype.onAction = function () { switch (this.state) { case this.STATES.READY: this.startGame(); break; case this.STATES.PLAYING: this.placeBlock(); break; case this.STATES.ENDED: this.restartGame(); break; } };

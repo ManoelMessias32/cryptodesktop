@@ -101,16 +101,16 @@ function update() {
     }
 
     if (leftPlayerScore === maxScore) {
-        playerWin("You");
+        playerWin("Você");
         window.parent.postMessage('gameWon', '*');
     } else if (rightPlayerScore === maxScore) {
-        playerWin("Computer");
+        playerWin("Computador");
     }
 }
 
 function playerWin(player) {
     gameRunning = false;
-    const message = player === "You" ? "Parabéns, você venceu!" : "O computador venceu.";
+    const message = player === "Você" ? "Parabéns, você venceu!" : "O computador venceu.";
     $("#message").text(message);
     $("#message-modal").modal("show");
 }

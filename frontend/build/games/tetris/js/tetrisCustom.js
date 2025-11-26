@@ -20,7 +20,7 @@ function pauseGame() {
     if (timerId) {
         clearInterval(timerId);
         timerId = null;
-        $startStopButton.textContent = "PLAY";
+        $startStopButton.textContent = "JOGAR";
         currentMusic.pause();
         musicStarted = false;
 
@@ -33,7 +33,7 @@ function pauseGame() {
 
     } else {
         timerId = setInterval(moveDown, timeMoveDown);
-        $startStopButton.textContent = "PAUSE";
+        $startStopButton.textContent = "PAUSAR";
         
         // Starts background music if it hasn't already started
         if (!musicStarted) {
@@ -70,7 +70,7 @@ function gameWin() {
         // Set 'hasWon' to true to prevent the victory music from playing repeatedly
         hasWon = true;
         playVictoryMusic();
-        $score.innerHTML += "<br />" + "<br />" + "VICTORY!";
+        $score.innerHTML += "<br />" + "<br />" + "VITÓRIA!";
         hasWon = true;
     }
 
@@ -102,7 +102,7 @@ function gameOver(){
         }
 
         gameOverAudio.play();
-        $score.innerHTML += "<br />" + "GAMER OVER";
+        $score.innerHTML += "<br />" + "FIM DE JOGO";
     };
 }
 

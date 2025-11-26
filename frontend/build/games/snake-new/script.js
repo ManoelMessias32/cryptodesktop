@@ -14,7 +14,7 @@ let score = 0;
 let gameSpeed = 150; 
 
 let highScore = localStorage.getItem("high-score") || 0;
-highScoreElement.innerText = `High Score: ${highScore}`;
+highScoreElement.innerText = `Pontuação Máxima: ${highScore}`;
 
 const updateFoodPosition = () => {
     foodX = Math.floor(Math.random() * 30) + 1;
@@ -23,7 +23,7 @@ const updateFoodPosition = () => {
 
 const handleGameOver = () => {
     clearInterval(setIntervalId);
-    alert("Game Over! Press OK to replay...");
+    alert("Fim de Jogo! Pressione OK para jogar novamente...");
     location.reload();
 }
 
@@ -61,8 +61,8 @@ const initGame = () => {
         score++; 
         highScore = score >= highScore ? score : highScore;
         localStorage.setItem("high-score", highScore);
-        scoreElement.innerText = `Score: ${score}`;
-        highScoreElement.innerText = `High Score: ${highScore}`;
+        scoreElement.innerText = `Pontuação: ${score}`;
+        highScoreElement.innerText = `Pontuação Máxima: ${highScore}`;
     }
 
     snakeX += velocityX;
