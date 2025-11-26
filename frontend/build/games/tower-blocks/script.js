@@ -228,7 +228,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 this.scoreContainer.innerHTML = '0';
                 this.updateState(this.STATES.PLAYING);
                 this.addBlock();
-                 window.parent.postMessage('gameWon', '*');
             }
         };
         Game.prototype.restartGame = function () {
@@ -275,6 +274,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
                 TweenLite.to(newBlocks.chopped.rotation, 1, rotationParams);
             }
+
             if (newBlocks.missed) {
                 this.endGame();
             }
@@ -293,6 +293,10 @@ window.addEventListener('DOMContentLoaded', () => {
             this.newBlocks.add(newKidOnTheBlock.mesh);
             this.blocks.push(newKidOnTheBlock);
             this.stage.setCamera(this.blocks.length * 2);
+
+            if (this.blocks.length > 1) {
+                 window.parent.postMessage('gameWon', '*');
+            }
         };
         Game.prototype.endGame = function () {
             this.updateState(this.STATES.ENDED);
@@ -307,5 +311,3 @@ window.addEventListener('DOMContentLoaded', () => {
     }());
     var game = new Game();
 });
-
-

@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Lógica completa do jogo Candy Crush restaurada
+    // Lógica completa do jogo Candy Crush restaurada e otimizada
     function candyCrushGame() {
         const grid = document.querySelector(".grid");
         const scoreDisplay = document.getElementById("score");
@@ -60,7 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        function touchStart(e) { e.preventDefault(); squareIdBeingDragged = parseInt(this.id); colorBeingDragged = this.style.backgroundImage; }
+        // Otimização dos eventos de toque
+        function touchStart(e) { e.preventDefault(); squareIdBeingDragged = parseInt(e.target.id); colorBeingDragged = e.target.style.backgroundImage; }
         function touchMove(e) { e.preventDefault(); const touch = e.touches[0]; const element = document.elementFromPoint(touch.clientX, touch.clientY); if (element && squares.includes(element)) { squareIdBeingReplaced = parseInt(element.id); } else { squareIdBeingReplaced = null; } }
         function touchEnd() { if (squareIdBeingReplaced !== null) { dragDrop.call(squares[squareIdBeingReplaced]); dragEnd(); } }
 
@@ -124,6 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        // Aumento do intervalo para aliviar a carga
         window.setInterval(function(){
             checkRowFor(4);
             checkColumnFor(4);
@@ -131,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
             checkColumnFor(3);
             moveDown();
             checkWinCondition();
-        }, 100);
+        }, 200);
 
         function startGame() {
             createBoard();
@@ -144,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 square.addEventListener('dragleave', dragLeave);
                 square.addEventListener('drop', dragDrop);
                 square.addEventListener('dragend', dragEnd);
-                square.addEventListener('touchstart', touchStart, { passive: false });
+                square.addEventListener('touchstart', touchStart, { passive: true });
                 square.addEventListener('touchmove', touchMove, { passive: false });
                 square.addEventListener('touchend', touchEnd, { passive: false });
             });
