@@ -89,11 +89,16 @@ export default function GamesPage({ onGameWin }) {
 
   useEffect(() => {
     const handleMessage = (event) => {
-      if (event.data === 'gameWon') onGameWin();
+        if (event.data === 'gameWon') {
+            onGameWin();
+        } else if (event.data === 'goBack') {
+            setSelectedGame(null);
+        }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [onGameWin]);
+}, [onGameWin]);
+
 
   const handleControlPress = useCallback((command) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
