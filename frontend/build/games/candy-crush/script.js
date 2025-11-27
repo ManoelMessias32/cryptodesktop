@@ -1,229 +1,246 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <!-- ADIÇÃO: Viewport essencial pro Telegram WebView -- força responsivo e sem zoom -->
-    <title>Candy Crush - CryptoDesk</title>
-    <style>
-        /* ADIÇÃO: CSS responsivo completo pro bot */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+document.addEventListener("DOMContentLoaded", () => {
+    candyCrushGame();
+});
+
+function candyCrushGame() {
+    // DOM Elements
+    const grid = document.querySelector(".grid");
+    const scoreDisplay = document.getElementById("score");
+    const timerDisplay = document.getElementById("timer");
+    const modeSelection = document.getElementById("modeSelection");
+    const endlessButton = document.getElementById("endlessMode");
+    const timedButton = document.getElementById("timedMode");
+    const changeModeButton = document.getElementById("changeMode");
+
+    // Game State Variables
+    const width = 8;
+    const squares = [];
+    let score = 0;
+    let currentMode = null;
+    let timeLeft = 0;
+    let gameInterval = null;
+    let timerInterval = null;
+
+    const candyColors = [
+        "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/red-candy.png)",
+        "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/blue-candy.png)",
+        "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/green-candy.png)",
+        "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/yellow-candy.png)",
+        "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/orange-candy.png)",
+        "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/purple-candy.png)",
+    ];
+
+    // Create the Game Board
+    function createBoard() {
+        grid.innerHTML = ""; // Clear existing grid
+        squares.length = 0;  // Clear squares array
+        for (let i = 0; i < width * width; i++) {
+            const square = document.createElement("div");
+            square.setAttribute("draggable", true);
+            square.setAttribute("id", i);
+            let randomColor = Math.floor(Math.random() * candyColors.length);
+            square.style.backgroundImage = candyColors[randomColor];
+            grid.appendChild(square);
+            squares.push(square);
         }
+        // Add drag event listeners
+        squares.forEach(square => square.addEventListener("dragstart", dragStart));
+        squares.forEach(square => square.addEventListener("dragend", dragEnd));
+        squares.forEach(square => square.addEventListener("dragover", dragOver));
+        squares.forEach(square => square.addEventListener("dragenter", dragEnter));
+        squares.forEach(square => square.addEventListener("dragleave", dragLeave));
+        squares.forEach(square => square.addEventListener("drop", dragDrop));
+    }
 
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-            overflow: auto; /* ADIÇÃO: Permite scroll se necessário */
-            padding: 10px;
+    // Drag and Drop Functions
+    let colorBeingDragged, colorBeingReplaced, squareIdBeingDragged, squareIdBeingReplaced;
+
+    function dragStart() {
+        colorBeingDragged = this.style.backgroundImage;
+        squareIdBeingDragged = parseInt(this.id);
+    }
+
+    function dragOver(e) {
+        e.preventDefault();
+    }
+
+    function dragEnter(e) {
+        e.preventDefault();
+    }
+
+    function dragLeave() {
+        // No action needed
+    }
+
+    function dragDrop() {
+        colorBeingReplaced = this.style.backgroundImage;
+        squareIdBeingReplaced = parseInt(this.id);
+        this.style.backgroundImage = colorBeingDragged;
+        squares[squareIdBeingDragged].style.backgroundImage = colorBeingReplaced;
+    }
+
+    function dragEnd() {
+        // Define valid moves (adjacent squares: left, up, right, down)
+        let validMoves = [
+            squareIdBeingDragged - 1,
+            squareIdBeingDragged - width,
+            squareIdBeingDragged + 1,
+            squareIdBeingDragged + width
+        ];
+        let validMove = validMoves.includes(squareIdBeingReplaced);
+
+        if (squareIdBeingReplaced && validMove) {
+            squareIdBeingReplaced = null; // Move is valid, keep the swap
+        } else if (squareIdBeingReplaced && !validMove) {
+            // Invalid move, revert the swap
+            squares[squareIdBeingReplaced].style.backgroundImage = colorBeingReplaced;
+            squares[squareIdBeingDragged].style.backgroundImage = colorBeingDragged;
+        } else {
+            // No drop occurred, revert to original
+            squares[squareIdBeingDragged].style.backgroundImage = colorBeingDragged;
         }
+    }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 1px;
-            background-color: #f0f0f0;
-            padding: 5px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            max-width: 100vw; /* ADIÇÃO: Não ultrapassa a largura da tela */
-            max-height: 80vh; /* ADIÇÃO: Limita altura pra caber no WebView do Telegram */
-            overflow: auto; /* ADIÇÃO: Scroll interno se o grid for grande */
-        }
-
-        .grid div {
-            width: 100%;
-            height: 50px; /* ADIÇÃO: Altura menor e responsiva pro mobile */
-            background-size: contain !important;
-            background-repeat: no-repeat !important;
-            background-position: center !important;
-            cursor: pointer;
-            border: 1px solid rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
-            image-rendering: pixelated;
-        }
-
-        .selected {
-            border: 3px solid #ffeb3b !important;
-            transform: scale(1.1);
-        }
-
-        /* ADIÇÃO: Media query pro Telegram mobile (telas < 500px) */
-        @media (max-width: 500px) {
-            .grid div {
-                height: 40px; /* Ainda menor em celulares */
-            }
-            .grid {
-                max-height: 70vh;
+    // Move Candies Down
+    function moveIntoSquareBelow() {
+        // Fill empty squares in the first row
+        for (let i = 0; i < width; i++) {
+            if (squares[i].style.backgroundImage === "") {
+                let randomColor = Math.floor(Math.random() * candyColors.length);
+                squares[i].style.backgroundImage = candyColors[randomColor];
             }
         }
-
-        /* ADIÇÃO: Esconde scrollbars pra ficar clean */
-        .grid::-webkit-scrollbar {
-            display: none;
+        // Move candies down to fill gaps
+        for (let i = 0; i < width * (width - 1); i++) {
+            if (squares[i + width].style.backgroundImage === "") {
+                squares[i + width].style.backgroundImage = squares[i].style.backgroundImage;
+                squares[i].style.backgroundImage = "";
+            }
         }
-    </style>
-</head>
-<body>
-    <div class="grid"></div> <!-- Seu grid original -->
+    }
 
-    <script>
-        // Seu JS original com as correções de URL (pro Vercel)
-        document.addEventListener("DOMContentLoaded", () => {
-            const grid = document.querySelector(".grid");
-            const width = 8;
-            const squares = [];
-
-            // URLs absolutas pro seu Vercel (como corrigimos antes)
-            const baseUrl = 'https://cryptodesktop.vercel.app/';
-            const candyColors = [
-                `url(${baseUrl}utils/red-candy.png)`,
-                `url(${baseUrl}utils/blue-candy.png)`,
-                `url(${baseUrl}utils/green-candy.png)`,
-                `url(${baseUrl}utils/yellow-candy.png)`,
-                `url(${baseUrl}utils/orange-candy.png)`,
-                `url(${baseUrl}utils/purple-candy.png)`,
-            ];
-
-            function createBoard() {
-                for (let i = 0; i < width * width; i++) {
-                    const square = document.createElement("div");
-                    square.setAttribute("id", i);
-                    let randomColor = Math.floor(Math.random() * candyColors.length);
-                    square.style.backgroundImage = candyColors[randomColor];
-                    square.setAttribute("draggable", false); // Evita drag no mobile
-                    grid.appendChild(square);
-                    squares.push(square);
-                }
+    // Check for Matches
+    function checkRowForFour() {
+        for (let i = 0; i < 60; i++) {
+            if (i % width >= width - 3) continue; // Skip if not enough columns left
+            let rowOfFour = [i, i + 1, i + 2, i + 3];
+            let decidedColor = squares[i].style.backgroundImage;
+            const isBlank = squares[i].style.backgroundImage === "";
+            if (rowOfFour.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+                score += 4;
+                scoreDisplay.innerHTML = score;
+                rowOfFour.forEach(index => squares[index].style.backgroundImage = "");
             }
+        }
+    }
 
-            let firstSquare = null;
-
-            function squareClick() {
-                if (this.classList.contains("selected")) {
-                    this.classList.remove("selected");
-                    firstSquare = null;
-                    return;
-                }
-
-                if (firstSquare === null) {
-                    firstSquare = this;
-                    this.classList.add("selected");
-                } else {
-                    const secondSquare = this;
-                    const firstId = parseInt(firstSquare.id);
-                    const secondId = parseInt(secondSquare.id);
-
-                    const validMoves = [firstId - 1, firstId - width, firstId + 1, firstId + width];
-                    const isValidMove = validMoves.includes(secondId);
-
-                    if (isValidMove) {
-                        const firstColor = firstSquare.style.backgroundImage;
-                        const secondColor = secondSquare.style.backgroundImage;
-
-                        firstSquare.style.backgroundImage = secondColor;
-                        secondSquare.style.backgroundImage = firstColor;
-
-                        setTimeout(() => {
-                            if (!checkMatch()) {
-                                firstSquare.style.backgroundImage = firstColor;
-                                secondSquare.style.backgroundImage = secondColor;
-                            } else {
-                                window.parent.postMessage('gameWon', '*');
-                                gameLoop();
-                            }
-                        }, 200);
-                    }
-
-                    firstSquare.classList.remove("selected");
-                    firstSquare = null;
-                }
+    function checkColumnForFour() {
+        for (let i = 0; i < 40; i++) {
+            let columnOfFour = [i, i + width, i + 2 * width, i + 3 * width];
+            let decidedColor = squares[i].style.backgroundImage;
+            const isBlank = squares[i].style.backgroundImage === "";
+            if (columnOfFour.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+                score += 4;
+                scoreDisplay.innerHTML = score;
+                columnOfFour.forEach(index => squares[index].style.backgroundImage = "");
             }
+        }
+    }
 
-            function gameLoop() {
-                moveDown();
-                let hasMatch = checkMatch();
-                if (hasMatch) {
-                    setTimeout(gameLoop, 200);
+    function checkRowForThree() {
+        for (let i = 0; i < 62; i++) {
+            if (i % width >= width - 2) continue; // Skip if not enough columns left
+            let rowOfThree = [i, i + 1, i + 2];
+            let decidedColor = squares[i].style.backgroundImage;
+            const isBlank = squares[i].style.backgroundImage === "";
+            if (rowOfThree.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+                score += 3;
+                scoreDisplay.innerHTML = score;
+                rowOfThree.forEach(index => squares[index].style.backgroundImage = "");
+            }
+        }
+    }
+
+    function checkColumnForThree() {
+        for (let i = 0; i < 48; i++) {
+            let columnOfThree = [i, i + width, i + 2 * width];
+            let decidedColor = squares[i].style.backgroundImage;
+            const isBlank = squares[i].style.backgroundImage === "";
+            if (columnOfThree.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+                score += 3;
+                scoreDisplay.innerHTML = score;
+                columnOfThree.forEach(index => squares[index].style.backgroundImage = "");
+            }
+        }
+    }
+
+    // Game Loop
+    function gameLoop() {
+        checkRowForFour();
+        checkColumnForFour();
+        checkRowForThree();
+        checkColumnForThree();
+        moveIntoSquareBelow();
+    }
+
+    // Start the Game
+    function startGame(mode) {
+        currentMode = mode;
+        modeSelection.style.display = "none";
+        grid.style.display = "flex";
+        scoreDisplay.parentElement.style.display = "flex"; // Show scoreboard
+        createBoard();
+        score = 0;
+        scoreDisplay.innerHTML = score;
+        gameInterval = setInterval(gameLoop, 100);
+
+        if (mode === "timed") {
+            timeLeft = 120; // 2 minutes in seconds
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
                 }
-            }
+            }, 1000);
+        } else {
+            timerDisplay.innerHTML = ""; // Clear timer in Endless Mode
+        }
+    }
 
-            function checkMatch() {
-                let hasMatch = false;
-                if (checkRowFor(4)) hasMatch = true;
-                if (checkColumnFor(4)) hasMatch = true;
-                if (checkRowFor(3)) hasMatch = true;
-                if (checkColumnFor(3)) hasMatch = true;
-                return hasMatch;
-            }
+    // Update Timer Display
+    function updateTimerDisplay() {
+        if (currentMode === "timed") {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            timerDisplay.innerHTML = `Time Left: ${minutes}:${seconds.toString().padStart(2, "0")}`;
+        } else {
+            timerDisplay.innerHTML = "";
+        }
+    }
 
-            function moveDown() {
-                for (let i = 0; i < 55; i++) {
-                    if (squares[i + width].style.backgroundImage === '') {
-                        squares[i + width].style.backgroundImage = squares[i].style.backgroundImage;
-                        squares[i].style.backgroundImage = '';
-                    }
-                }
-                for (let i = 0; i < width; i++) {
-                    if (squares[i].style.backgroundImage === '') {
-                        let randomColor = Math.floor(Math.random() * candyColors.length);
-                        squares[i].style.backgroundImage = candyColors[randomColor];
-                    }
-                }
-            }
+    // End Game (Timed Mode)
+    function endGame() {
+        clearInterval(gameInterval);
+        squares.forEach(square => square.setAttribute("draggable", false));
+        alert(`Time's Up! Your score is ${score}`);
+    }
 
-            function checkRowFor(num) {
-                for (let i = 0; i < 64; i++) {
-                    let rowOfNum = Array.from({length: num}, (_, k) => i + k);
-                    if (i % width + (num - 1) >= width) continue;
+    // Change Mode
+    function changeMode() {
+        clearInterval(gameInterval);
+        if (currentMode === "timed") {
+            clearInterval(timerInterval);
+        }
+        grid.style.display = "none";
+        scoreDisplay.parentElement.style.display = "none";
+        modeSelection.style.display = "flex"; // Show mode selection screen
+    }
 
-                    let decidedColor = squares[rowOfNum[0]].style.backgroundImage;
-                    if (decidedColor === '') continue;
-
-                    if (rowOfNum.every(index => squares[index].style.backgroundImage === decidedColor)) {
-                        rowOfNum.forEach(index => { squares[index].style.backgroundImage = ''; });
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            function checkColumnFor(num) {
-                for (let i = 0; i < 64 - width * (num - 1); i++) {
-                    let columnOfNum = Array.from({length: num}, (_, k) => i + k * width);
-
-                    let decidedColor = squares[columnOfNum[0]].style.backgroundImage;
-                    if (decidedColor === '') continue;
-
-                    if (columnOfNum.every(index => squares[index].style.backgroundImage === decidedColor)) {
-                        columnOfNum.forEach(index => { squares[index].style.backgroundImage = ''; });
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            function startGame() {
-                createBoard();
-                squares.forEach(square => {
-                    square.addEventListener('click', squareClick);
-                });
-            }
-
-            // ADIÇÃO: Previne zoom/scroll indesejado no Telegram
-            document.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-            }, { passive: false });
-
-            startGame();
-        });
-    </script>
-</body>
-</html>
+    // Event Listeners
+    endlessButton.addEventListener("click", () => startGame("endless"));
+    timedButton.addEventListener("click", () => startGame("timed"));
+    changeModeButton.addEventListener("click", changeMode);
+}
