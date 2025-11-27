@@ -1,32 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width,user-scalable=no" />
-    <script src="./libs/codepen.js"></script>
-    <script src="./libs/three.min.js"></script>
-    <script src="./libs/TweenMax.min.js"></script>
-    <title>Tower Blocks</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <script src="script.js" async></script>
-    <div id="container">
-      <div id="game"></div>
-      <div id="score">0</div>
-      <div id="instructions">
-        Click (or press the spacebar) to place the block
-      </div>
-      <div class="game-over">
-        <h2>Game Over</h2>
-        <p>You did great, you're the best.</p>
-        <p>Click or spacebar to start again</p>
-      </div>
-      <div class="game-ready">
-        <div id="start-button">Start</div>
-        <div></div>
-      </div>
-    </div>
-  </body>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Tower Blocks - CryptoDesk</title>
+
+    <!-- Three.js + GSAP via CDN (sempre carregam no Telegram) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        body { margin:0; overflow:hidden; background:#000; font-family:Arial; color:white; }
+        #score { position:absolute; top:20px; left:50%; transform:translateX(-50%); font-size:24px; z-index:10; background:rgba(0,0,0,0.5); padding:10px 20px; border-radius:10px; }
+        #instructions { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:10; background:rgba(0,0,0,0.7); padding:15px; border-radius:10px; text-align:center; }
+        .game-over, .game-ready { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:20; background:rgba(0,0,0,0.8); padding:30px; border-radius:15px; }
+        #start-button { background:#4CAF50; color:white; padding:15px 30px; font-size:20px; border-radius:10px; cursor:pointer; margin-top:20px; }
+    </style>
+</head>
+<body>
+<div id="score">0</div>
+<div id="instructions">Toque ou barra de espaço para colocar o bloco</div>
+<div class="game-over" style="display:none">
+    <h2>Game Over</h2>
+    <p>Você foi incrível!</p>
+    <p>Toque ou espaço para jogar novamente</p>
+</div>
+<div class="game-ready">
+    <div id="start-button">JOGAR</div>
+</div>
+
+<script src="script.js"></script> <!-- seu script.js original (deixe na raiz) -->
+</body>
 </html>
