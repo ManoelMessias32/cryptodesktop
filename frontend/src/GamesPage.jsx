@@ -133,12 +133,11 @@ export default function GamesPage({ onGameWin }) {
         style={styles.gameIframe} 
         title={selectedGame.title}
       ></iframe>
-      {selectedGame.controlType === 'd-pad' && (
+      {selectedGame.controlType === 'd-pad' ? (
         <GameControls onGoBack={() => setSelectedGame(null)} onControlPress={handleControlPress} />
-      )}
-      {selectedGame.controlType !== 'native' && selectedGame.controlType !== 'd-pad' && (
-          <button onClick={() => setSelectedGame(null)} style={styles.touchGoBackButton} title="Voltar">↩️</button>
-      )}
+      ) : selectedGame.controlType === 'touch' ? (
+        <button onClick={() => setSelectedGame(null)} style={styles.touchGoBackButton} title="Voltar">↩️</button>
+      ) : null}
     </div>
   );
 }

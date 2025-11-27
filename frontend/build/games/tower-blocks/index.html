@@ -1,36 +1,43 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width,user-scalable=no" />
-    <script src="./libs/three.min.js"></script>
-    <script src="./libs/TweenMax.min.js"></script>
-    <title>Torre de Blocos</title>
-    <link rel="stylesheet" href="./style.css" />
+    <script src="https://codepen.io/steveg3003/pen/zBVakw"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
+    <title>Talha - Tower Blocks</title>
+    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg" />
+
+    <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
+    <!-- Also uploaded the demo of this code in a gif : https://c.tenor.com/x8v1oNUOmg4AAAAd/tenor.gif-->
+    <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
+
+    <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
+    <!-- More html-css-js Games Calculators Games Cards Elements Projects on https://www.github.com/he-is-talha -->
+    <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
+
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <script src="script.js" async></script>
     <div id="container">
       <div id="game"></div>
       <div id="score">0</div>
       <div id="instructions">
-        Clique (ou pressione a barra de espaço) para colocar o bloco
+        Click (or press the spacebar) to place the block
       </div>
       <div class="game-over">
-        <h2>Fim de Jogo</h2>
-        <p>Você foi ótimo, você é o melhor.</p>
-        <p>Clique ou pressione a barra de espaço para recomeçar</p>
+        <h2>Game Over</h2>
+        <p>You did great, you're the best.</p>
+        <p>Click or spacebar to start again</p>
       </div>
       <div class="game-ready">
-        <div id="start-button">Começar</div>
+        <div id="start-button">Start</div>
         <div></div>
       </div>
-      <!-- Botão de Ação para Toque -->
-      <div class="touch-controls">
-        <button id="action-button">SOLTAR</button>
-      </div>
     </div>
-    <footer>Projeto de -: TANAY PADAR</footer>
-    <script src="./script.js"></script>
+    <footer>Project By -: TANAY PADAR</footer>
   </body>
 </html>
