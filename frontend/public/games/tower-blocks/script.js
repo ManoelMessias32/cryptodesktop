@@ -319,7 +319,7 @@ window.addEventListener('DOMContentLoaded', () => {
         };
         Game.prototype.tick = function () {
             var _this = this;
-            if (this.blocks.length > 0) {
+            if (this.blocks.length > 0 && this.blocks[this.blocks.length-1].state == 'active') {
                 this.blocks[this.blocks.length - 1].tick();
             }
             this.stage.render();

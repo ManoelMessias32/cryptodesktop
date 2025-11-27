@@ -59,19 +59,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     firstSquare.style.backgroundImage = secondColor;
                     secondSquare.style.backgroundImage = firstColor;
 
-                    // Check for matches
-                    const isMatch = checkMatch();
-
-                    if (!isMatch) {
-                        // Revert if no match
-                        setTimeout(() => {
+                    setTimeout(() => {
+                        if (!checkMatch()) {
                             firstSquare.style.backgroundImage = firstColor;
                             secondSquare.style.backgroundImage = secondColor;
-                        }, 200);
-                    } else {
-                        // If there is a match, keep the swap and let the game loop handle the rest
-                        gameLoop();
-                    }
+                        } else {
+                            gameLoop();
+                        }
+                    }, 200);
                 }
 
                 firstSquare.classList.remove("selected");
@@ -80,16 +75,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         function gameLoop() {
-            let wasMatch = checkMatch();
-            if (wasMatch) {
-                // Keep checking and moving down until no more matches are found
-                const loop = setInterval(()=>{
-                    moveDown();
-                    if(!checkMatch()){
-                       clearInterval(loop)
-                    }
-                }, 200)
-            }
+            moveDown();
+            let hasMatch = checkMatch();
+            if (hasMatch) {
+                // Continue the loop until no more matches
+                setTimeout(gameLoop, 200);
+            } 
             checkWinCondition();
         }
         
