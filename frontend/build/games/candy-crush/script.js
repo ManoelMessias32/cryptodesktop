@@ -3,13 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function candyCrushGame() {
         const grid = document.querySelector(".grid");
         const scoreDisplay = document.getElementById("score");
-        const levelDisplay = document.getElementById("level");
         const width = 8;
         const squares = [];
         let score = 0;
-        let currentLevel = 1;
-        let scoreToWin = 100;
-        let isGameWon = false;
 
         const candyColors = [
             "url(./utils/red-candy.png)",
@@ -55,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     const firstColor = firstSquare.style.backgroundImage;
                     const secondColor = secondSquare.style.backgroundImage;
                     
-                    // Otimistic swap
                     firstSquare.style.backgroundImage = secondColor;
                     secondSquare.style.backgroundImage = firstColor;
 
@@ -78,10 +73,8 @@ document.addEventListener("DOMContentLoaded", () => {
             moveDown();
             let hasMatch = checkMatch();
             if (hasMatch) {
-                // Continue the loop until no more matches
                 setTimeout(gameLoop, 200);
             } 
-            checkWinCondition();
         }
         
         function checkMatch() {
@@ -143,21 +136,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return false;
         }
 
-        function updateScoreboard() { scoreDisplay.innerHTML = `Pontos: ${score} / ${scoreToWin}`; levelDisplay.innerHTML = `Nível: ${currentLevel}`; }
-        
-        function checkWinCondition() {
-            if (score >= scoreToWin && !isGameWon) {
-                window.parent.postMessage('gameWon', '*');
-                isGameWon = true;
-                currentLevel++;
-                scoreToWin += 150;
-                updateScoreboard();
-            }
-        }
+        function updateScoreboard() { scoreDisplay.innerHTML = `Pontos: ${score}`; }
 
         function startGame() {
             createBoard();
-            score = 0; currentLevel = 1; scoreToWin = 100; isGameWon = false;
+            score = 0;
             updateScoreboard();
             squares.forEach(square => {
                 square.addEventListener('click', squareClick);
