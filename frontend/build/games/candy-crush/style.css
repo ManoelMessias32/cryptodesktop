@@ -11,7 +11,7 @@ body {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(8, 60px);
   gap: 1px;
   background-color: #f0f0f0; /* Fundo cinza pros quadrados vazios */
   padding: 10px;
@@ -37,6 +37,9 @@ body {
 }
 
 @media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(8, 45px);
+  }
   .grid div {
     height: 45px; /* Menor no mobile/Telegram */
   }
