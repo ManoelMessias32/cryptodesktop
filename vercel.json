@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/games/candy-crush/utils/(.*)",
+      "source": "/games/(.+)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
