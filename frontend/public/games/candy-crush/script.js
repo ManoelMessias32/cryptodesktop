@@ -64,23 +64,19 @@ document.addEventListener('DOMContentLoaded', () => {
         sq2.style.backgroundImage = tempColor;
     }
 
-        // === SUPORTE TOTAL A TOQUE NO TELEGRAM (Android + iOS) ===
-        squares.forEach(square => {
-            // Clique com mouse (funciona no PC e em alguns celulares)
-            square.addEventListener('click', squareClick);
+            createBoard();
 
-            // Toque com dedo — ESSENCIAL pro Telegram WebView mobile
-            square.addEventListener('touchstart', function(e) {
-                e.preventDefault();                    // impede zoom e scroll
-                squareClick.call(this);                // chama a mesma função do clique
-            }, { passive: false });
+            // FIX FINAL — FUNCIONA EM TODOS OS CELULARES
+            squares.forEach(square => {
+                square.addEventListener('click', squareClick);
+                square.addEventListener('pointerdown', function(e) {
+                    e.preventDefault();
+                    squareClick.call(this);
+                });
+                square.addEventListener('touchstart', e => e.stopPropagation());
+            });
 
-            // Opcional: remove o destaque azul no Android
-            square.addEventListener('touchend', function(e) {
-                e.preventDefault();
-            }, { passive: false });
-        });
-        // === FIM DO FIX DE TOUCH ===
+            runGameLoop();
 
     function runGameLoop() {
         const matches = checkAllMatches();
