@@ -32,8 +32,8 @@ html, body {
 }
 
 #score { top: 20px; font-size: 10vh; }
-#instructions { top: 18vh; }
-.game-over, .game-ready { top: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+#instructions { display: none; top: 18vh; }
+.game-over, .game-ready { top: 0; height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
 
 #start-button {
     pointer-events: auto; /* Botão de start é sempre clicável */
@@ -46,17 +46,18 @@ html, body {
 }
 
 /* Lógica de visibilidade */
-.game-over *, .game-ready #start-button, #instructions { opacity: 0; transition: opacity 0.5s ease; }
-#container.ready .game-ready #start-button, #container.playing #instructions, #container.ended .game-over * { opacity: 1; }
+#container.ready .game-ready { display: flex; }
+#container.playing #instructions { display: block; }
+#container.ended .game-over { display: flex; }
 
 /* Controles de Toque */
 .touch-controls {
     bottom: 5vh;
-    opacity: 0;
+    display: none;
     pointer-events: none;
 }
 #container.playing .touch-controls, #container.ready .touch-controls, #container.ended .touch-controls {
-    opacity: 1;
+    display: block;
     pointer-events: auto;
 }
 

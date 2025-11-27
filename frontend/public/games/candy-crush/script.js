@@ -3,13 +3,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const width = 8;
   const squares = [];
 
+  // CORREÇÃO PRINCIPAL: URLs absolutas pro seu Vercel
+  const baseUrl = 'https://cryptodesktop.vercel.app/';
   const candyColors = [
-    "url(./utils/red-candy.png)",
-    "url(./utils/blue-candy.png)",
-    "url(./utils/green-candy.png)",
-    "url(./utils/yellow-candy.png)",
-    "url(./utils/orange-candy.png)",
-    "url(./utils/purple-candy.png)",
+    `url(${baseUrl}utils/red-candy.png)`,
+    `url(${baseUrl}utils/blue-candy.png)`,
+    `url(${baseUrl}utils/green-candy.png)`,
+    `url(${baseUrl}utils/yellow-candy.png)`,
+    `url(${baseUrl}utils/orange-candy.png)`,
+    `url(${baseUrl}utils/purple-candy.png)`,
   ];
 
   function createBoard() {
@@ -18,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
       square.setAttribute("id", i);
       let randomColor = Math.floor(Math.random() * candyColors.length);
       square.style.backgroundImage = candyColors[randomColor];
+      square.setAttribute("draggable", false); // ADIÇÃO: Evita drag no mobile/Telegram
       grid.appendChild(square);
       squares.push(square);
     }
@@ -135,6 +138,11 @@ document.addEventListener("DOMContentLoaded", () => {
           square.addEventListener('click', squareClick);
       });
   }
+
+  // ADIÇÃO: Previne zoom/scroll indesejado no Telegram mobile
+  document.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+  }, { passive: false });
 
   startGame();
 });
