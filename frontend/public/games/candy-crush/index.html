@@ -1,16 +1,222 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>Candy Crush</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js" charset="utf-8"></script>
-  </head>
-  <body>
-    <div class="score-board">
-        <h3>score</h3>
-        <h1 id="score">0</h1>
-    </div>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Candy Crush - CryptoDesk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            overflow: auto;
+            padding: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 1px;
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            max-width: 100vw;
+            max-height: 80vh;
+            overflow: auto;
+        }
+
+        .grid div {
+            width: 100%;
+            height: 50px;
+            background-size: contain !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            image-rendering: pixelated;
+        }
+
+        .selected {
+            border: 3px solid #ffeb3b !important;
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 500px) {
+            .grid div {
+                height: 40px;
+            }
+            .grid {
+                max-height: 70vh;
+            }
+        }
+
+        .grid::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
     <div class="grid"></div>
-  </body>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const grid = document.querySelector(".grid");
+            const width = 8;
+            const squares = [];
+
+            const baseUrl = 'https://cryptodesktop.vercel.app/';
+            const candyColors = [
+                `url(${baseUrl}games/candy-crush/utils/red-candy.png)`,
+                `url(${baseUrl}games/candy-crush/utils/blue-candy.png)`,
+                `url(${baseUrl}games/candy-crush/utils/green-candy.png)`,
+                `url(${baseUrl}games/candy-crush/utils/yellow-candy.png)`,
+                `url(${baseUrl}games/candy-crush/utils/orange-candy.png)`,
+                `url(${baseUrl}games/candy-crush/utils/purple-candy.png)`,
+            ];
+
+            function createBoard() {
+                for (let i = 0; i < width * width; i++) {
+                    const square = document.createElement("div");
+                    square.setAttribute("id", i);
+                    let randomColor = Math.floor(Math.random() * candyColors.length);
+                    square.style.backgroundImage = candyColors[randomColor];
+                    square.setAttribute("draggable", false);
+                    grid.appendChild(square);
+                    squares.push(square);
+                }
+            }
+
+            let firstSquare = null;
+
+            function squareClick() {
+                if (this.classList.contains("selected")) {
+                    this.classList.remove("selected");
+                    firstSquare = null;
+                    return;
+                }
+
+                if (firstSquare === null) {
+                    firstSquare = this;
+                    this.classList.add("selected");
+                } else {
+                    const secondSquare = this;
+                    const firstId = parseInt(firstSquare.id);
+                    const secondId = parseInt(secondSquare.id);
+
+                    const validMoves = [firstId - 1, firstId - width, firstId + 1, firstId + width];
+                    const isValidMove = validMoves.includes(secondId);
+
+                    if (isValidMove) {
+                        const firstColor = firstSquare.style.backgroundImage;
+                        const secondColor = secondSquare.style.backgroundImage;
+
+                        firstSquare.style.backgroundImage = secondColor;
+                        secondSquare.style.backgroundImage = firstColor;
+
+                        setTimeout(() => {
+                            if (!checkMatch()) {
+                                firstSquare.style.backgroundImage = firstColor;
+                                secondSquare.style.backgroundImage = secondColor;
+                            } else {
+                                window.parent.postMessage('gameWon', '*');
+                                gameLoop();
+                            }
+                        }, 200);
+                    }
+
+                    firstSquare.classList.remove("selected");
+                    firstSquare = null;
+                }
+            }
+
+            function gameLoop() {
+                moveDown();
+                let hasMatch = checkMatch();
+                if (hasMatch) {
+                    setTimeout(gameLoop, 200);
+                }
+            }
+
+            function checkMatch() {
+                let hasMatch = false;
+                if (checkRowFor(4)) hasMatch = true;
+                if (checkColumnFor(4)) hasMatch = true;
+                if (checkRowFor(3)) hasMatch = true;
+                if (checkColumnFor(3)) hasMatch = true;
+                return hasMatch;
+            }
+
+            function moveDown() {
+                for (let i = 0; i < 55; i++) {
+                    if (squares[i + width].style.backgroundImage === '') {
+                        squares[i + width].style.backgroundImage = squares[i].style.backgroundImage;
+                        squares[i].style.backgroundImage = '';
+                    }
+                }
+                for (let i = 0; i < width; i++) {
+                    if (squares[i].style.backgroundImage === '') {
+                        let randomColor = Math.floor(Math.random() * candyColors.length);
+                        squares[i].style.backgroundImage = candyColors[randomColor];
+                    }
+                }
+            }
+
+            function checkRowFor(num) {
+                for (let i = 0; i < 64; i++) {
+                    let rowOfNum = Array.from({length: num}, (_, k) => i + k);
+                    if (i % width + (num - 1) >= width) continue;
+
+                    let decidedColor = squares[rowOfNum[0]].style.backgroundImage;
+                    if (decidedColor === '') continue;
+
+                    if (rowOfNum.every(index => squares[index].style.backgroundImage === decidedColor)) {
+                        rowOfNum.forEach(index => { squares[index].style.backgroundImage = ''; });
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function checkColumnFor(num) {
+                for (let i = 0; i < 64 - width * (num - 1); i++) {
+                    let columnOfNum = Array.from({length: num}, (_, k) => i + k * width);
+
+                    let decidedColor = squares[columnOfNum[0]].style.backgroundImage;
+                    if (decidedColor === '') continue;
+
+                    if (columnOfNum.every(index => squares[index].style.backgroundImage === decidedColor)) {
+                        columnOfNum.forEach(index => { squares[index].style.backgroundImage = ''; });
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function startGame() {
+                createBoard();
+                squares.forEach(square => {
+                    square.addEventListener('click', squareClick);
+                });
+            }
+
+            document.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+
+            startGame();
+        });
+    </script>
+</body>
 </html>

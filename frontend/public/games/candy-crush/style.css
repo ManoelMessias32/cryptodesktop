@@ -1,66 +1,122 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-image: url('https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/bg.png');
+  background-size: cover;
+  background-position: center;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   align-items: center;
-  min-height: 100vh;
-  padding: 20px 10px;
-  font-family: Arial, sans-serif;
-  overflow-x: hidden;          /* ← impede scroll horizontal */
-}
-
-.score-board {
-  background-color: rgba(0,0,0,0.5);
-  color: white;
-  padding: 12px 24px;
-  border-radius: 12px;
-  margin-bottom: 15px;
-  font-size: 18px;
-  font-weight: bold;
-  z-index: 10;
+  font-family: 'Montserrat', sans-serif;
+  color: #85796b;
+  margin: 0;
+  padding: 0;
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);   /* ← MUDANÇA PRINCIPAL: 1fr em vez de px */
-  gap: 2px;
-  background-color: #bbb;
-  padding: 8px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-  width: 100%;
-  max-width: 420px;           /* ← limite máximo seguro pro Telegram */
-  aspect-ratio: 1 / 1;        /* ← mantém quadrado perfeito */
+  display: flex;
+  flex-wrap: wrap;
+  width: 90vw;
+  max-width: 560px;
+  aspect-ratio: 1 / 1;
+  background-color: rgba(109, 127, 151, 0.5);
+  padding: 5px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) inset, 0 1px 0 #fff;
+  margin: 20px auto;
 }
 
 .grid div {
-  width: 100%;
-  height: 100%;
-  background-size: contain !important;
-  background-repeat: no-repeat !important;
-  background-position: center !important;
+  flex: 1 0 calc(100% / 8 - 10px);
+  margin: 2px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 5px;
+  transition: transform 0.2s ease;
+  aspect-ratio: 1 / 1;
+}
+
+.grid div:hover {
+  transform: scale(1.05);
+}
+
+.scoreBoard {
+  background-color: cyan;
+  border-radius: 20px;
+  width: 90vw;
+  max-width: 300px;
+  padding: 20px;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+h3, h1 {
+  text-transform: uppercase;
+  margin: 0;
+}
+
+h1 {
+  margin-top: -10px;
+}
+
+#modeSelection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
   background-color: #f0f0f0;
-  border-radius: 6px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+#modeSelection h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+#modeSelection button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
   cursor: pointer;
-  image-rendering: pixelated;
-  transition: all 0.15s ease;
+  background-color: #87ceeb;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  transition: all 0.3s ease;
 }
 
-.selected {
-  border: 3px solid #ffeb3b !important;
-  transform: scale(1.08);
-  box-shadow: 0 0 15px #ffeb3b;
+#modeSelection button:hover {
+  background-color: #5ca9d6;
+  transform: scale(1.05);
 }
 
-/* Responsivo perfeito pro Telegram */
-@media (max-width: 480px) {
-  body { padding: 15px 8px; }
-  .grid {
-    gap: 1.5px;
-    padding: 6px;
-    max-width: 380px;
-  }
+#timer {
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+#changeMode {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #ff6347;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#changeMode:hover {
+  background-color: #e5533d;
+  transform: scale(1.05);
+}
+
+.grid, .scoreBoard {
+  display: none;
 }
