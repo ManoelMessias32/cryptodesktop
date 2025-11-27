@@ -1,5 +1,5 @@
 body {
-    background-image: url('https://cryptodesktop.vercel.app/games/candy-crush/utils/background.png');
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     background-size: cover;
     background-position: center;
     font-family: 'Arial', sans-serif;
@@ -23,8 +23,8 @@ body {
 
 .grid-container {
     width: 100%;
-    max-width: 400px; /* Limita o tamanho em telas grandes */
-    aspect-ratio: 1 / 1; /* Garante que o grid seja sempre quadrado */
+    max-width: 400px;
+    aspect-ratio: 1 / 1;
 }
 
 .grid {
@@ -36,12 +36,13 @@ body {
     background-color: rgba(0, 0, 0, 0.3);
     border-radius: 10px;
     padding: 5px;
+    gap: 2px;
 }
 
 .grid div {
     width: 100%;
     height: 100%;
-    background-size: contain; /* Ajusta a imagem dentro do espaço */
+    background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
@@ -50,6 +51,19 @@ body {
 }
 
 .grid div.selected {
-    border: 3px solid #ffeb3b; /* Destaque amarelo ao selecionar */
+    border: 3px solid #ffeb3b !important;
     transform: scale(1.1);
+}
+.grid div {
+    -webkit-tap-highlight-color: transparent;   /* remove destaque azul do Android */
+    touch-action: manipulation;                 /* ESSENCIAL pro Telegram */
+    user-select: none;                          /* evita seleção de texto */
+    pointer-events: auto !important;            /* força eventos de toque */
+}
+
+/* Força o clique funcionar mesmo dentro do WebView do Telegram */
+.grid {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
 }
