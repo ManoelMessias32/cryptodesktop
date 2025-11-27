@@ -21,14 +21,13 @@ function candyCrushGame() {
     let gameInterval = null;
     let timerInterval = null;
 
-    const base = "https://cryptodesktop.vercel.app/utils/";
     const candyColors = [
-        "url(https://cryptodesktop.vercel.app/utils/red-candy.png)",
-        "url(https://cryptodesktop.vercel.app/utils/blue-candy.png)",
-        "url(https://cryptodesktop.vercel.app/utils/green-candy.png)",
-        "url(https://cryptodesktop.vercel.app/utils/yellow-candy.png)",
-        "url(https://cryptodesktop.vercel.app/utils/orange-candy.png)",
-        "url(https://cryptodesktop.vercel.app/utils/purple-candy.png)"
+        "url(https://cryptodesktop.vercel.app/games/candy-crush/utils/red-candy.png)",
+        "url(https://cryptodesktop.vercel.app/games/candy-crush/utils/blue-candy.png)",
+        "url(https://cryptodesktop.vercel.app/games/candy-crush/utils/green-candy.png)",
+        "url(https://cryptodesktop.vercel.app/games/candy-crush/utils/yellow-candy.png)",
+        "url(https://cryptodesktop.vercel.app/games/candy-crush/utils/orange-candy.png)",
+        "url(https://cryptodesktop.vercel.app/games/candy-crush/utils/purple-candy.png)"
     ];
 
     // Create the Game Board
