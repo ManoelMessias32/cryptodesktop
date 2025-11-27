@@ -1,5 +1,5 @@
 window.addEventListener('DOMContentLoaded', () => {
-    // Full Tower Blocks game logic restored
+    // Full Tower Blocks game logic restored and fixed
     var Stage = /** @class */ (function () {
         function Stage() {
             var _this = this;
@@ -181,7 +181,7 @@ window.addEventListener('DOMContentLoaded', () => {
             this.STATES = { LOADING: 'loading', PLAYING: 'playing', READY: 'ready', ENDED: 'ended', RESETTING: 'resetting' };
             this.blocks = [];
             this.state = this.STATES.LOADING;
-            this.rewardSent = false; // Flag to track if reward has been sent
+            this.rewardSent = false; 
             // groups
             this.newBlocks = new THREE.Group();
             this.placedBlocks = new THREE.Group();
@@ -235,16 +235,19 @@ window.addEventListener('DOMContentLoaded', () => {
         Game.prototype.startGame = function () {
             if (this.state != this.STATES.PLAYING) {
                 this.scoreContainer.innerHTML = '0';
-                this.rewardSent = false; // Reset reward flag
+                this.rewardSent = false;
                 this.updateState(this.STATES.PLAYING);
+                 if (!this.rewardSent) {
+                    window.parent.postMessage('gameWon', '*');
+                    this.rewardSent = true;
+                }
                 this.addBlock();
             }
         };
         Game.prototype.restartGame = function () {
             this.updateState(this.STATES.RESETTING);
-            this.rewardSent = false; // Reset reward flag
+            this.rewardSent = false;
 
-            // Remove all children from the groups
             while (this.newBlocks.children.length > 0) {
                 this.newBlocks.remove(this.newBlocks.children[0]);
             }
@@ -268,11 +271,6 @@ window.addEventListener('DOMContentLoaded', () => {
             this.newBlocks.remove(currentBlock.mesh);
             if (newBlocks.placed) {
                 this.placedBlocks.add(newBlocks.placed);
-                // Send reward only once per game
-                if (!this.rewardSent) {
-                    window.parent.postMessage('gameWon', '*');
-                    this.rewardSent = true;
-                }
             }
             if (newBlocks.chopped) {
                 this.choppedBlocks.add(newBlocks.chopped);
@@ -280,7 +278,6 @@ window.addEventListener('DOMContentLoaded', () => {
                     y: '+=30', 
                     ease: Power1.easeIn, 
                     onComplete: function() { 
-                        // Remove the chopped block from the scene after the animation
                         _this.choppedBlocks.remove(newBlocks.chopped);
                     }
                 };
@@ -322,7 +319,9 @@ window.addEventListener('DOMContentLoaded', () => {
         };
         Game.prototype.tick = function () {
             var _this = this;
-            this.blocks[this.blocks.length - 1].tick();
+            if (this.blocks.length > 0) {
+                this.blocks[this.blocks.length - 1].tick();
+            }
             this.stage.render();
             requestAnimationFrame(function () { _this.tick(); });
         };
