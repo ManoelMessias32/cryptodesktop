@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
     <title>Candy Crush - CryptoBot</title>
 
-    <!-- Essencial pro Telegram Mini App -->
     <meta property="og:image" content="https://cryptodesktop.vercel.app/games/candy-crush/utils/red-candy.png">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="preconnect" href="https://cryptodesktop.vercel.app">
 
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -107,22 +105,9 @@
 
         createBoard();
 
-        // FIX DEFINITIVO DO TOUCH — AQUI É O LUGAR CERTO (depois do createBoard)
-        squares.forEach(square => {
-            // Clique com mouse (PC)
-            square.addEventListener('click', squareClick);
-
-            // Toque com dedo — FUNCIONA 100% NO TELEGRAM
-            square.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                squareClick.call(this);
-            }, { passive: false });
-        });
-
-        runGameLoop();
-
         let firstSquare = null;
 
+        // FUNÇÃO squareClick DEFINIDA ANTES DOS EVENTOS
         function squareClick() {
             if (firstSquare === null) {
                 firstSquare = this;
@@ -153,6 +138,12 @@
             b.style.backgroundImage = temp;
         }
 
+        // EVENTOS ADICIONADOS DEPOIS DA FUNÇÃO EXISTIR
+        squares.forEach(square => {
+            square.addEventListener('pointerdown', squareClick);
+            square.addEventListener('click', squareClick, { passive: true });
+        });
+
         function runGameLoop() {
             const matches = checkAllMatches();
             if (matches.length > 0) {
@@ -171,7 +162,6 @@
             for (let i = 0; i < width * width; i++) {
                 const color = squares[i].style.backgroundImage;
                 if (!color) continue;
-
                 if (i % width < width - 2 && squares[i+1].style.backgroundImage === color && squares[i+2].style.backgroundImage === color) {
                     matches.add(i); matches.add(i+1); matches.add(i+2);
                 }
@@ -207,6 +197,8 @@
                 }
             }
         }
+
+        runGameLoop(); // Inicia o loop
     });
 </script>
 </body>
