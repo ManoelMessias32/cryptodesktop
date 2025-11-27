@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Lógica completa do jogo Candy Crush restaurada com sistema de clique
+    // Lógica completa do jogo Candy Crush otimizada para celular e Telegram
     function candyCrushGame() {
         const grid = document.querySelector(".grid");
         const scoreDisplay = document.getElementById("score");
@@ -12,12 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
         let isGameWon = false;
 
         const candyColors = [
-            "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/red-candy.png)",
-            "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/blue-candy.png)",
-            "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/green-candy.png)",
-            "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/yellow-candy.png)",
-            "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/orange-candy.png)",
-            "url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/purple-candy.png)",
+            "url(./utils/red-candy.png)",
+            "url(./utils/blue-candy.png)",
+            "url(./utils/green-candy.png)",
+            "url(./utils/yellow-candy.png)",
+            "url(./utils/orange-candy.png)",
+            "url(./utils/purple-candy.png)",
         ];
 
         function createBoard() {
@@ -34,12 +34,16 @@ document.addEventListener("DOMContentLoaded", () => {
         let firstSquare = null;
 
         function squareClick() {
+            if (this.classList.contains("selected")) {
+                this.classList.remove("selected");
+                firstSquare = null;
+                return;
+            }
+
             if (firstSquare === null) {
-                // Primeiro clique: seleciona o doce
                 firstSquare = this;
                 this.classList.add("selected");
             } else {
-                // Segundo clique: tenta a troca
                 const secondSquare = this;
                 const firstId = parseInt(firstSquare.id);
                 const secondId = parseInt(secondSquare.id);
@@ -48,31 +52,54 @@ document.addEventListener("DOMContentLoaded", () => {
                 const isValidMove = validMoves.includes(secondId);
 
                 if (isValidMove) {
-                    // Troca as cores
                     const firstColor = firstSquare.style.backgroundImage;
                     const secondColor = secondSquare.style.backgroundImage;
+                    
+                    // Otimistic swap
                     firstSquare.style.backgroundImage = secondColor;
                     secondSquare.style.backgroundImage = firstColor;
 
-                    // Verifica se a troca resultou em uma combinação válida
-                    const isAValidMatch = () => {
-                        return checkRowFor(3) || checkColumnFor(3) || checkRowFor(4) || checkColumnFor(4);
-                    };
+                    // Check for matches
+                    const isMatch = checkMatch();
 
-                    // Desfaz a troca se não for válida
-                    setTimeout(() => {
-                        if (!isAValidMatch()) {
+                    if (!isMatch) {
+                        // Revert if no match
+                        setTimeout(() => {
                             firstSquare.style.backgroundImage = firstColor;
                             secondSquare.style.backgroundImage = secondColor;
-                        }
-                    }, 200);
+                        }, 200);
+                    } else {
+                        // If there is a match, keep the swap and let the game loop handle the rest
+                        gameLoop();
+                    }
+                }
 
-                } 
-                
-                // Limpa a seleção
                 firstSquare.classList.remove("selected");
                 firstSquare = null;
             }
+        }
+        
+        function gameLoop() {
+            let wasMatch = checkMatch();
+            if (wasMatch) {
+                // Keep checking and moving down until no more matches are found
+                const loop = setInterval(()=>{
+                    moveDown();
+                    if(!checkMatch()){
+                       clearInterval(loop)
+                    }
+                }, 200)
+            }
+            checkWinCondition();
+        }
+        
+        function checkMatch() {
+            let hasMatch = false;
+            if (checkRowFor(4)) hasMatch = true;
+            if (checkColumnFor(4)) hasMatch = true;
+            if (checkRowFor(3)) hasMatch = true;
+            if (checkColumnFor(3)) hasMatch = true;
+            return hasMatch;
         }
 
         function moveDown() {
@@ -136,15 +163,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateScoreboard();
             }
         }
-
-        window.setInterval(function(){
-            checkRowFor(4);
-            checkColumnFor(4);
-            checkRowFor(3);
-            checkColumnFor(3);
-            moveDown();
-            checkWinCondition();
-        }, 200);
 
         function startGame() {
             createBoard();
