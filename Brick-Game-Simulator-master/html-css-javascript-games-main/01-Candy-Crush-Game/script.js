@@ -6,13 +6,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let score = 0;
 
   const candyColors = [
-    'url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/red-candy.png)',
-    'url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/blue-candy.png)',
-    'url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/green-candy.png)',
-    'url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/yellow-candy.png)',
-    'url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/orange-candy.png)',
-    'url(https://raw.githubusercontent.com/arpit456jain/Amazing-Js-Projects/master/Candy%20Crush/utils/purple-candy.png)'
-  ];
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/red-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/blue-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/green-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/yellow-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/orange-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/purple-candy.png)'
+      ];
 
   function createBoard() {
     for (let i = 0; i < width * width; i++) {

@@ -1,156 +1,173 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const grid = document.querySelector('.grid');
-    const scoreDisplay = document.getElementById('score');
-    const width = 8;
-    const squares = [];
-    let score = 0;
+document.addEventListener("DOMContentLoaded", () => {
+  const grid = document.querySelector(".grid");
+  const scoreDisplay = document.getElementById("score");
+  const width = 8;
+  const squares = [];
+  let score = 0;
 
-    const candyColors = [
-        'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/red-candy.png)',
-        'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/blue-candy.png)',
-        'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/green-candy.png)',
-        'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/yellow-candy.png)',
-        'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/orange-candy.png)',
-        'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/purple-candy.png)'
-    ];
+  const candyColors = [
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/red-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/blue-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/green-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/yellow-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/orange-candy.png)',
+          'url(https://cryptodesktop.vercel.app/games/candy-crush/utils/purple-candy.png)'
+      ];
 
-    function createBoard() {
-        for (let i = 0; i < width * width; i++) {
-            const square = document.createElement('div');
-            square.setAttribute('id', i);
-            let randomColor = Math.floor(Math.random() * candyColors.length);
-            square.style.backgroundImage = candyColors[randomColor];
-            grid.appendChild(square);
-            squares.push(square);
-        }
+  function createBoard() {
+    for (let i = 0; i < width * width; i++) {
+      const square = document.createElement("div");
+      square.setAttribute("draggable", true);
+      square.setAttribute("id", i);
+      let randomColor = Math.floor(Math.random() * candyColors.length);
+      square.style.backgroundImage = candyColors[randomColor];
+      grid.appendChild(square);
+      squares.push(square);
     }
+  }
 
-    createBoard();
-    runGameLoop();
+  let colorBeingDragged;
+  let colorBeingReplaced;
+  let squareIdBeingDragged;
+  let squareIdBeingReplaced;
 
-    let firstSquare = null;
+  squares.forEach(square => square.addEventListener('dragstart', dragStart));
+  squares.forEach(square => square.addEventListener('dragend', dragEnd));
+  squares.forEach(square => square.addEventListener('dragover', dragOver));
+  squares.forEach(square => square.addEventListener('dragenter', dragEnter));
+  squares.forEach(square => square.addEventListener('dragleave', dragLeave));
+  squares.forEach(square => square.addEventListener('drop', dragDrop));
 
-    function squareClick() {
-        if (firstSquare === null) {
-            firstSquare = this;
-            this.classList.add('selected');
-        } else {
-            const secondSquare = this;
-            firstSquare.classList.remove('selected');
+  function dragStart(){
+    colorBeingDragged = this.style.backgroundImage;
+    squareIdBeingDragged = parseInt(this.id);
+  }
 
-            if (firstSquare === secondSquare) {
-                firstSquare = null;
-                return;
-            }
+  function dragOver(e) {
+    e.preventDefault();
+  }
 
-            const firstId = parseInt(firstSquare.id);
-            const secondId = parseInt(secondSquare.id);
-            const validMoves = [firstId - 1, firstId + 1, firstId - width, firstId + width];
-            if (validMoves.includes(secondId)) {
-                swapSquares(firstSquare, secondSquare);
-                setTimeout(() => {
-                    if (!runGameLoop()) {
-                        swapSquares(firstSquare, secondSquare); // Swap back if no match
-                    }
-                }, 200);
-            }
-            firstSquare = null;
-        }
+  function dragEnter(e) {
+    e.preventDefault();
+  }
+
+  function dragLeave() {
+    this.style.backgroundImage = '';
+  }
+
+  function dragDrop(){
+    colorBeingReplaced = this.style.backgroundImage;
+    squareIdBeingReplaced = parseInt(this.id);
+    squares[squareIdBeingDragged].style.backgroundImage = colorBeingReplaced;
+    this.style.backgroundImage = colorBeingDragged;
+  }
+
+  function dragEnd(){
+    let validMoves = [squareIdBeingDragged -1, squareIdBeingDragged -width, squareIdBeingDragged +1, squareIdBeingDragged +width];
+    let validMove = validMoves.includes(squareIdBeingReplaced);
+
+    if (squareIdBeingReplaced && validMove) {
+        squareIdBeingReplaced = null;
+    }  else if (squareIdBeingReplaced && !validMove) {
+       squares[squareIdBeingReplaced].style.backgroundImage = colorBeingReplaced;
+       squares[squareIdBeingDragged].style.backgroundImage = colorBeingDragged;
+    } else {
+      squares[squareIdBeingDragged].style.backgroundImage = colorBeingDragged;
     }
+  }
 
-    function swapSquares(sq1, sq2) {
-        const tempColor = sq1.style.backgroundImage;
-        sq1.style.backgroundImage = sq2.style.backgroundImage;
-        sq2.style.backgroundImage = tempColor;
-    }
-
-            createBoard();
-
-            // FIX FINAL — FUNCIONA EM TODOS OS CELULARES
-            squares.forEach(square => {
-                square.addEventListener('click', squareClick);
-                square.addEventListener('pointerdown', function(e) {
-                    e.preventDefault();
-                    squareClick.call(this);
-                });
-                square.addEventListener('touchstart', e => e.stopPropagation());
-            });
-
-            runGameLoop();
-
-    function runGameLoop() {
-        const matches = checkAllMatches();
-        if (matches.length > 0) {
-            removeMatches(matches);
-            // This timeout is crucial for the visual effect of falling candies
-            setTimeout(() => {
-                moveDown(); 
-                // Chain reaction: check for new matches after candies have fallen
-                setTimeout(runGameLoop, 300);
-            }, 200);
-            return true; // Matches were found and processed
-        }
-        return false; // No matches found
-    }
-
-    function checkAllMatches() {
-        let allMatches = new Set();
-        for (let i = 0; i < width * width; i++) {
-            const color = squares[i].style.backgroundImage;
-            if (color === '') continue;
-
-            // Check for horizontal matches of 3 or more
-            if (i % width < width - 2) {
-                if (squares[i + 1].style.backgroundImage === color && squares[i + 2].style.backgroundImage === color) {
-                    allMatches.add(i); allMatches.add(i + 1); allMatches.add(i + 2);
-                }
-            }
-            // Check for vertical matches of 3 or more
-            if (i < width * (width - 2)) {
-                if (squares[i + width].style.backgroundImage === color && squares[i + 2 * width].style.backgroundImage === color) {
-                    allMatches.add(i); allMatches.add(i + width); allMatches.add(i + 2 * width);
-                }
+  function moveDown() {
+    for (i = 0; i < 55; i++){
+        if (squares[i + width].style.backgroundImage === '') {
+            squares[i + width].style.backgroundImage = squares[i].style.backgroundImage;
+            squares[i].style.backgroundImage = '';
+            const firstRow = [0, 1, 2, 3, 4, 5, 6, 7];
+            const isFirstRow = firstRow.includes(i);
+            if (isFirstRow && (squares[i].style.backgroundImage === '')) {
+              let randomColor = Math.floor(Math.random() * candyColors.length);
+              squares[i].style.backgroundImage = candyColors[randomColor];
             }
         }
-        return Array.from(allMatches);
     }
+  }
 
-    function removeMatches(matches) {
-        score += matches.length;
+  function checkRowForFour() {
+    for (i = 0; i < 60; i++) {
+      let rowOfFour = [i, i+1, i+2, i+3];
+      let decidedColor = squares[i].style.backgroundImage;
+      const isBlank = squares[i].style.backgroundImage === '';
+
+      const notValid = [5, 6, 7, 13, 14, 15, 21, 22, 23, 29, 30, 31, 37, 38, 39, 45, 46, 47, 53, 54, 55];
+      if (notValid.includes(i)) continue;
+
+      if(rowOfFour.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+        score += 4;
         scoreDisplay.innerHTML = score;
-        matches.forEach(index => {
-            squares[index].style.backgroundImage = '';
+        rowOfFour.forEach(index => {
+        squares[index].style.backgroundImage = '';
         });
+      }
     }
+  }
 
-    function moveDown() {
-        // Iterate over each column
-        for (let c = 0; c < width; c++) {
-            let emptySquareIndex = -1;
-            // From bottom to top
-            for (let r = width - 1; r >= 0; r--) {
-                const i = r * width + c;
-                if (squares[i].style.backgroundImage === '') {
-                    if (emptySquareIndex === -1) {
-                        emptySquareIndex = i; // First empty square found
-                    }
-                } else if (emptySquareIndex !== -1) {
-                    // If there's an empty square below, move the current candy down
-                    squares[emptySquareIndex].style.backgroundImage = squares[i].style.backgroundImage;
-                    squares[i].style.backgroundImage = '';
-                    emptySquareIndex -= width; // Move the empty spot marker up
-                }
-            }
-        }
-        refillBoard();
-    }
+  function checkColumnForFour() {
+    for (i = 0; i < 39; i++) {
+      let columnOfFour = [i, i+width, i+width*2, i+width*3];
+      let decidedColor = squares[i].style.backgroundImage;
+      const isBlank = squares[i].style.backgroundImage === '';
 
-    function refillBoard() {
-        for (let i = 0; i < width * width; i++) {
-            if (squares[i].style.backgroundImage === '') {
-                let randomColor = Math.floor(Math.random() * candyColors.length);
-                squares[i].style.backgroundImage = candyColors[randomColor];
-            }
-        }
+      if(columnOfFour.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+        score += 4;
+        scoreDisplay.innerHTML = score;
+        columnOfFour.forEach(index => {
+        squares[index].style.backgroundImage = '';
+        });
+      }
     }
+  }
+
+  function checkRowForThree() {
+    for (i = 0; i < 61; i++) {
+      let rowOfThree = [i, i+1, i+2];
+      let decidedColor = squares[i].style.backgroundImage;
+      const isBlank = squares[i].style.backgroundImage === '';
+
+      const notValid = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55];
+      if (notValid.includes(i)) continue;
+
+      if(rowOfThree.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+        score += 3;
+        scoreDisplay.innerHTML = score;
+        rowOfThree.forEach(index => {
+        squares[index].style.backgroundImage = '';
+        });
+      }
+    }
+  }
+
+  function checkColumnForThree() {
+    for (i = 0; i < 47; i++) {
+      let columnOfThree = [i, i+width, i+width*2];
+      let decidedColor = squares[i].style.backgroundImage;
+      const isBlank = squares[i].style.backgroundImage === '';
+
+      if(columnOfThree.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
+        score += 3;
+        scoreDisplay.innerHTML = score;
+        columnOfThree.forEach(index => {
+        squares[index].style.backgroundImage = '';
+        });
+      }
+    }
+  }
+
+  createBoard();
+
+  window.setInterval(function(){
+    checkRowForFour();
+    checkColumnForFour();
+    checkRowForThree();
+    checkColumnForThree();
+    moveDown();
+  }, 100);
 });
