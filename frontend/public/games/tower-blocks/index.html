@@ -310,7 +310,11 @@
                     if (newBlocks.placed) {
                         this.placedBlocks.add(newBlocks.placed);
                         if (!this.rewardSent) {
-                            window.parent.postMessage('gameWon', '*');
+                            try {
+                                window.parent.postMessage('gameWon', '*');
+                            } catch (e) {
+                                console.error("postMessage failed", e);
+                            }
                             this.rewardSent = true;
                         }
                     }
