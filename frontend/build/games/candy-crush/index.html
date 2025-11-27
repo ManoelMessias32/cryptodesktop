@@ -138,11 +138,14 @@
             b.style.backgroundImage = temp;
         }
 
-        // EVENTOS ADICIONADOS DEPOIS DA FUNÇÃO EXISTIR
-        squares.forEach(square => {
-            square.addEventListener('pointerdown', squareClick);
-            square.addEventListener('click', squareClick, { passive: true });
-        });
+        // FIX FINAL: Touch + Click unificado pro Telegram e mobile
+squares.forEach(square => {
+    // Principal: pointerdown (unifica mouse, touch, pen — funciona em TUDO)
+    square.addEventListener('pointerdown', squareClick);
+
+    // Fallback: click pra PC/emuladores que não captam pointer
+    square.addEventListener('click', squareClick, { passive: true });
+});
 
         function runGameLoop() {
             const matches = checkAllMatches();
