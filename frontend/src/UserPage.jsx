@@ -58,7 +58,7 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
       return;
     }
     if (claimableBdg < MINIMUM_CLAIM_AMOUNT) {
-      setStatus(`❌ Você precisa de pelo menos ${MINIMUM_CLAIM_AMOUNT} moedas para sacar.`);
+      setStatus(`❌ Você precisa de pelo menos ${MINIMUM_CLAIM_AMOUNT} BDG para sacar.`);
       return;
     }
     setIsClaiming(true);
@@ -107,20 +107,22 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
       </div>
 
       <div style={styles.card}>
-        <p style={styles.label}>Saldo de Moedas (BDG no Jogo)</p>
+        {/* CORREÇÃO: Nome da moeda interna ajustado */}
+        <p style={styles.label}>Saldo de Token Coin (Uso Interno)</p>
         <p style={styles.value}>{Math.floor(coinBdg)}</p>
 
-        <p style={{...styles.label, marginTop: '20px'}}>Moedas para Sacar (Claim)</p>
+        {/* CORREÇÃO: Nome da moeda de saque ajustado */}
+        <p style={{...styles.label, marginTop: '20px'}}>Saldo de BDG (para Saque)</p>
         <p style={styles.value}>{claimableBdg ? claimableBdg.toFixed(4) : '0.0000'}</p>
         
         <button onClick={handleClaim} disabled={isClaiming || !canClaim} style={{...styles.button, ...styles.claimButton, ...(!canClaim || isClaiming ? styles.disabledButton : {})}}>
-          {isClaiming ? 'Processando...' : 'Sacar para Carteira'}
+          {isClaiming ? 'Processando...' : `Sacar ${claimableBdg ? claimableBdg.toFixed(2) : ''} BDG`}
         </button>
-        {!canClaim && <p style={{fontSize: '0.8em', color: '#a1a1aa', marginTop: '10px', textAlign: 'center'}}>Você precisa de {MINIMUM_CLAIM_AMOUNT} moedas para sacar.</p>}
+        {!canClaim && <p style={{fontSize: '0.8em', color: '#a1a1aa', marginTop: '10px', textAlign: 'center'}}>Você precisa de {MINIMUM_CLAIM_AMOUNT} BDG para sacar.</p>}
       </div>
 
       <div style={styles.card}>
-        <p style={styles.label}>Contrato do Token (BNB Chain)</p>
+        <p style={styles.label}>Contrato do Token BDG (BNB Chain)</p>
         <p style={styles.addressValue}>{BDG_TOKEN_CONTRACT_ADDRESS}</p>
         <button onClick={() => copyToClipboard(BDG_TOKEN_CONTRACT_ADDRESS, 'Endereço do Contrato')} style={styles.button}>Copiar Endereço</button>
       </div>

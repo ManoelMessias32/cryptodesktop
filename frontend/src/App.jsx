@@ -14,27 +14,21 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 // --- Constantes ---
-const STORAGE_VERSION = 'v33_final_split';
+const STORAGE_VERSION = 'v34_economy_fix';
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
-const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 1, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
+const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
 
 // ===================================================================================
-// COMPONENTE PARA O FLUXO DO TELEGRAM (TON)
+// COMPONENTE GENÉRICO DE LÓGICA DE MINERAÇÃO (COMPARTILHADO)
 // ===================================================================================
-function TelegramFlow({ username }) {
-  const [route, setRoute] = useState('mine');
-  const [status, setStatus] = useState('Bem-vindo ao CryptoDesk!');
-  const [coinBdg, setCoinBdg] = useState(0);
+const useMiningLogic = (username) => {
   const [slots, setSlots] = useState(initialSlots);
+  const [coinBdg, setCoinBdg] = useState(0);
   const [claimableBdg, setClaimableBdg] = useState(0);
-  
-  const tonAddress = useTonAddress();
-  const [tonConnectUI] = useTonConnectUI();
+  const [status, setStatus] = useState('Bem-vindo!');
 
-  const handlePurchase = async (tierToBuy) => { /* ... sua lógica de compra com tonConnectUI ... */ };
-  const handleBuyBdgCoin = async () => { /* ... sua lógica de compra de moeda com tonConnectUI ... */ };
-
+  // Carregar dados
   useEffect(() => {
     const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
     if (savedState) {
@@ -42,12 +36,10 @@ function TelegramFlow({ username }) {
       setSlots(data.slots || initialSlots);
       setCoinBdg(data.coinBdg || 0);
       setClaimableBdg(data.claimableBdg || 0);
-    }
-    if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.ready();
-    }
+    } 
   }, [username]);
 
+  // Salvar dados
   const saveData = useCallback(() => {
     const gameState = { slots, coinBdg, claimableBdg };
     localStorage.setItem(`gameState_${STORAGE_VERSION}_${username}`, JSON.stringify(gameState));
@@ -58,6 +50,45 @@ function TelegramFlow({ username }) {
     return () => clearInterval(interval);
   }, [saveData]);
 
+  // Game Loop de Mineração
+  const gameLoop = useCallback(() => {
+    let totalGain = 0;
+    const updatedSlots = slots.map(slot => {
+      if (slot.filled && slot.repairCooldown > 0 && slot.durability > 0) {
+        // CORREÇÃO: A chave da economia para a CPU grátis é 'free', não o tier 0.
+        const econKey = slot.type === 'free' ? 'free' : slot.tier;
+        const gainRate = (economyData[econKey]?.gainPerHour || 0) / 3600; // Ganho por segundo
+        totalGain += gainRate;
+        return { ...slot, repairCooldown: slot.repairCooldown - 1, durability: slot.durability - 1 };
+      }
+      return slot;
+    });
+
+    if (totalGain > 0) {
+      // CORREÇÃO: O ganho é somado TANTO no coinBdg (interno) QUANTO no claimableBdg (para saque)
+      setCoinBdg(prev => prev + totalGain);
+      setClaimableBdg(prev => prev + totalGain);
+    }
+    setSlots(updatedSlots);
+  }, [slots]);
+
+  useEffect(() => {
+    const interval = setInterval(gameLoop, 1000);
+    return () => clearInterval(interval);
+  }, [gameLoop]);
+
+  return { slots, setSlots, coinBdg, setCoinBdg, claimableBdg, status, setStatus };
+};
+
+
+// ===================================================================================
+// COMPONENTES DE FLUXO (TELEGRAM E WEB)
+// ===================================================================================
+function TelegramFlow({ username }) {
+  const [route, setRoute] = useState('mine');
+  const { slots, setSlots, coinBdg, setCoinBdg, claimableBdg, status, setStatus } = useMiningLogic(username);
+  const tonAddress = useTonAddress();
+
   const navButtonStyle = (page) => ({ background: route === page ? '#5a67d8' : '#4a5568', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '10px 0', margin: '0 4px', fontSize: '1.5em', maxWidth: '60px' });
 
   return (
@@ -66,10 +97,10 @@ function TelegramFlow({ username }) {
         <p>Bem-vindo, {username}!</p>
         <TonConnectButton />
       </header>
-      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#a1a1aa' }}><p>{status}</p></div>
+      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#d4d4d8' }}><p>{status}</p></div>
       
-      {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} economyData={economyData} />}
-      {route === 'shop' && <ShopPage handlePurchase={handlePurchase} handleBuyBdgCoin={handleBuyBdgCoin} />}
+      {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} setStatus={setStatus} economyData={economyData} />}
+      {route === 'shop' && <ShopPage />}
       {route === 'user' && <UserPage address={tonAddress} coinBdg={coinBdg} claimableBdg={claimableBdg} username={username} />}
       {route === 'rankings' && <RankingsPage />}
 
@@ -83,16 +114,9 @@ function TelegramFlow({ username }) {
   );
 }
 
-// ===================================================================================
-// COMPONENTE PARA O FLUXO DA WEB (BNB)
-// ===================================================================================
 function WebFlow({ username }) {
   const [route, setRoute] = useState('mine');
-  const [status, setStatus] = useState('Bem-vindo à versão Web!');
-  const [coinBdg, setCoinBdg] = useState(0);
-  const [slots, setSlots] = useState(initialSlots);
-  const [claimableBdg, setClaimableBdg] = useState(0);
-
+  const { slots, setSlots, coinBdg, claimableBdg, status, setStatus } = useMiningLogic(username);
   const { address: bnbAddress, isConnected: isBnbConnected } = useAccount();
   const { connect } = useConnect();
   const { disconnect: disconnectBnb } = useDisconnect();
@@ -111,10 +135,9 @@ function WebFlow({ username }) {
         <p>Bem-vindo, {username}!</p>
         <ConnectButton />
       </header>
-      {/* CORREÇÃO: Aumentando o contraste da mensagem de status */}
       <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#d4d4d8' }}><p>{status}</p></div>
 
-      {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} economyData={economyData} />}
+      {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} setStatus={setStatus} economyData={economyData} />}
       {route === 'games' && <GamesPage />}
       {route === 'shop' && <ShopPage />} 
       {route === 'user' && <UserPage username={username} coinBdg={coinBdg} claimableBdg={claimableBdg} />}
@@ -131,11 +154,12 @@ function WebFlow({ username }) {
   );
 }
 
+
 // ===================================================================================
 // COMPONENTE PRINCIPAL (ROTEADOR)
 // ===================================================================================
 export default function App() {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(localStorage.getItem('last_username') || '');
   const [tempUsername, setTempUsername] = useState('');
   const isTelegram = useMemo(() => typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp, []);
 
@@ -150,6 +174,7 @@ export default function App() {
   const handleUsernameSubmit = () => {
     const newUsername = tempUsername.trim();
     if (newUsername) {
+      localStorage.setItem('last_username', newUsername);
       setUsername(newUsername);
     }
   };
@@ -169,3 +194,4 @@ export default function App() {
 
   return isTelegram ? <TelegramFlow username={username} /> : <WebFlow username={username} />;
 }
+
