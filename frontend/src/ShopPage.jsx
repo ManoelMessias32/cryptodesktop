@@ -56,6 +56,8 @@ export default function ShopPage() {
 
   const styles = {
     shopContainer: { textAlign: 'center', paddingBottom: '20px' },
+    // CORREÇÃO: Dando destaque ao título principal da loja
+    mainTitle: { color: '#facc15', fontFamily: '"Press Start 2P", cursive', marginBottom: '20px' },
     sectionTitle: { color: '#e4e4e7', borderBottom: '1px solid #3f3f46', paddingBottom: '10px', marginBottom: '20px' },
     cardContainer: { display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'center', marginBottom: '30px' },
     card: { background: '#27272a', padding: '12px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.3)', width: '150px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' },
@@ -68,7 +70,8 @@ export default function ShopPage() {
   return (
     <div style={styles.shopContainer}>
       <AdsterraAd atOptions={{ 'key': 'aa5093526197a9f66731eaa5facb698f', 'format': 'iframe', 'height': 90, 'width': 728, 'params': {} }} />
-      <h1>Loja (BNB Chain)</h1>
+      <h1 style={styles.mainTitle}>Loja (BNB Chain)</h1>
+      
       <h2 style={styles.sectionTitle}>Pacotes de Moedas</h2>
       <div style={styles.cardContainer}>
         <div style={styles.card}>
@@ -81,6 +84,7 @@ export default function ShopPage() {
             <button onClick={handleBuyBdgCoin} style={styles.buyButton}>Comprar</button>
           </div>
       </div>
+
       <h2 style={styles.sectionTitle}>CPUs Especiais</h2>
       <div style={styles.cardContainer}>
         {Object.values(specialCpuData).map(item => (
@@ -95,6 +99,7 @@ export default function ShopPage() {
           </div>
         ))}
       </div>
+
       <h2 style={styles.sectionTitle}>Componentes Padrão</h2>
       <div style={styles.cardContainer}>
         {Object.keys(standardCpuData).map(key => {
@@ -112,6 +117,7 @@ export default function ShopPage() {
           )
         })}
       </div>
+
       <AdsterraAd atOptions={{ 'key': '76c30e6631e256ef38ab65c1ce40cee8', 'format': 'iframe', 'height': 250, 'width': 300, 'params': {} }} />
     </div>
   );

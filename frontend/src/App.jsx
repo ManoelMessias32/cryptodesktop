@@ -14,7 +14,7 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 // --- Constantes ---
-const STORAGE_VERSION = 'v37_final_fix'; // Versão final com correção de estado
+const STORAGE_VERSION = 'v38_final_final_fix'; // Versão com correção de estado atômico
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
@@ -34,53 +34,63 @@ export default function App() {
   
   const isTelegram = useMemo(() => typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp, []);
 
-  // EFEITO PARA CARREGAR OS DADOS DO USUÁRIO LOGADO
+  // CORREÇÃO DEFINITIVA: Efeito unificado para carregar dados e iniciar o jogo
   useEffect(() => {
     if (username) {
+      console.log(`Carregando dados para o usuário: ${username}`);
       const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
       if (savedState) {
         const data = JSON.parse(savedState);
         setSlots(data.slots || initialSlots);
         setCoinBdg(data.coinBdg || 0);
         setClaimableBdg(data.claimableBdg || 0);
+        console.log('Dados carregados:', data);
+      } else {
+        // Novo usuário, define o estado inicial explicitamente
+        setSlots(initialSlots);
+        setCoinBdg(0);
+        setClaimableBdg(0);
+        console.log('Nenhum dado salvo encontrado. Iniciando com estado padrão.');
       }
-      setIsDataLoaded(true); // << Libera o app para rodar APÓS carregar os dados
+      setIsDataLoaded(true); // Libera o app para rodar
     }
-  }, [username]); // Roda sempre que o usuário mudar
+  }, [username]); // Roda apenas quando o usuário é definido ou muda
 
-  // EFEITO PARA SALVAR OS DADOS (SÓ RODA QUANDO OS DADOS ESTÃO CARREGADOS)
+  // Efeito para salvar os dados (só roda se os dados estiverem carregados)
   useEffect(() => {
     if (isDataLoaded) {
       const gameState = { slots, coinBdg, claimableBdg };
       localStorage.setItem(`gameState_${STORAGE_VERSION}_${username}`, JSON.stringify(gameState));
     }
-  }, [slots, coinBdg, claimableBdg, isDataLoaded, username]); // Salva quando qualquer dado mudar
+  }, [slots, coinBdg, claimableBdg, isDataLoaded, username]);
 
-  // EFEITO PARA O LOOP DE MINERAÇÃO (SÓ RODA QUANDO OS DADOS ESTÃO CARREGADOS)
+  // Efeito para o loop de mineração (só roda se os dados estiverem carregados)
   useEffect(() => {
     if (!isDataLoaded) return; // Trava de segurança
 
     const gameLoop = setInterval(() => {
-      let totalGain = 0;
-      const updatedSlots = slots.map(slot => {
-        if (slot.filled && slot.repairCooldown > 0 && slot.durability > 0) {
-          const econKey = slot.type === 'free' ? 'free' : slot.tier;
-          const gainRate = (economyData[econKey]?.gainPerHour || 0) / 3600;
-          totalGain += gainRate;
-          return { ...slot, repairCooldown: slot.repairCooldown - 1, durability: slot.durability - 1 };
-        }
-        return slot;
-      });
+      setSlots(currentSlots => {
+        let totalGain = 0;
+        const updatedSlots = currentSlots.map(slot => {
+          if (slot.filled && slot.repairCooldown > 0 && slot.durability > 0) {
+            const econKey = slot.type === 'free' ? 'free' : slot.tier;
+            const gainRate = (economyData[econKey]?.gainPerHour || 0) / 3600;
+            totalGain += gainRate;
+            return { ...slot, repairCooldown: slot.repairCooldown - 1, durability: slot.durability - 1 };
+          }
+          return slot;
+        });
 
-      if (totalGain > 0) {
-        setCoinBdg(prev => prev + totalGain);
-        setClaimableBdg(prev => prev + totalGain);
-      }
-      setSlots(updatedSlots);
+        if (totalGain > 0) {
+          setCoinBdg(prev => prev + totalGain);
+          setClaimableBdg(prev => prev + totalGain);
+        }
+        return updatedSlots;
+      });
     }, 1000);
 
     return () => clearInterval(gameLoop);
-  }, [isDataLoaded, slots]); // Reinicia se os slots mudarem
+  }, [isDataLoaded]);
 
 
   const handleUsernameSubmit = () => {
@@ -88,7 +98,7 @@ export default function App() {
     if (newUsername) {
       localStorage.setItem('last_username', newUsername);
       setUsername(newUsername);
-      setIsDataLoaded(false); // Força a recarga dos dados para o novo usuário
+      setIsDataLoaded(false); // Força recarga dos dados para o novo usuário
     }
   };
 
@@ -101,18 +111,19 @@ export default function App() {
     </div>
   );
 
+  // Tela de Carregamento para evitar a "piscada" e o bug de reset
   if (!username || !isDataLoaded) {
     return loginScreen;
   }
 
-  // Passa os estados e funções para o fluxo correto
-  const flowProps = { username, slots, setSlots, coinBdg, claimableBdg, setCoinBdg };
+  const flowProps = { username, slots, setSlots, coinBdg, claimableBdg };
 
   return isTelegram ? <TelegramFlow {...flowProps} /> : <WebFlow {...flowProps} />;
 }
 
+
 // ===================================================================================
-// COMPONENTES DE FLUXO (AGORA MAIS SIMPLES)
+// COMPONENTES DE FLUXO (SIMPLIFICADOS)
 // ===================================================================================
 function TelegramFlow({ username, slots, setSlots, coinBdg, claimableBdg }) {
   const [route, setRoute] = useState('mine');
