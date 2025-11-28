@@ -1,17 +1,54 @@
 import React from 'react';
+import { useSendTransaction, useAccount } from 'wagmi'; // Hooks para BNB Chain
+import { parseEther } from 'viem'; // Para converter BNB para a unidade correta (wei)
 
-export default function ShopPage({ handlePurchase, handleBuyBdgCoin }) {
+// CORREÇÃO: Usando seu endereço pessoal da BNB para receber os pagamentos.
+const YOUR_BNB_WALLET_ADDRESS = '0x35878269EF4051Df5f82593b4819E518bA8903A3';
+
+const TIER_PRICES_BNB = {
+    1: '0.01', // Ex: 0.01 BNB
+    2: '0.025', 
+    3: '0.05', 
+    'A': '0.03',
+    'B': '0.06',
+    'C': '0.09'
+};
+
+const TOKEN_PACK_PRICE_BNB = '0.005'; // Ex: 0.005 BNB para 150 moedas
+
+export default function ShopPage() {
+  const { address } = useAccount(); // Pega o endereço da carteira conectada
+  const { sendTransaction } = useSendTransaction();
 
   const standardCpuData = {
-    1: { name: 'Tier 1', price: '3.5', gain: '450', image: '/tier1.png', tier: 1 },
-    2: { name: 'Tier 2', price: '9.0', gain: '750', image: '/tier2.jpg', tier: 2 },
-    3: { name: 'Tier 3', price: '17.0', gain: '1050', image: '/tier3.png', tier: 3 },
+    1: { name: 'Tier 1', gain: '450', image: '/tier1.png', tier: 1 },
+    2: { name: 'Tier 2', gain: '750', image: '/tier2.jpg', tier: 2 },
+    3: { name: 'Tier 3', gain: '1050', image: '/tier3.png', tier: 3 },
   };
 
   const specialCpuData = {
-    A: { name: 'CPU A', price: '10.0', gain: '1450', image: '/especial_a.jpg', tier: 'A' },
-    B: { name: 'CPU B', price: '20.0', gain: '1650', image: '/especial_b.jpg', tier: 'B' },
-    C: { name: 'CPU C', price: '30.0', gain: '1950', image: '/especial_c.png', tier: 'C' },
+    A: { name: 'CPU A', gain: '1450', image: '/especial_a.jpg', tier: 'A' },
+    B: { name: 'CPU B', gain: '1650', image: '/especial_b.jpg', tier: 'B' },
+    C: { name: 'CPU C', gain: '1950', image: '/especial_c.png', tier: 'C' },
+  };
+
+  const handlePurchase = (tierToBuy) => {
+    if (!address) { alert('Por favor, conecte sua carteira primeiro.'); return; }
+    
+    const priceInBnb = TIER_PRICES_BNB[tierToBuy];
+    sendTransaction({ 
+        to: YOUR_BNB_WALLET_ADDRESS, 
+        value: parseEther(priceInBnb)
+    });
+  };
+
+  const handleBuyBdgCoin = () => {
+    if (!address) { alert('Por favor, conecte sua carteira primeiro.'); return; }
+
+    sendTransaction({ 
+        to: YOUR_BNB_WALLET_ADDRESS,
+        value: parseEther(TOKEN_PACK_PRICE_BNB)
+    });
   };
 
   const styles = {
@@ -27,7 +64,7 @@ export default function ShopPage({ handlePurchase, handleBuyBdgCoin }) {
 
   return (
     <div style={styles.shopContainer}>
-      <h1>Loja</h1>
+      <h1>Loja (BNB Chain)</h1>
       
       <h2 style={styles.sectionTitle}>Pacotes de Moedas</h2>
       <div style={styles.cardContainer}>
@@ -35,7 +72,7 @@ export default function ShopPage({ handlePurchase, handleBuyBdgCoin }) {
             <div>
               <img src="/bdg_coin_item.png" alt="Token Coin" style={{...styles.cardImage, borderRadius: '50%'}} />
               <h3 style={styles.cardTitle}>150 Token Coin</h3>
-              <p style={styles.cardText}><strong>Preço:</strong> 1 TON</p>
+              <p style={styles.cardText}><strong>Preço:</strong> {TOKEN_PACK_PRICE_BNB} BNB</p>
               <p style={styles.cardText}>Use para reparos e compras no jogo.</p>
             </div>
             <button onClick={handleBuyBdgCoin} style={styles.buyButton}>Comprar</button>
@@ -49,7 +86,7 @@ export default function ShopPage({ handlePurchase, handleBuyBdgCoin }) {
             <div>
               <img src={item.image} alt={item.name} style={styles.cardImage} />
               <h3 style={styles.cardTitle}>{item.name}</h3>
-              <p style={styles.cardText}><strong>Preço:</strong> {item.price} TON</p>
+              <p style={styles.cardText}><strong>Preço:</strong> {TIER_PRICES_BNB[item.tier]} BNB</p>
               <p style={styles.cardText}><strong>Ganho/Mês:</strong> {item.gain} BadDOG</p>
             </div>
             <button onClick={() => handlePurchase(item.tier)} style={styles.buyButton}>Comprar</button>
@@ -66,7 +103,7 @@ export default function ShopPage({ handlePurchase, handleBuyBdgCoin }) {
               <div>
                 <img src={item.image} alt={item.name} style={styles.cardImage} />
                 <h3 style={styles.cardTitle}>{item.name}</h3>
-                <p style={styles.cardText}><strong>Preço:</strong> {item.price} TON</p>
+                <p style={styles.cardText}><strong>Preço:</strong> {TIER_PRICES_BNB[item.tier]} BNB</p>
                 <p style={styles.cardText}><strong>Ganho/Mês:</strong> {item.gain} BadDOG</p> 
               </div>
               <button onClick={() => handlePurchase(item.tier)} style={styles.buyButton}>Comprar</button>
