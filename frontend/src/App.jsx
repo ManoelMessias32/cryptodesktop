@@ -27,7 +27,7 @@ function TelegramFlow({ username }) {
   const [status, setStatus] = useState('Bem-vindo ao CryptoDesk!');
   const [coinBdg, setCoinBdg] = useState(0);
   const [slots, setSlots] = useState(initialSlots);
-  const [claimableBdg, setClaimableBdg] = useState(0); // Adicionado para consistência
+  const [claimableBdg, setClaimableBdg] = useState(0);
   
   const tonAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
@@ -62,11 +62,11 @@ function TelegramFlow({ username }) {
 
   return (
     <>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', color: '#f4f4f5' }}>
         <p>Bem-vindo, {username}!</p>
         <TonConnectButton />
       </header>
-      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px' }}><p>{status}</p></div>
+      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#a1a1aa' }}><p>{status}</p></div>
       
       {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} economyData={economyData} />}
       {route === 'shop' && <ShopPage handlePurchase={handlePurchase} handleBuyBdgCoin={handleBuyBdgCoin} />}
@@ -107,16 +107,16 @@ function WebFlow({ username }) {
 
   return (
     <>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', color: '#f4f4f5' }}>
         <p>Bem-vindo, {username}!</p>
         <ConnectButton />
       </header>
-      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px' }}><p>{status}</p></div>
+      {/* CORREÇÃO: Aumentando o contraste da mensagem de status */}
+      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#d4d4d8' }}><p>{status}</p></div>
 
       {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} economyData={economyData} />}
       {route === 'games' && <GamesPage />}
       {route === 'shop' && <ShopPage />} 
-      {/* CORREÇÃO: Passando todos os dados necessários para a UserPage */}
       {route === 'user' && <UserPage username={username} coinBdg={coinBdg} claimableBdg={claimableBdg} />}
       {route === 'rankings' && <RankingsPage />}
       

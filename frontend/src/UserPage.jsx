@@ -1,8 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 
+const AdsterraAd = ({ atOptions }) => {
+  const adContainer = React.useRef(null);
+  useEffect(() => {
+    if (adContainer.current && !adContainer.current.hasChildNodes()) {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.innerHTML = `atOptions = ${JSON.stringify(atOptions)};`;
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = `//www.highperformanceformat.com/${atOptions.key}/invoke.js`;
+      adContainer.current.appendChild(script);
+      adContainer.current.appendChild(invokeScript);
+    }
+  }, [atOptions]);
+  return <div ref={adContainer} style={{ textAlign: 'center', margin: '20px auto' }} />;
+};
+
 const MINIMUM_CLAIM_AMOUNT = 700;
-// CORREÇÃO: Adicionando o endereço do contrato do token BDG
 const BDG_TOKEN_CONTRACT_ADDRESS = '0x9Fd1456F61a8c8212b691353249C411115C53aE8';
 
 const styles = {
@@ -11,7 +27,7 @@ const styles = {
   card: { background: '#27272a', padding: '25px', borderRadius: '10px', marginBottom: '25px', boxShadow: '0 4px 8px rgba(0,0,0,0.3)', textAlign: 'left' },
   label: { fontSize: '0.9em', color: '#a1a1aa', marginBottom: '5px' },
   value: { fontSize: '1.2em', color: '#f4f4f5', fontWeight: 'bold', wordBreak: 'break-all', marginBottom: '15px' },
-  addressValue: { fontSize: '1em', color: '#f4f4f5', wordBreak: 'break-all', marginBottom: '15px' }, // Estilo menor para endereços
+  addressValue: { fontSize: '1em', color: '#f4f4f5', wordBreak: 'break-all', marginBottom: '15px' },
   referralLink: { fontSize: '1em', color: '#facc15', wordBreak: 'break-all', padding: '10px', background: '#18181b', borderRadius: '5px', display: 'block', margin: '5px 0 15px 0' },
   button: { background: '#6366f1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontSize: '1em' },
   claimButton: { width: '100%', padding: '15px', fontSize: '1.2em' },
@@ -71,6 +87,7 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
 
   return (
     <div style={styles.container}>
+      <AdsterraAd atOptions={{ 'key': 'aa5093526197a9f66731eaa5facb698f', 'format': 'iframe', 'height': 90, 'width': 728, 'params': {} }} />
       <h1 style={styles.title}>Perfil</h1>
       
       <div style={styles.card}>
@@ -102,7 +119,6 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
         {!canClaim && <p style={{fontSize: '0.8em', color: '#a1a1aa', marginTop: '10px', textAlign: 'center'}}>Você precisa de {MINIMUM_CLAIM_AMOUNT} moedas para sacar.</p>}
       </div>
 
-      {/* CORREÇÃO: Card com o endereço do contrato do Token */}
       <div style={styles.card}>
         <p style={styles.label}>Contrato do Token (BNB Chain)</p>
         <p style={styles.addressValue}>{BDG_TOKEN_CONTRACT_ADDRESS}</p>
@@ -111,6 +127,7 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
       
       {status && <p style={styles.statusMessage}>{status}</p>}
 
+      <AdsterraAd atOptions={{ 'key': '76c30e6631e256ef38ab65c1ce40cee8', 'format': 'iframe', 'height': 250, 'width': 300, 'params': {} }} />
     </div>
   );
 }

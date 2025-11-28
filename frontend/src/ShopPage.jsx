@@ -1,23 +1,34 @@
-import React from 'react';
-import { useSendTransaction, useAccount } from 'wagmi'; // Hooks para BNB Chain
-import { parseEther } from 'viem'; // Para converter BNB para a unidade correta (wei)
+import React, { useEffect } from 'react';
+import { useSendTransaction, useAccount } from 'wagmi';
+import { parseEther } from 'viem';
 
-// CORREÇÃO: Usando seu endereço pessoal da BNB para receber os pagamentos.
+const AdsterraAd = ({ atOptions }) => {
+  const adContainer = React.useRef(null);
+  useEffect(() => {
+    if (adContainer.current && !adContainer.current.hasChildNodes()) {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.innerHTML = `atOptions = ${JSON.stringify(atOptions)};`;
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = `//www.highperformanceformat.com/${atOptions.key}/invoke.js`;
+      adContainer.current.appendChild(script);
+      adContainer.current.appendChild(invokeScript);
+    }
+  }, [atOptions]);
+  return <div ref={adContainer} style={{ textAlign: 'center', margin: '20px auto' }} />;
+};
+
 const YOUR_BNB_WALLET_ADDRESS = '0x35878269EF4051Df5f82593b4819E518bA8903A3';
 
 const TIER_PRICES_BNB = {
-    1: '0.01', // Ex: 0.01 BNB
-    2: '0.025', 
-    3: '0.05', 
-    'A': '0.03',
-    'B': '0.06',
-    'C': '0.09'
+    1: '0.01', 2: '0.025', 3: '0.05', 
+    'A': '0.03', 'B': '0.06', 'C': '0.09'
 };
-
-const TOKEN_PACK_PRICE_BNB = '0.005'; // Ex: 0.005 BNB para 150 moedas
+const TOKEN_PACK_PRICE_BNB = '0.005';
 
 export default function ShopPage() {
-  const { address } = useAccount(); // Pega o endereço da carteira conectada
+  const { address } = useAccount();
   const { sendTransaction } = useSendTransaction();
 
   const standardCpuData = {
@@ -34,21 +45,13 @@ export default function ShopPage() {
 
   const handlePurchase = (tierToBuy) => {
     if (!address) { alert('Por favor, conecte sua carteira primeiro.'); return; }
-    
     const priceInBnb = TIER_PRICES_BNB[tierToBuy];
-    sendTransaction({ 
-        to: YOUR_BNB_WALLET_ADDRESS, 
-        value: parseEther(priceInBnb)
-    });
+    sendTransaction({ to: YOUR_BNB_WALLET_ADDRESS, value: parseEther(priceInBnb) });
   };
 
   const handleBuyBdgCoin = () => {
     if (!address) { alert('Por favor, conecte sua carteira primeiro.'); return; }
-
-    sendTransaction({ 
-        to: YOUR_BNB_WALLET_ADDRESS,
-        value: parseEther(TOKEN_PACK_PRICE_BNB)
-    });
+    sendTransaction({ to: YOUR_BNB_WALLET_ADDRESS, value: parseEther(TOKEN_PACK_PRICE_BNB) });
   };
 
   const styles = {
@@ -64,11 +67,11 @@ export default function ShopPage() {
 
   return (
     <div style={styles.shopContainer}>
+      <AdsterraAd atOptions={{ 'key': 'aa5093526197a9f66731eaa5facb698f', 'format': 'iframe', 'height': 90, 'width': 728, 'params': {} }} />
       <h1>Loja (BNB Chain)</h1>
-      
       <h2 style={styles.sectionTitle}>Pacotes de Moedas</h2>
       <div style={styles.cardContainer}>
-          <div style={styles.card}>
+        <div style={styles.card}>
             <div>
               <img src="/bdg_coin_item.png" alt="Token Coin" style={{...styles.cardImage, borderRadius: '50%'}} />
               <h3 style={styles.cardTitle}>150 Token Coin</h3>
@@ -78,7 +81,6 @@ export default function ShopPage() {
             <button onClick={handleBuyBdgCoin} style={styles.buyButton}>Comprar</button>
           </div>
       </div>
-
       <h2 style={styles.sectionTitle}>CPUs Especiais</h2>
       <div style={styles.cardContainer}>
         {Object.values(specialCpuData).map(item => (
@@ -93,7 +95,6 @@ export default function ShopPage() {
           </div>
         ))}
       </div>
-
       <h2 style={styles.sectionTitle}>Componentes Padrão</h2>
       <div style={styles.cardContainer}>
         {Object.keys(standardCpuData).map(key => {
@@ -111,6 +112,7 @@ export default function ShopPage() {
           )
         })}
       </div>
+      <AdsterraAd atOptions={{ 'key': '76c30e6631e256ef38ab65c1ce40cee8', 'format': 'iframe', 'height': 250, 'width': 300, 'params': {} }} />
     </div>
   );
 }

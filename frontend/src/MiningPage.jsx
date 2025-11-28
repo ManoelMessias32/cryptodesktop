@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+
+// Componente reutilizável para os anúncios da Adsterra
+const AdsterraAd = ({ atOptions }) => {
+  const adContainer = React.useRef(null);
+
+  useEffect(() => {
+    if (adContainer.current && !adContainer.current.hasChildNodes()) {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.innerHTML = `atOptions = ${JSON.stringify(atOptions)};`;
+
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = `//www.highperformanceformat.com/${atOptions.key}/invoke.js`;
+
+      adContainer.current.appendChild(script);
+      adContainer.current.appendChild(invokeScript);
+    }
+  }, [atOptions]);
+
+  return <div ref={adContainer} style={{ textAlign: 'center', margin: '20px auto' }} />;
+};
 
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const PAID_BOOST_COST = 80;
+
+// ... (o resto do seu código da MiningPage permanece o mesmo)
 
 const formatTime = (seconds) => {
     const d = Math.floor(seconds / (3600 * 24));
@@ -50,6 +74,15 @@ export default function MiningPage({
 
   return (
     <div style={{padding: '0 10px 80px 10px'}}>
+      {/* Anúncio Banner Topo */}
+      <AdsterraAd atOptions={{
+        'key' : 'aa5093526197a9f66731eaa5facb698f',
+        'format' : 'iframe',
+        'height' : 90,
+        'width' : 728,
+        'params' : {}
+      }} />
+
       <div style={{ textAlign: 'center', margin: '20px auto', padding: '20px', background: '#2d3748', borderRadius: '10px', maxWidth: '90vw' }}>
         <p style={{ margin: 0, color: '#a1a1aa', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em'}}>Seu Saldo</p>
         <h2 style={{ fontSize: '2em', margin: '10px 0 0 0', color: '#facc15', fontFamily: '"Press Start 2P", cursive' }}>{coinBdg.toFixed(4)}</h2>
@@ -98,6 +131,15 @@ export default function MiningPage({
           ))}
         </div>
       </div>
+
+      {/* Anúncio Banner Final */}
+      <AdsterraAd atOptions={{
+        'key' : '76c30e6631e256ef38ab65c1ce40cee8',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      }} />
     </div>
   );
 }
