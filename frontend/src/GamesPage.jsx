@@ -1,21 +1,4 @@
-import React, { useEffect } from 'react';
-
-const AdsterraAd = ({ atOptions }) => {
-  const adContainer = React.useRef(null);
-  useEffect(() => {
-    if (adContainer.current && !adContainer.current.hasChildNodes()) {
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.innerHTML = `atOptions = ${JSON.stringify(atOptions)};`;
-      const invokeScript = document.createElement('script');
-      invokeScript.type = 'text/javascript';
-      invokeScript.src = `//www.highperformanceformat.com/${atOptions.key}/invoke.js`;
-      adContainer.current.appendChild(script);
-      adContainer.current.appendChild(invokeScript);
-    }
-  }, [atOptions]);
-  return <div ref={adContainer} style={{ textAlign: 'center', margin: '20px auto' }} />;
-};
+import React from 'react';
 
 const styles = {
   container: { textAlign: 'center', padding: '20px' },
@@ -35,10 +18,11 @@ const styles = {
     fontFamily: '"Press Start 2P", cursive',
     flex: '1 1 150px',
     maxWidth: '200px',
-    textDecoration: 'none', 
+    textDecoration: 'none',
   },
 };
 
+// CORREÇÃO: Lista final de jogos para a versão web
 const GAMES = {
   candyCrush: { title: 'Candy Crush', src: '/games/Candy Crush/index.html' },
   towerBlocks: { title: 'Tower Blocks', src: '/games/tower blocks/index.html' },
@@ -48,15 +32,15 @@ const GAMES = {
 };
 
 export default function GamesPage() {
+  // CORREÇÃO: Função para abrir o jogo em uma nova aba do navegador
   const handleGameClick = (gameSrc) => {
     window.open(gameSrc, '_blank');
   };
 
   return (
     <div style={styles.container}>
-      <AdsterraAd atOptions={{ 'key': 'aa5093526197a9f66731eaa5facb698f', 'format': 'iframe', 'height': 90, 'width': 728, 'params': {} }} />
       <h1 style={styles.title}>Centro de Jogos</h1>
-      <p style={{color: '#a1a1aa', marginBottom: '25px'}}>Os jogos agora abrem no seu navegador para melhor performance.</p>
+      <p style={{color: '#a1a1aa', marginBottom: '25px'}}>Os jogos abrirão em uma nova aba para melhor performance.</p>
       <div style={styles.gameMenu}>
         {Object.keys(GAMES).map(key => (
           <a 
@@ -66,7 +50,7 @@ export default function GamesPage() {
             rel="noopener noreferrer"
             style={styles.gameCard}
             onClick={(e) => {
-              e.preventDefault(); 
+              e.preventDefault();
               handleGameClick(GAMES[key].src);
             }}
           >
@@ -74,7 +58,6 @@ export default function GamesPage() {
           </a>
         ))}
       </div>
-      <AdsterraAd atOptions={{ 'key': '76c30e6631e256ef38ab65c1ce40cee8', 'format': 'iframe', 'height': 250, 'width': 300, 'params': {} }} />
     </div>
   );
 }

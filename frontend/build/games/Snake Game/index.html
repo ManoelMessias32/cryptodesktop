@@ -1,39 +1,87 @@
 <!doctype html>
 <html lang="en" dir="ltr">
-  <head>
+<head>
     <meta charset="utf-8">
-    <title>Talha - Snake Game</title>
-
-    <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
-    <!-- Also uploaded the demo of this code in a gif : https://c.tenor.com/x8v1oNUOmg4AAAAd/tenor.gif-->
-    <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
-
-    <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
-    <!-- More html-css-js Games Calculators Games Cards Elements Projects on https://www.github.com/he-is-talha --> 
-    <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
-
-    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg">
-
+    <title>Snake Game</title>
     <link rel="stylesheet" href="style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
     <script src="script.js" defer></script>
-  </head>
-  <body>
- 
+    <style>
+      .back-button {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 100;
+        background: rgba(45, 55, 72, 0.8);
+        color: white;
+        border: 1px solid #4a5568;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        font-size: 1.2em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      /* CORREÇÃO: Estilo melhorado para os botões de controle */
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 10px;
+        width: 150px;
+        margin: 20px auto 0 auto;
+      }
+      .controls button {
+        background: #4a5568;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.5em;
+        width: 45px;
+        height: 45px;
+        cursor: pointer;
+      }
+      .controls .up { grid-column: 2; grid-row: 1; }
+      .controls .left { grid-column: 1; grid-row: 2; }
+      .controls .right { grid-column: 3; grid-row: 2; }
+      .controls .down { grid-column: 2; grid-row: 2; }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.parent.postMessage('goBack', '*')">↩️</button>
+
     <div class="wrapper">
       <div class="game-details">
         <span class="score">Score: 0</span>
         <span class="high-score">High Score: 0</span>
       </div>
       <div class="play-board"></div>
+      
+      <!-- CORREÇÃO: Ícones substituídos por botões de texto -->
       <div class="controls">
-        <i data-key="ArrowLeft" class="fa-solid fa-arrow-left-long"></i>
-        <i data-key="ArrowUp" class="fa-solid fa-arrow-up-long"></i>
-        <i data-key="ArrowRight" class="fa-solid fa-arrow-right-long"></i>
-        <i data-key="ArrowDown" class="fa-solid fa-arrow-down-long"></i>
+        <button data-key="ArrowUp" class="up">▲</button>
+        <button data-key="ArrowLeft" class="left">◀</button>
+        <button data-key="ArrowDown" class="down">▼</button>
+        <button data-key="ArrowRight" class="right">▶</button>
       </div>
     </div>
 
-  
-</body></html>
+    <script>
+      function goBack() {
+        if (window.parent) {
+          window.parent.postMessage('goBack', '*');
+        }
+      }
+
+      // Adicionando listener para os novos botões
+      document.addEventListener('DOMContentLoaded', () => {
+        const controls = document.querySelectorAll(".controls button");
+        controls.forEach(button => {
+            button.addEventListener("click", () => changeDirection({ key: button.dataset.key }));
+        });
+      });
+    </script>
+</body>
+</html>

@@ -14,7 +14,7 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 // --- Constantes ---
-const STORAGE_VERSION = 'v38_final_final_fix'; // Versão com correção de estado atômico
+const STORAGE_VERSION = 'v39_final_split_logic'; 
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
@@ -23,40 +23,30 @@ const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', 
 // COMPONENTE PRINCIPAL
 // ===================================================================================
 export default function App() {
-  // --- Estado Centralizado --- 
   const [username, setUsername] = useState(() => localStorage.getItem('last_username') || '');
   const [tempUsername, setTempUsername] = useState('');
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-
   const [slots, setSlots] = useState(initialSlots);
   const [coinBdg, setCoinBdg] = useState(0);
   const [claimableBdg, setClaimableBdg] = useState(0);
-  
+
   const isTelegram = useMemo(() => typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp, []);
 
-  // CORREÇÃO DEFINITIVA: Efeito unificado para carregar dados e iniciar o jogo
+  // Efeito para carregar os dados do usuário logado
   useEffect(() => {
     if (username) {
-      console.log(`Carregando dados para o usuário: ${username}`);
       const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
       if (savedState) {
         const data = JSON.parse(savedState);
         setSlots(data.slots || initialSlots);
         setCoinBdg(data.coinBdg || 0);
         setClaimableBdg(data.claimableBdg || 0);
-        console.log('Dados carregados:', data);
-      } else {
-        // Novo usuário, define o estado inicial explicitamente
-        setSlots(initialSlots);
-        setCoinBdg(0);
-        setClaimableBdg(0);
-        console.log('Nenhum dado salvo encontrado. Iniciando com estado padrão.');
       }
-      setIsDataLoaded(true); // Libera o app para rodar
+      setIsDataLoaded(true);
     }
-  }, [username]); // Roda apenas quando o usuário é definido ou muda
+  }, [username]);
 
-  // Efeito para salvar os dados (só roda se os dados estiverem carregados)
+  // Efeito para salvar os dados
   useEffect(() => {
     if (isDataLoaded) {
       const gameState = { slots, coinBdg, claimableBdg };
@@ -64,10 +54,9 @@ export default function App() {
     }
   }, [slots, coinBdg, claimableBdg, isDataLoaded, username]);
 
-  // Efeito para o loop de mineração (só roda se os dados estiverem carregados)
+  // Efeito para o loop de mineração
   useEffect(() => {
-    if (!isDataLoaded) return; // Trava de segurança
-
+    if (!isDataLoaded) return;
     const gameLoop = setInterval(() => {
       setSlots(currentSlots => {
         let totalGain = 0;
@@ -80,7 +69,6 @@ export default function App() {
           }
           return slot;
         });
-
         if (totalGain > 0) {
           setCoinBdg(prev => prev + totalGain);
           setClaimableBdg(prev => prev + totalGain);
@@ -88,42 +76,32 @@ export default function App() {
         return updatedSlots;
       });
     }, 1000);
-
     return () => clearInterval(gameLoop);
-  }, [isDataLoaded]);
-
+  }, [isDataLoaded, slots]);
 
   const handleUsernameSubmit = () => {
     const newUsername = tempUsername.trim();
     if (newUsername) {
       localStorage.setItem('last_username', newUsername);
       setUsername(newUsername);
-      setIsDataLoaded(false); // Força recarga dos dados para o novo usuário
+      setIsDataLoaded(false);
     }
   };
 
-  const loginScreen = (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px', background: '#18181b', color: '#f4f4f5' }}>
-      <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15' }}>CryptoDesk</h1>
-      <p style={{ marginBottom: '30px' }}>Digite seu nome de usuário para começar</p>
-      <input type="text" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} placeholder="Seu nome aqui" style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white', marginBottom: '20px', width: '90%', maxWidth: '350px' }} />
-      <button onClick={handleUsernameSubmit} style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#6366f1', color: 'white', cursor: 'pointer', fontFamily: '"Press Start 2P", cursive' }}>Entrar</button>
-    </div>
-  );
-
-  // Tela de Carregamento para evitar a "piscada" e o bug de reset
-  if (!username || !isDataLoaded) {
-    return loginScreen;
+  if (!username) {
+    return <LoginScreen tempUsername={tempUsername} setTempUsername={setTempUsername} handleUsernameSubmit={handleUsernameSubmit} />;
   }
 
-  const flowProps = { username, slots, setSlots, coinBdg, claimableBdg };
+  if (!isDataLoaded) {
+    return <div style={{display: 'flex', justifyContent:'center', alignItems:'center', height:'100vh', background:'#18181b', color:'#facc15'}}>Carregando seus dados...</div>;
+  }
 
+  const flowProps = { username, slots, setSlots, coinBdg, claimableBdg, setCoinBdg };
   return isTelegram ? <TelegramFlow {...flowProps} /> : <WebFlow {...flowProps} />;
 }
 
-
 // ===================================================================================
-// COMPONENTES DE FLUXO (SIMPLIFICADOS)
+// COMPONENTES DE FLUXO (TELEGRAM E WEB)
 // ===================================================================================
 function TelegramFlow({ username, slots, setSlots, coinBdg, claimableBdg }) {
   const [route, setRoute] = useState('mine');
@@ -192,5 +170,16 @@ function WebFlow({ username, slots, setSlots, coinBdg, claimableBdg }) {
         <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
       </nav>
     </>
+  );
+}
+
+function LoginScreen({ tempUsername, setTempUsername, handleUsernameSubmit }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', padding: '20px', background: '#18181b', color: '#f4f4f5' }}>
+      <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15' }}>CryptoDesk</h1>
+      <p style={{ marginBottom: '30px' }}>Digite seu nome de usuário para começar</p>
+      <input type="text" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} placeholder="Seu nome aqui" style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white', marginBottom: '20px', width: '90%', maxWidth: '350px' }} />
+      <button onClick={handleUsernameSubmit} style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#6366f1', color: 'white', cursor: 'pointer', fontFamily: '"Press Start 2P", cursive' }}>Entrar</button>
+    </div>
   );
 }
