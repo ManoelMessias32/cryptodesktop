@@ -1,36 +1,40 @@
-// vite.config.js — VERSÃO NUCLEAR (funciona com qualquer coisa)
+// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+
   define: {
-    global: 'globalThis',
-    'process.env': process.env,
+    global: 'globalThis',           // ← ESSENCIAL
+    'process.env': {},              // ← ESSENCIAL
   },
+
   resolve: {
     alias: {
+      // Polyfills manuais (sem plugin)
       process: 'process/browser',
+      util: 'util',
       buffer: 'buffer',
-      util: 'util'
-    }
-  },
-  build: {
-    rollupOptions: {
-      external: (id) => {
-        return id.includes('node-polyfills') ||
-               id.includes('walletconnect') ||
-               id.includes('process') ||
-               id.includes('buffer')
-      }
     },
-    target: 'es2022',
-    commonjsOptions: {
-      include: [/node_modules/],
-      transformMixedEsModules: true
-    }
   },
+
+  build: {
+    target: 'esnext',
+    chunkSizeWarningLimit: 1000,   // remove o warning amarelo do Vercel
+    rollupOptions: {
+      external: [
+        // Todos os shims que o WalletConnect tenta importar
+        'vite-plugin-node-polyfills/shims/process',
+        'vite-plugin-node-polyfills/shims/global',
+        'vite-plugin-node-polyfills/shims/buffer',
+        '@walletconnect/window-metadata',
+        '@walletconnect/window-getters',
+      ],
+    },
+  },
+
   optimizeDeps: {
-    include: ['buffer', 'process']
-  }
+    include: ['buffer', 'process/browser'],
+  },
 })
