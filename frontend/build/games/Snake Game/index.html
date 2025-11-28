@@ -2,36 +2,25 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Snake Game</title>
+    <title>Talha - Snake Game</title>
+
+    <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
+    <!-- Also uploaded the demo of this code in a gif : https://c.tenor.com/x8v1oNUOmg4AAAAd/tenor.gif-->
+    <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
+
+    <!-- 👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻👇🏻-->
+    <!-- More html-css-js Games Calculators Games Cards Elements Projects on https://www.github.com/he-is-talha --> 
+    <!-- 👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻👆🏻-->
+
+    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg">
+
     <link rel="stylesheet" href="style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
     <script src="script.js" defer></script>
-    <style>
-      /* Estilo para o botão de voltar */
-      .back-button {
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 100;
-        background: rgba(45, 55, 72, 0.8);
-        color: white;
-        border: 1px solid #4a5568;
-        border-radius: 50%;
-        width: 45px;
-        height: 45px;
-        font-size: 1.2em;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-    </style>
   </head>
   <body>
-    <!-- Botão de Voltar -->
-    <button class="back-button" onclick="goBack()">↩️</button>
-
+ 
     <div class="wrapper">
       <div class="game-details">
         <span class="score">Score: 0</span>
@@ -46,14 +35,5 @@
       </div>
     </div>
 
-    <script>
-      // Função para voltar ao menu principal
-      function goBack() {
-        // Envia uma mensagem para o App.jsx dizendo para fechar o jogo
-        if (window.parent) {
-          window.parent.postMessage('goBack', '*');
-        }
-      }
-    </script>
-  </body>
-</html>
+  
+</body></html>
