@@ -14,36 +14,42 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 // --- Constantes ---
-const STORAGE_VERSION = 'v34_economy_fix';
+const STORAGE_VERSION = 'v35_save_fix'; // Versão com correção de salvamento
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
 
 // ===================================================================================
-// COMPONENTE GENÉRICO DE LÓGICA DE MINERAÇÃO (COMPARTILHADO)
+// HOOK COMPARTILHADO PARA LÓGICA DE MINERAÇÃO
 // ===================================================================================
 const useMiningLogic = (username) => {
   const [slots, setSlots] = useState(initialSlots);
   const [coinBdg, setCoinBdg] = useState(0);
   const [claimableBdg, setClaimableBdg] = useState(0);
   const [status, setStatus] = useState('Bem-vindo!');
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // <-- NOSSA TRAVA DE SEGURANÇA
 
   // Carregar dados
   useEffect(() => {
-    const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
-    if (savedState) {
-      const data = JSON.parse(savedState);
-      setSlots(data.slots || initialSlots);
-      setCoinBdg(data.coinBdg || 0);
-      setClaimableBdg(data.claimableBdg || 0);
-    } 
+    if (username) {
+      const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
+      if (savedState) {
+        const data = JSON.parse(savedState);
+        setSlots(data.slots || initialSlots);
+        setCoinBdg(data.coinBdg || 0);
+        setClaimableBdg(data.claimableBdg || 0);
+      } 
+      setIsDataLoaded(true); // <-- Libera o salvamento após carregar
+    }
   }, [username]);
 
   // Salvar dados
   const saveData = useCallback(() => {
+    // CORREÇÃO: Só salva se os dados já tiverem sido carregados
+    if (!isDataLoaded || !username) return;
     const gameState = { slots, coinBdg, claimableBdg };
     localStorage.setItem(`gameState_${STORAGE_VERSION}_${username}`, JSON.stringify(gameState));
-  }, [slots, coinBdg, claimableBdg, username]);
+  }, [isDataLoaded, username, slots, coinBdg, claimableBdg]);
 
   useEffect(() => {
     const interval = setInterval(saveData, 5000);
@@ -52,12 +58,12 @@ const useMiningLogic = (username) => {
 
   // Game Loop de Mineração
   const gameLoop = useCallback(() => {
+    if (!isDataLoaded) return; // Não minera antes de carregar
     let totalGain = 0;
     const updatedSlots = slots.map(slot => {
       if (slot.filled && slot.repairCooldown > 0 && slot.durability > 0) {
-        // CORREÇÃO: A chave da economia para a CPU grátis é 'free', não o tier 0.
         const econKey = slot.type === 'free' ? 'free' : slot.tier;
-        const gainRate = (economyData[econKey]?.gainPerHour || 0) / 3600; // Ganho por segundo
+        const gainRate = (economyData[econKey]?.gainPerHour || 0) / 3600;
         totalGain += gainRate;
         return { ...slot, repairCooldown: slot.repairCooldown - 1, durability: slot.durability - 1 };
       }
@@ -65,12 +71,11 @@ const useMiningLogic = (username) => {
     });
 
     if (totalGain > 0) {
-      // CORREÇÃO: O ganho é somado TANTO no coinBdg (interno) QUANTO no claimableBdg (para saque)
       setCoinBdg(prev => prev + totalGain);
       setClaimableBdg(prev => prev + totalGain);
     }
     setSlots(updatedSlots);
-  }, [slots]);
+  }, [slots, isDataLoaded]);
 
   useEffect(() => {
     const interval = setInterval(gameLoop, 1000);
@@ -86,8 +91,14 @@ const useMiningLogic = (username) => {
 // ===================================================================================
 function TelegramFlow({ username }) {
   const [route, setRoute] = useState('mine');
-  const { slots, setSlots, coinBdg, setCoinBdg, claimableBdg, status, setStatus } = useMiningLogic(username);
+  const { slots, setSlots, coinBdg, claimableBdg, status, setStatus } = useMiningLogic(username);
   const tonAddress = useTonAddress();
+
+  useEffect(() => {
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+    }
+  }, []);
 
   const navButtonStyle = (page) => ({ background: route === page ? '#5a67d8' : '#4a5568', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '10px 0', margin: '0 4px', fontSize: '1.5em', maxWidth: '60px' });
 
@@ -194,4 +205,3 @@ export default function App() {
 
   return isTelegram ? <TelegramFlow username={username} /> : <WebFlow username={username} />;
 }
-
