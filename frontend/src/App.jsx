@@ -14,7 +14,7 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 // --- Constantes ---
-const STORAGE_VERSION = 'v39_final_split_logic'; 
+const STORAGE_VERSION = 'v40_offline_mining_fix'; 
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
@@ -29,34 +29,63 @@ export default function App() {
   const [slots, setSlots] = useState(initialSlots);
   const [coinBdg, setCoinBdg] = useState(0);
   const [claimableBdg, setClaimableBdg] = useState(0);
-
+  
   const isTelegram = useMemo(() => typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp, []);
 
-  // Efeito para carregar os dados do usuário logado
+  // EFEITO PARA CARREGAR DADOS E CALCULAR GANHOS OFFLINE
   useEffect(() => {
     if (username) {
       const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
+      let newCoinBdg = 0;
+      let newClaimableBdg = 0;
+      let newSlots = initialSlots;
+
       if (savedState) {
         const data = JSON.parse(savedState);
-        setSlots(data.slots || initialSlots);
-        setCoinBdg(data.coinBdg || 0);
-        setClaimableBdg(data.claimableBdg || 0);
+        newCoinBdg = data.coinBdg || 0;
+        newClaimableBdg = data.claimableBdg || 0;
+        newSlots = data.slots || initialSlots;
+
+        // CORREÇÃO: Lógica de mineração offline reintroduzida
+        const now = Date.now();
+        const lastSave = data.lastSaveTimestamp || now;
+        const offlineSeconds = Math.floor((now - lastSave) / 1000);
+
+        if (offlineSeconds > 1) {
+          let accumulatedGain = 0;
+          newSlots = newSlots.map(slot => {
+            if (slot.filled && slot.repairCooldown > 0 && slot.durability > 0) {
+              const secondsToMine = Math.min(slot.repairCooldown, slot.durability, offlineSeconds);
+              const econKey = slot.type === 'free' ? 'free' : slot.tier;
+              const gainRatePerSecond = (economyData[econKey]?.gainPerHour || 0) / 3600;
+              accumulatedGain += gainRatePerSecond * secondsToMine;
+              return { ...slot, repairCooldown: Math.max(0, slot.repairCooldown - offlineSeconds), durability: Math.max(0, slot.durability - offlineSeconds) };
+            }
+            return slot;
+          });
+          newCoinBdg += accumulatedGain;
+          newClaimableBdg += accumulatedGain;
+        }
       }
-      setIsDataLoaded(true);
+      
+      setSlots(newSlots);
+      setCoinBdg(newCoinBdg);
+      setClaimableBdg(newClaimableBdg);
+      setIsDataLoaded(true); // Libera o app para rodar
     }
   }, [username]);
 
-  // Efeito para salvar os dados
+  // EFEITO PARA SALVAR OS DADOS
   useEffect(() => {
     if (isDataLoaded) {
-      const gameState = { slots, coinBdg, claimableBdg };
+      const gameState = { slots, coinBdg, claimableBdg, lastSaveTimestamp: Date.now() };
       localStorage.setItem(`gameState_${STORAGE_VERSION}_${username}`, JSON.stringify(gameState));
     }
   }, [slots, coinBdg, claimableBdg, isDataLoaded, username]);
 
-  // Efeito para o loop de mineração
+  // EFEITO PARA O LOOP DE MINERAÇÃO EM TEMPO REAL
   useEffect(() => {
-    if (!isDataLoaded) return;
+    if (!isDataLoaded) return; 
     const gameLoop = setInterval(() => {
       setSlots(currentSlots => {
         let totalGain = 0;
@@ -77,14 +106,14 @@ export default function App() {
       });
     }, 1000);
     return () => clearInterval(gameLoop);
-  }, [isDataLoaded, slots]);
+  }, [isDataLoaded]);
 
   const handleUsernameSubmit = () => {
     const newUsername = tempUsername.trim();
     if (newUsername) {
       localStorage.setItem('last_username', newUsername);
       setUsername(newUsername);
-      setIsDataLoaded(false);
+      setIsDataLoaded(false); 
     }
   };
 
@@ -96,12 +125,12 @@ export default function App() {
     return <div style={{display: 'flex', justifyContent:'center', alignItems:'center', height:'100vh', background:'#18181b', color:'#facc15'}}>Carregando seus dados...</div>;
   }
 
-  const flowProps = { username, slots, setSlots, coinBdg, claimableBdg, setCoinBdg };
+  const flowProps = { username, slots, setSlots, coinBdg, claimableBdg };
   return isTelegram ? <TelegramFlow {...flowProps} /> : <WebFlow {...flowProps} />;
 }
 
 // ===================================================================================
-// COMPONENTES DE FLUXO (TELEGRAM E WEB)
+// COMPONENTES DE FLUXO (AGORA MAIS SIMPLES)
 // ===================================================================================
 function TelegramFlow({ username, slots, setSlots, coinBdg, claimableBdg }) {
   const [route, setRoute] = useState('mine');
