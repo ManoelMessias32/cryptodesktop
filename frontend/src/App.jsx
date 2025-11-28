@@ -14,7 +14,7 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 // --- Constantes ---
-const STORAGE_VERSION = 'v35_save_fix'; // Versão com correção de salvamento
+const STORAGE_VERSION = 'v36_atomic_load'; // Versão com carregamento atômico
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
@@ -23,33 +23,32 @@ const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', 
 // HOOK COMPARTILHADO PARA LÓGICA DE MINERAÇÃO
 // ===================================================================================
 const useMiningLogic = (username) => {
-  const [slots, setSlots] = useState(initialSlots);
-  const [coinBdg, setCoinBdg] = useState(0);
-  const [claimableBdg, setClaimableBdg] = useState(0);
+  // CORREÇÃO DEFINITIVA: O estado é inicializado DIRETAMENTE do localStorage.
+  // Isso evita a "condição de corrida" que estava zerando os contadores.
+  const [slots, setSlots] = useState(() => {
+    if (!username) return initialSlots;
+    const saved = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
+    return saved ? JSON.parse(saved).slots : initialSlots;
+  });
+  const [coinBdg, setCoinBdg] = useState(() => {
+    if (!username) return 0;
+    const saved = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
+    return saved ? JSON.parse(saved).coinBdg : 0;
+  });
+  const [claimableBdg, setClaimableBdg] = useState(() => {
+    if (!username) return 0;
+    const saved = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
+    return saved ? JSON.parse(saved).claimableBdg : 0;
+  });
+  
   const [status, setStatus] = useState('Bem-vindo!');
-  const [isDataLoaded, setIsDataLoaded] = useState(false); // <-- NOSSA TRAVA DE SEGURANÇA
-
-  // Carregar dados
-  useEffect(() => {
-    if (username) {
-      const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
-      if (savedState) {
-        const data = JSON.parse(savedState);
-        setSlots(data.slots || initialSlots);
-        setCoinBdg(data.coinBdg || 0);
-        setClaimableBdg(data.claimableBdg || 0);
-      } 
-      setIsDataLoaded(true); // <-- Libera o salvamento após carregar
-    }
-  }, [username]);
 
   // Salvar dados
   const saveData = useCallback(() => {
-    // CORREÇÃO: Só salva se os dados já tiverem sido carregados
-    if (!isDataLoaded || !username) return;
+    if (!username) return; // Só salva se houver um usuário
     const gameState = { slots, coinBdg, claimableBdg };
     localStorage.setItem(`gameState_${STORAGE_VERSION}_${username}`, JSON.stringify(gameState));
-  }, [isDataLoaded, username, slots, coinBdg, claimableBdg]);
+  }, [username, slots, coinBdg, claimableBdg]);
 
   useEffect(() => {
     const interval = setInterval(saveData, 5000);
@@ -58,7 +57,6 @@ const useMiningLogic = (username) => {
 
   // Game Loop de Mineração
   const gameLoop = useCallback(() => {
-    if (!isDataLoaded) return; // Não minera antes de carregar
     let totalGain = 0;
     const updatedSlots = slots.map(slot => {
       if (slot.filled && slot.repairCooldown > 0 && slot.durability > 0) {
@@ -75,7 +73,7 @@ const useMiningLogic = (username) => {
       setClaimableBdg(prev => prev + totalGain);
     }
     setSlots(updatedSlots);
-  }, [slots, isDataLoaded]);
+  }, [slots]);
 
   useEffect(() => {
     const interval = setInterval(gameLoop, 1000);
