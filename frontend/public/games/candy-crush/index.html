@@ -116,11 +116,14 @@
 
             let firstSquare = null;
 
-            // CORREÇÃO FINAL: Usando 'touchstart' para o bot do Telegram
-            function squareClick(event) {
-                event.preventDefault(); // Previne zoom e scroll
-                const clickedSquare = event.target;
+            // CORREÇÃO FINAL: Usando 'touchstart' e prevenindo comportamento padrão
+            function handleSquareTouch(event) {
+                event.preventDefault();
+                const touchedSquare = event.target;
+                squareClick(touchedSquare);
+            }
 
+            function squareClick(clickedSquare) {
                 if (firstSquare === null) {
                     firstSquare = clickedSquare;
                     firstSquare.classList.add('selected');
@@ -155,7 +158,7 @@
                 sq2.style.backgroundImage = tempColor;
             }
 
-            squares.forEach(square => square.addEventListener('touchstart', squareClick));
+            squares.forEach(square => square.addEventListener('touchstart', handleSquareTouch));
 
             function runGameLoop() {
                 const matches = checkAllMatches();
@@ -209,9 +212,9 @@
                     }
                     for (let r = Math.floor(writeIndex / width); r >= 0; r--) {
                         const currentIndex = r * width + c;
-                        if (squares[currentIndex]) {
-                            let randomColor = Math.floor(Math.random() * candyColors.length);
-                            squares[currentIndex].style.backgroundImage = candyColors[randomColor];
+                        if(squares[currentIndex]){
+                           let randomColor = Math.floor(Math.random() * candyColors.length);
+                           squares[currentIndex].style.backgroundImage = candyColors[randomColor];
                         }
                     }
                 }

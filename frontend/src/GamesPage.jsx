@@ -41,10 +41,12 @@ const styles = {
   },
 };
 
+// CORREÇÃO: Lista de jogos restaurada para incluir todos os 5 jogos.
 const GAMES = {
   candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html', controlType: 'touch' },
   towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html', controlType: 'touch' },
-  tetris: { title: 'Tetris', src: '/games/tetris/index.html', controlType: 'native' }, // Controle nativo do jogo
+  memoryCardGame: { title: 'Memory Card', src: '/games/memory-card-game/index.html', controlType: 'touch' },
+  tetris: { title: 'Tetris', src: '/games/tetris/index.html', controlType: 'native' },
   pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html', controlType: 'd-pad' },
 };
 

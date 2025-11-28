@@ -310,10 +310,13 @@
                     if (newBlocks.placed) {
                         this.placedBlocks.add(newBlocks.placed);
                         if (!this.rewardSent) {
-                            try {
-                                window.parent.postMessage('gameWon', '*');
-                            } catch (e) {
-                                console.error("postMessage failed", e);
+                            // CORREÇÃO: Verificação de segurança para o bot do Telegram
+                            if (window.parent && window.parent !== window) {
+                                try {
+                                    window.parent.postMessage('gameWon', '*');
+                                } catch (e) {
+                                    console.error("postMessage failed in Telegram environment:", e);
+                                }
                             }
                             this.rewardSent = true;
                         }
