@@ -3,102 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Tower Blocks - CryptoDesk</title>
+    <title>Tower Blocks</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         @import url("https://fonts.googleapis.com/css?family=Comfortaa");
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100%;
-            width: 100%;
-            font-family: "Comfortaa", cursive;
-        }
-
-        #container, #game {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        #game {
-            z-index: 1;
-        }
-
-        #score, #instructions, .game-over, .game-ready, .touch-controls {
-            position: absolute;
-            width: 100%;
-            left: 0;
-            z-index: 10;
-            text-align: center;
-            color: #334;
-        }
-
+        html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; width: 100%; font-family: "Comfortaa", cursive; }
+        #container, #game { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #game { z-index: 1; }
+        #score, #instructions, .game-over, .game-ready { position: absolute; width: 100%; left: 0; z-index: 10; text-align: center; color: #334; }
         #score { top: 20px; font-size: 10vh; }
         #instructions { display: none; top: 18vh; }
         .game-over, .game-ready { top: 0; height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
-
-        #start-button {
-            pointer-events: auto;
-            border: 3px solid #334;
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.7);
-            font-size: 30px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
+        #start-button { pointer-events: auto; border: 3px solid #334; padding: 10px 20px; background: rgba(255,255,255,0.7); font-size: 30px; border-radius: 5px; cursor: pointer; }
         #container.ready .game-ready { display: flex; }
         #container.playing #instructions { display: block; }
         #container.ended .game-over { display: flex; }
-
-        .touch-controls {
-            bottom: 5vh;
-            display: none;
-            pointer-events: none;
-        }
-        #container.playing .touch-controls, #container.ready .touch-controls, #container.ended .touch-controls {
-            display: block;
-            pointer-events: auto;
-        }
-
-        #action-button {
-            width: 100px;
-            height: 100px;
-            background: #facc15;
-            border: 3px solid #eab308;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #333;
-            cursor: pointer;
-            opacity: 0.8;
-        }
     </style>
 </head>
 <body>
     <div id="container">
         <div id="game"></div>
         <div id="score">0</div>
-        <div id="instructions">
-            Click (or press the spacebar) to place the block
-        </div>
-        <div class="game-over">
-            <h2>Game Over</h2>
-            <p>You did great, you're the best.</p>
-            <p>Click or spacebar to start again</p>
-        </div>
-        <div class="game-ready">
-            <div id="start-button">Start</div>
-            <div></div>
-        </div>
+        <div id="instructions">Toque para soltar o bloco</div>
+        <div class="game-over"><h2>Fim de Jogo</h2><p>Você foi ótimo!</p><p>Toque para jogar novamente</p></div>
+        <div class="game-ready"><div id="start-button">INICIAR</div><div></div></div>
     </div>
-
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var Stage = (function () {
@@ -113,16 +43,14 @@
                     var aspect = window.innerWidth / window.innerHeight;
                     var d = 20;
                     this.camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, -100, 1000);
-                    this.camera.position.x = 2;
-                    this.camera.position.y = 2;
-                    this.camera.position.z = 2;
+                    this.camera.position.x = 2; this.camera.position.y = 2; this.camera.position.z = 2;
                     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
                     this.light = new THREE.DirectionalLight(0xffffff, 0.5);
                     this.light.position.set(0, 499, 0);
                     this.scene.add(this.light);
                     this.softLight = new THREE.AmbientLight(0xffffff, 0.4);
                     this.scene.add(this.softLight);
-                    window.addEventListener('resize', function () { return _this.onResize(); });
+                    window.addEventListener('resize', () => _this.onResize());
                     this.onResize();
                 }
                 Stage.prototype.setCamera = function (y, speed) {
@@ -139,15 +67,9 @@
                     this.camera.bottom = window.innerHeight / -viewSize;
                     this.camera.updateProjectionMatrix();
                 };
-                Stage.prototype.render = function () {
-                    this.renderer.render(this.scene, this.camera);
-                };
-                Stage.prototype.add = function (elem) {
-                    this.scene.add(elem);
-                };
-                Stage.prototype.remove = function (elem) {
-                    this.scene.remove(elem);
-                };
+                Stage.prototype.render = function () { this.renderer.render(this.scene, this.camera); };
+                Stage.prototype.add = function (elem) { this.scene.add(elem); };
+                Stage.prototype.remove = function (elem) { this.scene.remove(elem); };
                 return Stage;
             }());
 
@@ -185,9 +107,7 @@
                         this.position[this.workingPlane] = Math.random() > 0.5 ? -this.MOVE_AMOUNT : this.MOVE_AMOUNT;
                     }
                 }
-                Block.prototype.reverseDirection = function () {
-                    this.direction = this.direction > 0 ? this.speed : Math.abs(this.speed);
-                };
+                Block.prototype.reverseDirection = function () { this.direction = this.direction > 0 ? this.speed : Math.abs(this.speed); };
                 Block.prototype.place = function () {
                     this.state = this.STATES.STOPPED;
                     var overlap = this.targetBlock.dimension[this.workingDimension] - Math.abs(this.position[this.workingPlane] - this.targetBlock.position[this.workingPlane]);
@@ -260,9 +180,8 @@
                     this.addBlock();
                     this.tick();
                     this.updateState(this.STATES.READY);
-                    document.addEventListener('keydown', function (e) { if (e.keyCode == 32) _this.onAction(); });
-                    document.addEventListener('click', function (e) { _this.onAction(); });
-                    document.addEventListener('touchstart', function (e) { e.preventDefault(); _this.onAction(); });
+                    document.addEventListener('keydown', (e) => { if (e.keyCode == 32) _this.onAction(); });
+                    document.body.addEventListener('touchstart', (e) => { e.preventDefault(); _this.onAction(); }, { passive: false });
                 }
                 Game.prototype.updateState = function (newState) {
                     for (var key in this.STATES) this.mainContainer.classList.remove(this.STATES[key]);
@@ -271,15 +190,9 @@
                 };
                 Game.prototype.onAction = function () {
                     switch (this.state) {
-                        case this.STATES.READY:
-                            this.startGame();
-                            break;
-                        case this.STATES.PLAYING:
-                            this.placeBlock();
-                            break;
-                        case this.STATES.ENDED:
-                            this.restartGame();
-                            break;
+                        case this.STATES.READY: this.startGame(); break;
+                        case this.STATES.PLAYING: this.placeBlock(); break;
+                        case this.STATES.ENDED: this.restartGame(); break;
                     }
                 };
                 Game.prototype.startGame = function () {
@@ -310,20 +223,15 @@
                     if (newBlocks.placed) {
                         this.placedBlocks.add(newBlocks.placed);
                         if (!this.rewardSent) {
-                            // CORREÇÃO: Verificação de segurança para o bot do Telegram
                             if (window.parent && window.parent !== window) {
-                                try {
-                                    window.parent.postMessage('gameWon', '*');
-                                } catch (e) {
-                                    console.error("postMessage failed in Telegram environment:", e);
-                                }
+                                try { window.parent.postMessage('gameWon', '*'); } catch (e) { console.error(e); }
                             }
                             this.rewardSent = true;
                         }
                     }
                     if (newBlocks.chopped) {
                         this.choppedBlocks.add(newBlocks.chopped);
-                        var positionParams = { y: '+=30', ease: "power1.in", onComplete: function () { _this.choppedBlocks.remove(newBlocks.chopped); } };
+                        var positionParams = { y: '+=30', ease: "power1.in", onComplete: () => _this.choppedBlocks.remove(newBlocks.chopped) };
                         var rotateRandomness = 10;
                         var rotationParams = { delay: 0.05, x: Math.random() * rotateRandomness - (rotateRandomness / 2), z: Math.random() * rotateRandomness - (rotateRandomness / 2) };
                         if (newBlocks.plane == 'z') {
@@ -350,20 +258,15 @@
                     this.blocks.push(newKidOnTheBlock);
                     this.stage.setCamera(this.blocks.length * 2);
                 };
-                Game.prototype.endGame = function () {
-                    this.updateState(this.STATES.ENDED);
-                };
+                Game.prototype.endGame = function () { this.updateState(this.STATES.ENDED); };
                 Game.prototype.tick = function () {
                     var _this = this;
-                    if(this.blocks.length > 0) {
-                        this.blocks[this.blocks.length - 1].tick();
-                    }
+                    if(this.blocks.length > 0) { this.blocks[this.blocks.length - 1].tick(); }
                     this.stage.render();
-                    requestAnimationFrame(function () { _this.tick(); });
+                    requestAnimationFrame(() => _this.tick());
                 };
                 return Game;
             }());
-
             new Game();
         });
     </script>
