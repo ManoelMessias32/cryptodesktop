@@ -6,43 +6,55 @@ import { bsc, bscTestnet } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.jsx';
 
-// --- Configuração para a Rede BNB (usando Wagmi) ---
+// Configuração BNB (Wagmi)
 const bnbConfig = createConfig({
-  chains: [bsc, bscTestnet], // Suporta tanto a mainnet quanto a testnet da BNB
+  chains: [bsc, bscTestnet],
   transports: {
     [bsc.id]: http(),
     [bscTestnet.id]: http(),
   },
 });
+
 const queryClient = new QueryClient();
 
-// --- Configuração para a Rede TON (usando TonConnect) ---
-const tonManifestUrl = 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json';
+// SEU manifest.json (OBRIGATÓRIO estar no /public do projeto)
+const tonManifestUrl = "/tonconnect-manifest.json";  // ← ARQUIVO LOCAL, NUNCA EXTERNO!
 
-// Detecta se está no ambiente do Telegram
-const isTelegram = typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp;
+// Componente que detecta o ambiente NO CLIENTE (não no servidor)
+function Root() {
+  const [isTelegram, setIsTelegram] = React.useState(false);
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+  React.useEffect(() => {
+    // Só roda no browser
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      setIsTelegram(true);
+    }
+  }, []);
 
-// Renderização condicional baseada no ambiente
-if (isTelegram) {
-  // Se for o bot, renderiza com o provedor da TON
-  root.render(
-    <React.StrictMode>
+  if (isTelegram) {
+    // Dentro do Telegram → usa TON
+    return (
       <TonConnectUIProvider manifestUrl={tonManifestUrl}>
         <App />
       </TonConnectUIProvider>
-    </React.StrictMode>
-  );
-} else {
-  // Se for na web, renderiza com o provedor da BNB (Wagmi)
-  root.render(
-    <React.StrictMode>
-      <WagmiProvider config={bnbConfig}>
-        <QueryClientProvider client={queryClient}>
-          <App />
-        </QueryClientProvider>
-      </WagmiProvider>
-    </React.StrictMode>
+    );
+  }
+
+  // Fora do Telegram (web normal) → usa BNB
+  return (
+    <WagmiProvider config={bnbConfig}>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
+
+// Renderiza só no cliente
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <Root />
+  </React.StrictMode>
+);
