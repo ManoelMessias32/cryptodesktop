@@ -41,7 +41,6 @@ const styles = {
   },
 };
 
-// CORREÇÃO: Lista de jogos restaurada para incluir todos os 5 jogos.
 const GAMES = {
   candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html', controlType: 'touch' },
   towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html', controlType: 'touch' },
