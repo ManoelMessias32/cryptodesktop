@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import { useAccount } from 'wagmi';
 
-// Defina o valor mínimo para saque aqui
 const MINIMUM_CLAIM_AMOUNT = 700;
+// CORREÇÃO: Adicionando o endereço do contrato do token BDG
+const BDG_TOKEN_CONTRACT_ADDRESS = '0x9Fd1456F61a8c8212b691353249C411115C53aE8';
 
-// Estilos para a página
 const styles = {
-  container: { padding: '20px', textAlign: 'center', color: '#e4e4e7' },
-  title: { fontFamily: '"Press Start 2P", cursive', marginBottom: '30px' },
-  card: { background: '#27272a', padding: '20px', borderRadius: '10px', marginBottom: '20px', boxShadow: '0 4px 8px rgba(0,0,0,0.3)' },
-  label: { fontSize: '1em', color: '#a1a1aa' },
-  value: { fontSize: '1.2em', color: '#f4f4f5', fontWeight: 'bold', wordBreak: 'break-all', marginTop: '5px' },
-  referralLink: { fontSize: '1em', color: '#facc15', wordBreak: 'break-all', padding: '10px', background: '#18181b', borderRadius: '5px', display: 'block', margin: '10px 0' },
-  button: { background: '#6366f1', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '8px', cursor: 'pointer', fontSize: '1.1em', marginTop: '10px' },
+  container: { padding: '20px', color: '#e4e4e7', maxWidth: '800px', margin: '0 auto' },
+  title: { fontFamily: '"Press Start 2P", cursive', marginBottom: '30px', textAlign: 'center' },
+  card: { background: '#27272a', padding: '25px', borderRadius: '10px', marginBottom: '25px', boxShadow: '0 4px 8px rgba(0,0,0,0.3)', textAlign: 'left' },
+  label: { fontSize: '0.9em', color: '#a1a1aa', marginBottom: '5px' },
+  value: { fontSize: '1.2em', color: '#f4f4f5', fontWeight: 'bold', wordBreak: 'break-all', marginBottom: '15px' },
+  addressValue: { fontSize: '1em', color: '#f4f4f5', wordBreak: 'break-all', marginBottom: '15px' }, // Estilo menor para endereços
+  referralLink: { fontSize: '1em', color: '#facc15', wordBreak: 'break-all', padding: '10px', background: '#18181b', borderRadius: '5px', display: 'block', margin: '5px 0 15px 0' },
+  button: { background: '#6366f1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontSize: '1em' },
+  claimButton: { width: '100%', padding: '15px', fontSize: '1.2em' },
   disabledButton: { background: '#4a5568', cursor: 'not-allowed' },
-  statusMessage: { marginTop: '20px', fontSize: '1em', minHeight: '24px' },
+  statusMessage: { marginTop: '20px', textAlign: 'center', fontSize: '1em', minHeight: '24px' },
 };
 
 export default function UserPage({ username, coinBdg, claimableBdg }) {
@@ -24,12 +26,12 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
 
   const referralLink = `${window.location.origin}?ref=${username}`;
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(referralLink).then(() => {
-      setStatus('Link de referência copiado!');
+  const copyToClipboard = (textToCopy, type) => {
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setStatus(`${type} copiado para a área de transferência!`);
       setTimeout(() => setStatus(''), 3000);
     }).catch(err => {
-      console.error('Falha ao copiar o link: ', err);
+      console.error(`Falha ao copiar ${type}: `, err);
       setStatus('❌ Falha ao copiar.');
     });
   };
@@ -43,22 +45,17 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
       setStatus(`❌ Você precisa de pelo menos ${MINIMUM_CLAIM_AMOUNT} moedas para sacar.`);
       return;
     }
-
     setIsClaiming(true);
     setStatus('Processando seu saque...');
-
     try {
       const response = await fetch('/api/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipient: bnbAddress, amount: claimableBdg }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         setStatus(`✅ Sucesso! ${claimableBdg.toFixed(2)} BDG foram enviados para sua carteira.`);
-        // Aqui, o App.jsx precisaria ser notificado para zerar o claimableBdg
       } else {
         throw new Error(data.error || 'Ocorreu um erro no servidor.');
       }
@@ -79,33 +76,37 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
       <div style={styles.card}>
         <p style={styles.label}>Usuário</p>
         <p style={styles.value}>{username}</p>
-      </div>
+        
+        {isConnected && (
+          <>
+            <p style={styles.label}>Carteira BNB Conectada</p>
+            <p style={styles.addressValue}>{bnbAddress}</p>
+          </>
+        )}
 
-      {isConnected && (
-        <div style={styles.card}>
-          <p style={styles.label}>Carteira BNB Conectada</p>
-          <p style={styles.value}>{`${bnbAddress.substring(0, 6)}...${bnbAddress.substring(bnbAddress.length - 4)}`}</p>
-        </div>
-      )}
-
-      <div style={styles.card}>
         <p style={styles.label}>Link de Referência</p>
         <p style={styles.referralLink}>{referralLink}</p>
-        <button onClick={copyToClipboard} style={styles.button}>Copiar</button>
+        <button onClick={() => copyToClipboard(referralLink, 'Link de Referência')} style={styles.button}>Copiar</button>
       </div>
 
       <div style={styles.card}>
         <p style={styles.label}>Saldo de Moedas (BDG no Jogo)</p>
         <p style={styles.value}>{Math.floor(coinBdg)}</p>
-      </div>
 
-      <div style={styles.card}>
-        <p style={styles.label}>Moedas para Sacar (Claim)</p>
+        <p style={{...styles.label, marginTop: '20px'}}>Moedas para Sacar (Claim)</p>
         <p style={styles.value}>{claimableBdg ? claimableBdg.toFixed(4) : '0.0000'}</p>
-        <button onClick={handleClaim} disabled={isClaiming || !canClaim} style={{...styles.button, ...(!canClaim || isClaiming ? styles.disabledButton : {})}}>
+        
+        <button onClick={handleClaim} disabled={isClaiming || !canClaim} style={{...styles.button, ...styles.claimButton, ...(!canClaim || isClaiming ? styles.disabledButton : {})}}>
           {isClaiming ? 'Processando...' : 'Sacar para Carteira'}
         </button>
-        {!canClaim && <p style={{fontSize: '0.8em', color: '#a1a1aa', marginTop: '10px'}}>Você precisa de {MINIMUM_CLAIM_AMOUNT} moedas para sacar.</p>}
+        {!canClaim && <p style={{fontSize: '0.8em', color: '#a1a1aa', marginTop: '10px', textAlign: 'center'}}>Você precisa de {MINIMUM_CLAIM_AMOUNT} moedas para sacar.</p>}
+      </div>
+
+      {/* CORREÇÃO: Card com o endereço do contrato do Token */}
+      <div style={styles.card}>
+        <p style={styles.label}>Contrato do Token (BNB Chain)</p>
+        <p style={styles.addressValue}>{BDG_TOKEN_CONTRACT_ADDRESS}</p>
+        <button onClick={() => copyToClipboard(BDG_TOKEN_CONTRACT_ADDRESS, 'Endereço do Contrato')} style={styles.button}>Copiar Endereço</button>
       </div>
       
       {status && <p style={styles.statusMessage}>{status}</p>}
