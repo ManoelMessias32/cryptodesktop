@@ -28,15 +28,12 @@ function TelegramFlow({ username }) {
   const [coinBdg, setCoinBdg] = useState(0);
   const [slots, setSlots] = useState(initialSlots);
   
-  // Hooks específicos da TON
   const tonAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
 
-  // Lógica de compra e interação com a TON...
-  const handlePurchase = async (tierToBuy) => { /* ... sua lógica de compra com tonConnectUI ... */ };
-  const handleBuyBdgCoin = async () => { /* ... sua lógica de compra de moeda com tonConnectUI ... */ };
+  const handlePurchase = async (tierToBuy) => { /* ... lógica de compra com tonConnectUI ... */ };
+  const handleBuyBdgCoin = async () => { /* ... lógica de compra de moeda com tonConnectUI ... */ };
 
-  // Carregar e salvar dados para o usuário do Telegram
   useEffect(() => {
     const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
     if (savedState) {
@@ -44,7 +41,9 @@ function TelegramFlow({ username }) {
       setSlots(data.slots || initialSlots);
       setCoinBdg(data.coinBdg || 0);
     }
-    window.Telegram.WebApp.ready();
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+    }
   }, [username]);
 
   const saveData = useCallback(() => {
@@ -91,7 +90,6 @@ function WebFlow({ username }) {
   const [coinBdg, setCoinBdg] = useState(0);
   const [slots, setSlots] = useState(initialSlots);
 
-  // Hooks específicos da BNB (Wagmi)
   const { address: bnbAddress, isConnected: isBnbConnected } = useAccount();
   const { connect } = useConnect();
   const { disconnect: disconnectBnb } = useDisconnect();
@@ -114,13 +112,15 @@ function WebFlow({ username }) {
 
       {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} economyData={economyData} />}
       {route === 'games' && <GamesPage />}
-      {route === 'shop' && <ShopPage />} {/* A ShopPage da web já está configurada para BNB */}
+      {route === 'shop' && <ShopPage />} 
+      {route === 'user' && <UserPage username={username} coinBdg={coinBdg} />} {/* CORREÇÃO: Mostrando a página de usuário na web */}
       {route === 'rankings' && <RankingsPage />}
       
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0.5rem', background: '#2d3748', gap: '5px' }}>
         <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
         <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')} title="Loja">🛒</button>
         <button onClick={() => setRoute('games')} style={navButtonStyle('games')} title="Jogos">🎮</button>
+        <button onClick={() => setRoute('user')} style={navButtonStyle('user')} title="Perfil">👤</button> {/* CORREÇÃO: Adicionando o botão de perfil na web */}
         <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
       </nav>
     </>
@@ -135,11 +135,23 @@ export default function App() {
   const [tempUsername, setTempUsername] = useState('');
   const isTelegram = useMemo(() => typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp, []);
 
+  // CORREÇÃO: Lógica de verificação de referência na URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+      // Aqui você pode salvar o código de referência ou dar um bônus ao novo usuário.
+      // Por enquanto, vamos apenas registrar no console.
+      console.log("Veio de um link de referência:", ref);
+      // Você poderia, por exemplo, dar um bônus inicial:
+      // setCoinBdg(50); 
+    }
+  }, []);
+
   const handleUsernameSubmit = () => {
     const newUsername = tempUsername.trim();
     if (newUsername) {
       setUsername(newUsername);
-      // A lógica de carregar/salvar agora é feita dentro de cada fluxo (Telegram/Web)
     }
   };
 
@@ -156,6 +168,5 @@ export default function App() {
     return loginScreen;
   }
 
-  // Renderiza o fluxo correto baseado no ambiente
   return isTelegram ? <TelegramFlow username={username} /> : <WebFlow username={username} />;
 }

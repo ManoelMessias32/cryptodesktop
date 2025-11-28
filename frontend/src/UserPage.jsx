@@ -1,61 +1,94 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-export default function UserPage({ address, coinBdg, claimableBdg, username }) {
-  const [copySuccess, setCopySuccess] = useState('');
+// Estilos para a página, mantendo a consistência visual
+const styles = {
+  container: {
+    padding: '20px',
+    textAlign: 'center',
+    color: '#e4e4e7',
+  },
+  title: {
+    fontFamily: '"Press Start 2P", cursive',
+    marginBottom: '30px',
+  },
+  infoCard: {
+    background: '#27272a',
+    padding: '20px',
+    borderRadius: '10px',
+    marginBottom: '20px',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+  },
+  infoLabel: {
+    fontSize: '1em',
+    color: '#a1a1aa',
+  },
+  infoValue: {
+    fontSize: '1.5em',
+    color: '#f4f4f5',
+    fontWeight: 'bold',
+    wordBreak: 'break-all',
+  },
+  referralContainer: {
+    marginTop: '30px',
+    padding: '15px',
+    background: '#3f3f46',
+    borderRadius: '8px',
+  },
+  referralLink: {
+    fontSize: '1.1em',
+    color: '#facc15',
+    wordBreak: 'break-all',
+    padding: '10px',
+    background: '#18181b',
+    borderRadius: '5px',
+    display: 'block',
+    marginBottom: '15px',
+  },
+  copyButton: {
+    background: '#6366f1',
+    color: 'white',
+    border: 'none', 
+    padding: '10px 20px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '1em',
+  }
+};
 
-  const styles = {
-    pageContainer: { padding: '10px', maxWidth: '700px', margin: '0 auto', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' },
-    container: { padding: '15px', background: '#2d3748', borderRadius: '8px', border: '1px solid #4a5568', marginBottom: '20px' },
-    title: { color: '#facc15', borderBottom: '1px solid #4a5568', paddingBottom: '10px', marginBottom: '20px', fontSize: '1.1em', wordBreak: 'break-word', fontFamily: '"Press Start 2P", cursive' },
-    infoLine: { margin: '15px 0', fontSize: '1em', color: '#e4e4e7', wordBreak: 'break-word', lineHeight: '1.6' },
-    infoLabel: { color: '#a1a1aa', marginRight: '8px', display: 'block', marginBottom: '5px', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' },
-    disclaimer: { fontSize: '0.8em', color: '#a1a1aa', marginTop: '20px', borderTop: '1px solid #4a5568', paddingTop: '15px', lineHeight: '1.5' },
-    refLinkContainer: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' },
-    refLink: { background: '#1a202c', padding: '8px 12px', borderRadius: '6px', wordBreak: 'break-all', flexGrow: 1 },
-    copyButton: { background: '#6366f1', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '6px', cursor: 'pointer', fontFamily: '"Press Start 2P", cursive', fontSize: '0.8em' }
-  };
+export default function UserPage({ username, coinBdg }) {
 
-  const handleCopy = (textToCopy) => {
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      setCopySuccess('Copiado!');
-      setTimeout(() => setCopySuccess(''), 2000);
-    }, () => {
-      setCopySuccess('Falhou!');
-      setTimeout(() => setCopySuccess(''), 2000);
+  // Cria o link de referência baseado no nome de usuário
+  const referralLink = `${window.location.origin}?ref=${username}`;
+
+  // Função para copiar o link para a área de transferência
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(referralLink).then(() => {
+      alert('Link de referência copiado!');
+    }).catch(err => {
+      console.error('Falha ao copiar o link: ', err);
     });
   };
 
-  const contractAddress = 'EQCqVQZdhCb1nPqYfYPTspTcKaKeuokWtZVddUmQ79e68obW';
-
   return (
-    <div style={styles.pageContainer}>
-      <div style={styles.container}>
-        <h2 style={styles.title}>👤 Perfil do Jogador</h2>
-        <p style={styles.infoLine}><strong style={styles.infoLabel}>Nome:</strong> {username || 'Não definido'}</p>
-        <p style={styles.infoLine}><strong style={styles.infoLabel}>Carteira:</strong> {address || 'Não conectada'}</p>
-        <p style={styles.infoLine}><strong style={styles.infoLabel}>Saldo em Jogo (Token Coin):</strong> {(coinBdg || 0).toFixed(4)}</p>
-        <p style={styles.infoLine}><strong style={styles.infoLabel}>Saldo para Saque (BadDOG):</strong> {(claimableBdg || 0).toFixed(4)}</p>
+    <div style={styles.container}>
+      <h1 style={styles.title}>Perfil do Usuário</h1>
+      
+      <div style={styles.infoCard}>
+        <p style={styles.infoLabel}>Usuário</p>
+        <p style={styles.infoValue}>{username}</p>
       </div>
 
-      <div style={styles.container}>
-        <h2 style={{...styles.title, fontSize: '1em'}}>🚀 Link de Indicação</h2>
-        <div style={styles.refLinkContainer}>
-            <div style={styles.refLink}>{
-                username ? `${window.location.origin}?ref=${username}` : 'Faça login para ver seu link'
-            }</div>
-            {username && <button onClick={() => handleCopy(`${window.location.origin}?ref=${username}`)} style={styles.copyButton}>{copySuccess || 'Copiar'}</button>}
-        </div>
+      <div style={styles.infoCard}>
+        <p style={styles.infoLabel}>Saldo de Moedas (BDG)</p>
+        <p style={styles.infoValue}>{Math.floor(coinBdg)}</p>
       </div>
 
-      <div style={styles.container}>
-        <h2 style={{...styles.title, fontSize: '1em'}}>🐾 BadDOG (BDG)</h2>
-        <p style={styles.infoLine}><strong style={styles.infoLabel}>Rede:</strong> <span>TON (The Open Network)</span></p>
-        <div style={styles.refLinkContainer}>
-            <div style={styles.refLink}>{contractAddress}</div>
-            <button onClick={() => handleCopy(contractAddress)} style={styles.copyButton}>{copySuccess || 'Copiar'}</button>
-        </div>
-        <p style={styles.disclaimer}><strong>Aviso:</strong> O token BDG será distribuído a cada 6 meses (podendo haver alteração na data).</p>
+      <div style={styles.referralContainer}>
+        <h2 style={{fontSize: '1.2em', marginBottom: '10px'}}>Seu Link de Referência</h2>
+        <p style={styles.referralLink}>{referralLink}</p>
+        <button onClick={copyToClipboard} style={styles.copyButton}>Copiar Link</button>
       </div>
+
     </div>
   );
 }
