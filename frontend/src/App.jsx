@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { TonConnectButton, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import MiningPage from './MiningPage';
 import ShopPage from './ShopPage';
@@ -14,7 +14,7 @@ const NEW_SLOT_COST = 500;
 const SHOP_RECEIVER_ADDRESS = 'UQAcxItDorzIiYeZNuC51XlqCYDuP3vnDvVu18iFJhK1cFOx';
 const TIER_PRICES = { 1: '3500000000', 2: '9000000000', 3: '17000000000', 'A': '10000000000', 'B': '20000000000', 'C': '30000000000' };
 const BDG_COIN_PRICE = '1000000000';
-const STORAGE_VERSION = 'v31'; // Correção final da economia e salvamento
+const STORAGE_VERSION = 'v31';
 
 export default function App() {
   const [route, setRoute] = useState('mine');
@@ -29,6 +29,8 @@ export default function App() {
   const [lastGamePlayedDate, setLastGamePlayedDate] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const isTelegram = useMemo(() => typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp, []);
+
   const userFriendlyAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
 
@@ -39,6 +41,9 @@ export default function App() {
   }, [isInitialized, username, slots, coinBdg, claimableBdg, paidBoostTime, gamesPlayedToday, lastGamePlayedDate]);
 
   useEffect(() => {
+      if (isTelegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.ready();
+      }
       const savedStateJSON = localStorage.getItem(`gameState_${STORAGE_VERSION}`);
       if (savedStateJSON) {
           const savedState = JSON.parse(savedStateJSON);
@@ -99,7 +104,7 @@ export default function App() {
           setLastGamePlayedDate(new Date().toISOString().split('T')[0]);
       }
       setIsInitialized(true);
-  }, []);
+  }, [isTelegram]);
 
   useEffect(() => {
     const saveInterval = setInterval(saveData, 5000);
@@ -261,27 +266,38 @@ export default function App() {
 
   const navButtonStyle = (page) => ({ background: route === page ? '#5a67d8' : '#4a5568', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '10px 0', margin: '0 4px', fontSize: '1.5em', maxWidth: '60px' });
 
+  const WebAppNav = (
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0.5rem', background: '#2d3748', gap: '5px' }}>
+        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
+        <button onClick={() => setRoute('games')} style={navButtonStyle('games')} title="Jogos">🎮</button>
+        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
+      </nav>
+  );
+
+  const TelegramNav = (
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0.5rem', background: '#2d3748', gap: '5px' }}>
+        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
+        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')} title="Loja">🛒</button>
+        <button onClick={() => setRoute('user')} style={navButtonStyle('user')} title="Perfil">👤</button>
+        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
+      </nav>
+  );
+
   const mainApp = (
     <>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}><p>Bem-vindo, {username}!</p><TonConnectButton /></header>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}><p>Bem-vindo, {username}!</p>{isTelegram && <TonConnectButton />}</header>
       <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: status.startsWith('❌') ? '#f87171' : '#34d399' }}><p>{status}</p></div>
       {(() => {
           switch (route) {
-                case 'mine': return <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} handleRepairCpu={handleRepairCpu} />;
-              case 'shop': return <ShopPage handlePurchase={handlePurchase} handleBuyBdgCoin={handleBuyBdgCoin} />;
-              case 'games': return <GamesPage onGameWin={handleGameWin} />;
-              case 'user': return <UserPage address={userFriendlyAddress} coinBdg={coinBdg} claimableBdg={claimableBdg} username={username} />;
+              case 'mine': return <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} handleRepairCpu={handleRepairCpu} />;
+              case 'shop': return isTelegram ? <ShopPage handlePurchase={handlePurchase} handleBuyBdgCoin={handleBuyBdgCoin} /> : <div/>; // Só mostra a loja no Telegram
+              case 'games': return !isTelegram ? <GamesPage /> : <div/>; // Só mostra jogos fora do Telegram
+              case 'user': return isTelegram ? <UserPage address={userFriendlyAddress} coinBdg={coinBdg} claimableBdg={claimableBdg} username={username} /> : <div/>; // Só mostra perfil no Telegram
               case 'rankings': return <RankingsPage />;
               default: return <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} addNewSlot={addNewSlot} paidBoostTime={paidBoostTime} setPaidBoostTime={setPaidBoostTime} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} handleRepairCpu={handleRepairCpu} />;
           }
       })()}
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0.5rem', background: '#2d3748', gap: '5px' }}>
-        <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
-        <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')} title="Loja">🛒</button>
-        <button onClick={() => setRoute('games')} style={navButtonStyle('games')} title="Jogos">🎮</button>
-        <button onClick={() => setRoute('user')} style={navButtonStyle('user')} title="Perfil">👤</button>
-        <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
-      </nav>
+      {isTelegram ? TelegramNav : WebAppNav}
     </>
   );
 
