@@ -27,12 +27,13 @@ function TelegramFlow({ username }) {
   const [status, setStatus] = useState('Bem-vindo ao CryptoDesk!');
   const [coinBdg, setCoinBdg] = useState(0);
   const [slots, setSlots] = useState(initialSlots);
+  const [claimableBdg, setClaimableBdg] = useState(0); // Adicionado para consistência
   
   const tonAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
 
-  const handlePurchase = async (tierToBuy) => { /* ... lógica de compra com tonConnectUI ... */ };
-  const handleBuyBdgCoin = async () => { /* ... lógica de compra de moeda com tonConnectUI ... */ };
+  const handlePurchase = async (tierToBuy) => { /* ... sua lógica de compra com tonConnectUI ... */ };
+  const handleBuyBdgCoin = async () => { /* ... sua lógica de compra de moeda com tonConnectUI ... */ };
 
   useEffect(() => {
     const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
@@ -40,6 +41,7 @@ function TelegramFlow({ username }) {
       const data = JSON.parse(savedState);
       setSlots(data.slots || initialSlots);
       setCoinBdg(data.coinBdg || 0);
+      setClaimableBdg(data.claimableBdg || 0);
     }
     if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.ready();
@@ -47,9 +49,9 @@ function TelegramFlow({ username }) {
   }, [username]);
 
   const saveData = useCallback(() => {
-    const gameState = { slots, coinBdg };
+    const gameState = { slots, coinBdg, claimableBdg };
     localStorage.setItem(`gameState_${STORAGE_VERSION}_${username}`, JSON.stringify(gameState));
-  }, [slots, coinBdg, username]);
+  }, [slots, coinBdg, claimableBdg, username]);
 
   useEffect(() => {
     const interval = setInterval(saveData, 5000);
@@ -68,7 +70,7 @@ function TelegramFlow({ username }) {
       
       {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} economyData={economyData} />}
       {route === 'shop' && <ShopPage handlePurchase={handlePurchase} handleBuyBdgCoin={handleBuyBdgCoin} />}
-      {route === 'user' && <UserPage address={tonAddress} coinBdg={coinBdg} username={username} />}
+      {route === 'user' && <UserPage address={tonAddress} coinBdg={coinBdg} claimableBdg={claimableBdg} username={username} />}
       {route === 'rankings' && <RankingsPage />}
 
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0.5rem', background: '#2d3748', gap: '5px' }}>
@@ -89,6 +91,7 @@ function WebFlow({ username }) {
   const [status, setStatus] = useState('Bem-vindo à versão Web!');
   const [coinBdg, setCoinBdg] = useState(0);
   const [slots, setSlots] = useState(initialSlots);
+  const [claimableBdg, setClaimableBdg] = useState(0);
 
   const { address: bnbAddress, isConnected: isBnbConnected } = useAccount();
   const { connect } = useConnect();
@@ -113,14 +116,15 @@ function WebFlow({ username }) {
       {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} status={status} setStatus={setStatus} economyData={economyData} />}
       {route === 'games' && <GamesPage />}
       {route === 'shop' && <ShopPage />} 
-      {route === 'user' && <UserPage username={username} coinBdg={coinBdg} />} {/* CORREÇÃO: Mostrando a página de usuário na web */}
+      {/* CORREÇÃO: Passando todos os dados necessários para a UserPage */}
+      {route === 'user' && <UserPage username={username} coinBdg={coinBdg} claimableBdg={claimableBdg} />}
       {route === 'rankings' && <RankingsPage />}
       
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0.5rem', background: '#2d3748', gap: '5px' }}>
         <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
         <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')} title="Loja">🛒</button>
         <button onClick={() => setRoute('games')} style={navButtonStyle('games')} title="Jogos">🎮</button>
-        <button onClick={() => setRoute('user')} style={navButtonStyle('user')} title="Perfil">👤</button> {/* CORREÇÃO: Adicionando o botão de perfil na web */}
+        <button onClick={() => setRoute('user')} style={navButtonStyle('user')} title="Perfil">👤</button>
         <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
       </nav>
     </>
@@ -135,16 +139,11 @@ export default function App() {
   const [tempUsername, setTempUsername] = useState('');
   const isTelegram = useMemo(() => typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp, []);
 
-  // CORREÇÃO: Lógica de verificação de referência na URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = urlParams.get('ref');
     if (ref) {
-      // Aqui você pode salvar o código de referência ou dar um bônus ao novo usuário.
-      // Por enquanto, vamos apenas registrar no console.
       console.log("Veio de um link de referência:", ref);
-      // Você poderia, por exemplo, dar um bônus inicial:
-      // setCoinBdg(50); 
     }
   }, []);
 
