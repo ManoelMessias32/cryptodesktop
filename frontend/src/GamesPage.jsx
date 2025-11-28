@@ -41,12 +41,15 @@ const styles = {
   },
 };
 
+// CORREÇÃO: Lista de jogos atualizada com os novos nomes e o Minesweeper
 const GAMES = {
-  candyCrush: { title: 'Candy Crush', src: '/games/candy-crush/index.html', controlType: 'touch' },
-  towerBlocks: { title: 'Tower Blocks', src: '/games/tower-blocks/index.html', controlType: 'touch' },
-  memoryCardGame: { title: 'Memory Card', src: '/games/memory-card-game/index.html', controlType: 'touch' },
-  tetris: { title: 'Tetris', src: '/games/tetris/index.html', controlType: 'native' },
-  pingPong: { title: 'Ping Pong', src: '/games/ping-pong/index.html', controlType: 'd-pad' },
+  candyCrush: { title: 'Candy Crush', src: '/games/Candy Crush/index.html', controlType: 'touch' },
+  towerBlocks: { title: 'Tower Blocks', src: '/games/tower blocks/index.html', controlType: 'touch' },
+  memoryCardGame: { title: 'Memory Card', src: '/games/Memory Card/index.html', controlType: 'touch' },
+  tetris: { title: 'Tetris', src: '/games/Tetris Game/index.html', controlType: 'native' },
+  pingPong: { title: 'Ping Pong', src: '/games/ping pong/index.html', controlType: 'd-pad' },
+  snake: { title: 'Snake Game', src: '/games/Snake Game/index.html', controlType: 'd-pad' },
+  minesweeper: { title: 'Minesweeper', src: '/games/Minesweeper/index.html', controlType: 'touch' },
 };
 
 const GameControls = ({ onControlPress, onGoBack }) => {
