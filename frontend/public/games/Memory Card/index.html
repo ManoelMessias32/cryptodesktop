@@ -6,14 +6,17 @@
   <link rel="stylesheet" href="style.css"> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
   <style>
-    .back-button { position: fixed; top: 10px; left: 10px; z-index: 999; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
+    .back-button { position: fixed; top: 10px; left: 10px; z-index: 9999; background: rgba(0,0,0,0.5); color: white; border: 1px solid white; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
   </style>
  </head> 
  <body> 
   <button class="back-button" onclick="window.parent.postMessage('goBack', '*')">↩️</button>
+
   <div class="wrapper"> 
    <ul class="cards"></ul> 
   </div> 
+
+  <!-- O script do jogo é chamado no final para garantir que o HTML foi carregado -->
   <script src="script.js"></script> 
  </body>
 </html>

@@ -4,23 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
     <title>Candy Crush</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-      body, html { margin: 0; padding: 0; background-color: #483D8B; }
-      .back-button { position: fixed; top: 10px; left: 10px; z-index: 999; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
-      /* O CSS do jogo principal está em outro lugar */
+      .back-button { position: fixed; top: 10px; left: 10px; z-index: 9999; background: rgba(0,0,0,0.5); color: white; border: 1px solid white; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <!-- CORREÇÃO: Botão de voltar adicionado -->
     <button class="back-button" onclick="window.parent.postMessage('goBack', '*')">↩️</button>
 
     <div class="score-board">
         <h3>Score</h3>
         <h1 id="score">0</h1>
     </div>
-    <div class="grid-container">
-      <div class="grid"></div>
-    </div>
+    <div class="grid"></div>
+    
+    <!-- O script do jogo é chamado no final para garantir que o HTML foi carregado -->
     <script src="script.js"></script>
 </body>
 </html>
