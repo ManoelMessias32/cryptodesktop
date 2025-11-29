@@ -128,6 +128,7 @@ function candyCrushGame() {
             const isBlank = squares[i].style.backgroundImage === "";
             if (rowOfFour.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
                 score += 4;
+                window.parent.postMessage('gameWon', '*');
                 scoreDisplay.innerHTML = score;
                 rowOfFour.forEach(index => squares[index].style.backgroundImage = "");
             }
@@ -141,6 +142,7 @@ function candyCrushGame() {
             const isBlank = squares[i].style.backgroundImage === "";
             if (columnOfFour.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
                 score += 4;
+                window.parent.postMessage('gameWon', '*');
                 scoreDisplay.innerHTML = score;
                 columnOfFour.forEach(index => squares[index].style.backgroundImage = "");
             }
@@ -155,6 +157,7 @@ function candyCrushGame() {
             const isBlank = squares[i].style.backgroundImage === "";
             if (rowOfThree.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
                 score += 3;
+                window.parent.postMessage('gameWon', '*');
                 scoreDisplay.innerHTML = score;
                 rowOfThree.forEach(index => squares[index].style.backgroundImage = "");
             }
@@ -168,6 +171,7 @@ function candyCrushGame() {
             const isBlank = squares[i].style.backgroundImage === "";
             if (columnOfThree.every(index => squares[index].style.backgroundImage === decidedColor && !isBlank)) {
                 score += 3;
+                window.parent.postMessage('gameWon', '*');
                 scoreDisplay.innerHTML = score;
                 columnOfThree.forEach(index => squares[index].style.backgroundImage = "");
             }

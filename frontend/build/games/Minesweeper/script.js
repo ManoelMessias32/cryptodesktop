@@ -17,7 +17,7 @@ window.onload = function () {
 function setMines() {
   // minesLocation.push("2-2");
   // minesLocation.push("2-3");
-  // minesLocation.push("5-6");
+  // minesLocation.push("5-6
   // minesLocation.push("3-4");
   // minesLocation.push("1-1");
 
@@ -116,6 +116,7 @@ function checkMine(r, c) {
 
   board[r][c].classList.add("tile-clicked");
   tilesClicked += 1;
+  window.parent.postMessage('gameWon', '*');
 
   let minesFound = 0;
 

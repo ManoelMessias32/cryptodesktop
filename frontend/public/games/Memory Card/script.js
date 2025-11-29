@@ -21,6 +21,7 @@ function flipCard({target: clickedCard}) {
 function matchCards(img1, img2) {
     if(img1 === img2) {
         matched++;
+        window.parent.postMessage('gameWon', '*');
         if(matched == 8) {
             setTimeout(() => {
                 return shuffleCard();
