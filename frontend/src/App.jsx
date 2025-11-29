@@ -115,25 +115,29 @@ export default function App() {
   useEffect(() => {
     if (!isDataLoaded) return;
     const gameLoop = setInterval(() => {
-        let totalGain = 0;
-        setSlots(currentSlots => 
-            currentSlots.map(slot => {
-                if (slot.filled && slot.repairCooldown > 0 && slot.durability > 0) {
-                    const econKey = slot.type === 'free' ? 'free' : slot.tier;
-                    const gainRate = (economyData[econKey]?.gainPerHour || 0) / 3600;
-                    totalGain += gainRate;
-                    return { ...slot, repairCooldown: slot.repairCooldown - 1, durability: slot.durability - 1 };
-                }
-                return slot;
-            })
-        );
-        if (totalGain > 0) {
-            setCoinBdg(prev => prev + totalGain);
-            setClaimableBdg(prev => prev + totalGain);
+      let totalGain = 0;
+
+      const updatedSlots = slots.map(slot => {
+        if (slot.filled && slot.repairCooldown > 0 && slot.durability > 0) {
+          const econKey = slot.type === 'free' ? 'free' : slot.tier;
+          const gainRate = (economyData[econKey]?.gainPerHour || 0) / 3600;
+          totalGain += gainRate;
+          return { ...slot, repairCooldown: slot.repairCooldown - 1, durability: slot.durability - 1 };
         }
+        return slot;
+      });
+
+      setSlots(updatedSlots);
+
+      if (totalGain > 0) {
+        setCoinBdg(prev => prev + totalGain);
+        setClaimableBdg(prev => prev + totalGain);
+      }
     }, 1000);
+
     return () => clearInterval(gameLoop);
-  }, [isDataLoaded]);
+  }, [isDataLoaded, slots]); // Adicionado 'slots' como dependência
+
 
   const handleGameWin = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
