@@ -14,7 +14,7 @@ import GamesPage from './GamesPage';
 import { economyData } from './economy';
 
 // --- Constantes ---
-const STORAGE_VERSION = 'v40_offline_mining_fix'; 
+const STORAGE_VERSION = 'v41_reward_fix'; // Versão com correção de recompensa
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
@@ -29,16 +29,21 @@ export default function App() {
   const [slots, setSlots] = useState(initialSlots);
   const [coinBdg, setCoinBdg] = useState(0);
   const [claimableBdg, setClaimableBdg] = useState(0);
+  const [gamesPlayedToday, setGamesPlayedToday] = useState(0);
+  const [lastGamePlayedDate, setLastGamePlayedDate] = useState(new Date().toISOString().split('T')[0]);
   
   const isTelegram = useMemo(() => typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp, []);
 
-  // EFEITO PARA CARREGAR DADOS E CALCULAR GANHOS OFFLINE
+  // Efeito para carregar os dados do usuário logado
   useEffect(() => {
     if (username) {
       const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
+      const today = new Date().toISOString().split('T')[0];
       let newCoinBdg = 0;
       let newClaimableBdg = 0;
       let newSlots = initialSlots;
+      let newGamesPlayed = 0;
+      let newLastGameDate = today;
 
       if (savedState) {
         const data = JSON.parse(savedState);
@@ -46,7 +51,14 @@ export default function App() {
         newClaimableBdg = data.claimableBdg || 0;
         newSlots = data.slots || initialSlots;
 
-        // CORREÇÃO: Lógica de mineração offline reintroduzida
+        if (data.lastGamePlayedDate !== today) {
+          newGamesPlayed = 0;
+          newLastGameDate = today;
+        } else {
+          newGamesPlayed = data.gamesPlayedToday || 0;
+          newLastGameDate = data.lastGamePlayedDate;
+        }
+
         const now = Date.now();
         const lastSave = data.lastSaveTimestamp || now;
         const offlineSeconds = Math.floor((now - lastSave) / 1000);
@@ -66,24 +78,26 @@ export default function App() {
           newCoinBdg += accumulatedGain;
           newClaimableBdg += accumulatedGain;
         }
-      }
-      
+      } 
+
       setSlots(newSlots);
       setCoinBdg(newCoinBdg);
       setClaimableBdg(newClaimableBdg);
-      setIsDataLoaded(true); // Libera o app para rodar
+      setGamesPlayedToday(newGamesPlayed);
+      setLastGamePlayedDate(newLastGameDate);
+      setIsDataLoaded(true); 
     }
   }, [username]);
 
-  // EFEITO PARA SALVAR OS DADOS
+  // Efeito para salvar os dados
   useEffect(() => {
     if (isDataLoaded) {
-      const gameState = { slots, coinBdg, claimableBdg, lastSaveTimestamp: Date.now() };
+      const gameState = { slots, coinBdg, claimableBdg, gamesPlayedToday, lastGamePlayedDate, lastSaveTimestamp: Date.now() };
       localStorage.setItem(`gameState_${STORAGE_VERSION}_${username}`, JSON.stringify(gameState));
     }
-  }, [slots, coinBdg, claimableBdg, isDataLoaded, username]);
+  }, [slots, coinBdg, claimableBdg, gamesPlayedToday, lastGamePlayedDate, isDataLoaded, username]);
 
-  // EFEITO PARA O LOOP DE MINERAÇÃO EM TEMPO REAL
+  // Efeito para o loop de mineração
   useEffect(() => {
     if (!isDataLoaded) return; 
     const gameLoop = setInterval(() => {
@@ -106,7 +120,20 @@ export default function App() {
       });
     }, 1000);
     return () => clearInterval(gameLoop);
-  }, [isDataLoaded]);
+  }, [isDataLoaded, slots]);
+
+  // CORREÇÃO: Lógica de recompensa por jogo
+  const handleGameWin = useCallback(() => {
+    const today = new Date().toISOString().split('T')[0];
+    let currentGamesPlayed = lastGamePlayedDate === today ? gamesPlayedToday : 0;
+
+    if (currentGamesPlayed < 9) {
+      setCoinBdg(prev => prev + 5); // +5 para a moeda interna
+      setClaimableBdg(prev => prev + 5); // +5 para o saldo de saque BDG
+      setGamesPlayedToday(currentGamesPlayed + 1);
+      setLastGamePlayedDate(today);
+    } 
+  }, [gamesPlayedToday, lastGamePlayedDate]);
 
   const handleUsernameSubmit = () => {
     const newUsername = tempUsername.trim();
@@ -125,14 +152,15 @@ export default function App() {
     return <div style={{display: 'flex', justifyContent:'center', alignItems:'center', height:'100vh', background:'#18181b', color:'#facc15'}}>Carregando seus dados...</div>;
   }
 
-  const flowProps = { username, slots, setSlots, coinBdg, claimableBdg };
+  const flowProps = { username, slots, setSlots, coinBdg, claimableBdg, onGameWin };
+
   return isTelegram ? <TelegramFlow {...flowProps} /> : <WebFlow {...flowProps} />;
 }
 
 // ===================================================================================
-// COMPONENTES DE FLUXO (AGORA MAIS SIMPLES)
+// COMPONENTES DE FLUXO (SIMPLIFICADOS)
 // ===================================================================================
-function TelegramFlow({ username, slots, setSlots, coinBdg, claimableBdg }) {
+function TelegramFlow({ username, slots, setSlots, coinBdg, claimableBdg, onGameWin }) {
   const [route, setRoute] = useState('mine');
   const [status, setStatus] = useState('Bem-vindo ao CryptoDesk!');
   const tonAddress = useTonAddress();
@@ -154,9 +182,11 @@ function TelegramFlow({ username, slots, setSlots, coinBdg, claimableBdg }) {
       {route === 'shop' && <ShopPage />}
       {route === 'user' && <UserPage address={tonAddress} coinBdg={coinBdg} claimableBdg={claimableBdg} username={username} />}
       {route === 'rankings' && <RankingsPage />}
+      {route === 'games' && <GamesPage onGameWin={onGameWin} />}
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-around', padding: '0.5rem', background: '#2d3748', gap: '5px' }}>
         <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
         <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')} title="Loja">🛒</button>
+        <button onClick={() => setRoute('games')} style={navButtonStyle('games')} title="Jogos">🎮</button>
         <button onClick={() => setRoute('user')} style={navButtonStyle('user')} title="Perfil">👤</button>
         <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
       </nav>
@@ -164,7 +194,7 @@ function TelegramFlow({ username, slots, setSlots, coinBdg, claimableBdg }) {
   );
 }
 
-function WebFlow({ username, slots, setSlots, coinBdg, claimableBdg }) {
+function WebFlow({ username, slots, setSlots, coinBdg, claimableBdg, onGameWin }) {
   const [route, setRoute] = useState('mine');
   const [status, setStatus] = useState('Bem-vindo à versão Web!');
   const { address: bnbAddress, isConnected: isBnbConnected } = useAccount();
@@ -187,7 +217,7 @@ function WebFlow({ username, slots, setSlots, coinBdg, claimableBdg }) {
       </header>
       <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#d4d4d8' }}><p>{status}</p></div>
       {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} setStatus={setStatus} economyData={economyData} />}
-      {route === 'games' && <GamesPage />}
+      {route === 'games' && <GamesPage onGameWin={onGameWin} />}
       {route === 'shop' && <ShopPage />} 
       {route === 'user' && <UserPage username={username} coinBdg={coinBdg} claimableBdg={claimableBdg} />}
       {route === 'rankings' && <RankingsPage />}

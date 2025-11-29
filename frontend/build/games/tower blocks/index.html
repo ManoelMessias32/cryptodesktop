@@ -1,43 +1,37 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,user-scalable=no" />
+    <script src="https://codepen.io/steveg3003/pen/zBVakw"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
     <title>Tower Blocks</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
     <style>
-        @import url("https://fonts.googleapis.com/css?family=Comfortaa");
-        html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; width: 100%; font-family: "Comfortaa", cursive; }
-        #container, #game { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        #game { z-index: 1; }
-        #score, #instructions, .game-over, .game-ready { position: absolute; width: 100%; left: 0; z-index: 10; text-align: center; color: #334; }
-        #score { top: 20px; font-size: 10vh; }
-        #instructions { display: none; top: 18vh; }
-        .game-over, .game-ready { top: 0; height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
-        #start-button { pointer-events: auto; border: 3px solid #334; padding: 10px 20px; background: rgba(255,255,255,0.7); font-size: 30px; border-radius: 5px; cursor: pointer; }
-        #container.ready .game-ready { display: flex; }
-        #container.playing #instructions { display: block; }
-        #container.ended .game-over { display: flex; }
-        .back-button { position: fixed; top: 10px; left: 10px; z-index: 9999; background: rgba(0,0,0,0.5); color: white; border: 1px solid white; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
+      .back-button { position: fixed; top: 10px; left: 10px; z-index: 9999; background: rgba(0,0,0,0.5); color: white; border: 1px solid white; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <button class="back-button" onclick="window.parent.postMessage('goBack', '*')">↩️</button>
 
+    <script src="script.js" async></script>
     <div id="container">
-        <div id="game"></div>
-        <div id="score">0</div>
-        <div id="instructions">Toque para soltar o bloco</div>
-        <div class="game-over"><h2>Fim de Jogo</h2><p>Você foi ótimo!</p><p>Toque para jogar novamente</p></div>
-        <div class="game-ready"><div id="start-button">INICIAR</div><div></div></div>
+      <div id="game"></div>
+      <div id="score">0</div>
+      <div id="instructions">
+        Click (or press the spacebar) to place the block
+      </div>
+      <div class="game-over">
+        <h2>Game Over</h2>
+        <p>You did great, you're the best.</p>
+        <p>Click or spacebar to start again</p>
+      </div>
+      <div class="game-ready">
+        <div id="start-button">Start</div>
+        <div></div>
+      </div>
     </div>
-    
-    <script>
-        // O script do jogo está aqui...
-        window.addEventListener('DOMContentLoaded', () => {
-            // ... (código do jogo)
-        });
-    </script>
-</body>
+  </body>
 </html>
