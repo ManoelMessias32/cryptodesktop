@@ -166,19 +166,15 @@
                     this.STATES = { LOADING: 'loading', PLAYING: 'playing', READY: 'ready', ENDED: 'ended', RESETTING: 'resetting' };
                     this.blocks = [];
                     this.state = this.STATES.LOADING;
-                    this.rewardSent = false;
-                    this.newBlocks = new THREE.Group();
-                    this.placedBlocks = new THREE.Group();
-                    this.choppedBlocks = new THREE.Group();
                     this.stage = new Stage();
                     this.mainContainer = document.getElementById('container');
                     this.scoreContainer = document.getElementById('score');
                     this.startButton = document.getElementById('start-button');
                     this.instructions = document.getElementById('instructions');
                     this.scoreContainer.innerHTML = '0';
-                    this.stage.add(this.newBlocks);
-                    this.stage.add(this.placedBlocks);
-                    this.stage.add(this.choppedBlocks);
+                    this.stage.add(new THREE.Group()); // newBlocks
+                    this.stage.add(new THREE.Group()); // placedBlocks
+                    this.stage.add(new THREE.Group()); // choppedBlocks
                     this.addBlock();
                     this.tick();
                     this.updateState(this.STATES.READY);
@@ -201,47 +197,30 @@
                     if (this.state != this.STATES.PLAYING) {
                         this.scoreContainer.innerHTML = '0';
                         this.updateState(this.STATES.PLAYING);
-                        this.rewardSent = false;
                         this.addBlock();
+                        // CORREÇÃO: Envia a recompensa no início de cada partida
+                        if (window.parent) window.parent.postMessage('gameWon', '*');
                     }
                 };
                 Game.prototype.restartGame = function () {
-                    var _this = this;
                     this.updateState(this.STATES.RESETTING);
-                    this.blocks.forEach(b => _this.stage.remove(b.mesh));
-                    this.placedBlocks.children = [];
-                    this.newBlocks.children = [];
-                    this.choppedBlocks.children = [];
+                    this.blocks.forEach(b => this.stage.remove(b.mesh));
+                    this.stage.scene.children = this.stage.scene.children.filter(c => !(c instanceof THREE.Group)); // Limpa os grupos
                     this.blocks = [];
                     this.addBlock();
                     this.stage.setCamera(2);
                     this.updateState(this.STATES.READY);
                 };
                 Game.prototype.placeBlock = function () {
-                    var _this = this;
                     var currentBlock = this.blocks[this.blocks.length - 1];
                     var newBlocks = currentBlock.place();
-                    this.newBlocks.remove(currentBlock.mesh);
+                    this.stage.scene.children[0].remove(currentBlock.mesh);
                     if (newBlocks.placed) {
-                        this.placedBlocks.add(newBlocks.placed);
-                        if (!this.rewardSent) {
-                            if (window.parent && window.parent !== window) {
-                                try { window.parent.postMessage('gameWon', '*'); } catch (e) { console.error(e); }
-                            }
-                            this.rewardSent = true;
-                        }
+                        this.stage.scene.children[1].add(newBlocks.placed);
                     }
                     if (newBlocks.chopped) {
-                        this.choppedBlocks.add(newBlocks.chopped);
-                        var positionParams = { y: '+=30', ease: "power1.in", onComplete: () => _this.choppedBlocks.remove(newBlocks.chopped) };
-                        var rotateRandomness = 10;
-                        var rotationParams = { delay: 0.05, x: Math.random() * rotateRandomness - (rotateRandomness / 2), z: Math.random() * rotateRandomness - (rotateRandomness / 2) };
-                        if (newBlocks.plane == 'z') {
-                            gsap.to(newBlocks.chopped.position, { duration: 1, ...positionParams });
-                        } else {
-                            gsap.to(newBlocks.chopped.position, { duration: 1, ...positionParams });
-                        }
-                        gsap.to(newBlocks.chopped.rotation, { duration: 1, ...rotationParams });
+                        this.stage.scene.children[2].add(newBlocks.chopped);
+                        gsap.to(newBlocks.chopped.position, { duration: 1, y: '+=30', ease: "power1.in", onComplete: () => this.stage.scene.children[2].remove(newBlocks.chopped) });
                     }
                     if (newBlocks.missed) {
                         this.endGame();
@@ -256,16 +235,15 @@
                     }
                     this.scoreContainer.innerHTML = String(this.blocks.length - 1);
                     var newKidOnTheBlock = new Block(lastBlock);
-                    this.newBlocks.add(newKidOnTheBlock.mesh);
+                    this.stage.scene.children[0].add(newKidOnTheBlock.mesh);
                     this.blocks.push(newKidOnTheBlock);
                     this.stage.setCamera(this.blocks.length * 2);
                 };
                 Game.prototype.endGame = function () { this.updateState(this.STATES.ENDED); };
                 Game.prototype.tick = function () {
-                    var _this = this;
                     if(this.blocks.length > 0) { this.blocks[this.blocks.length - 1].tick(); }
                     this.stage.render();
-                    requestAnimationFrame(() => _this.tick());
+                    requestAnimationFrame(() => this.tick());
                 };
                 return Game;
             }());
