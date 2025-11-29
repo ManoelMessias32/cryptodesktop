@@ -20,6 +20,25 @@ const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
 
 // ===================================================================================
+// COMPONENTES DE CONTEÚDO ESPECÍFICO (para separar os hooks)
+// ===================================================================================
+
+// Conteúdo para o ambiente Telegram (usa TON)
+function TonAppContent({ appProps }) {
+  const tonAddress = useTonAddress();
+  return <MainApp {...appProps} isTelegram={true} tonAddress={tonAddress} />;
+}
+
+// Conteúdo para o ambiente Web (usa BNB)
+function WebAppContent({ appProps }) {
+  const { address: bnbAddress, isConnected: isBnbConnected } = useAccount();
+  const { connect } = useConnect();
+  const { disconnect: disconnectBnb } = useDisconnect();
+  return <MainApp {...appProps} isTelegram={false} bnbAddress={bnbAddress} isBnbConnected={isBnbConnected} connect={connect} disconnectBnb={disconnectBnb} />;
+}
+
+
+// ===================================================================================
 // COMPONENTE PRINCIPAL UNIFICADO
 // ===================================================================================
 export default function App() {
@@ -36,12 +55,6 @@ export default function App() {
   const [lastGamePlayedDate, setLastGamePlayedDate] = useState(new Date().toISOString().split('T')[0]);
 
   const isTelegram = useMemo(() => typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp, []);
-
-  // Hooks de Conexão de Carteira
-  const tonAddress = useTonAddress();
-  const { address: bnbAddress, isConnected: isBnbConnected } = useAccount();
-  const { connect } = useConnect();
-  const { disconnect: disconnectBnb } = useDisconnect();
 
   // --- LÓGICA DE DADOS E MINERAÇÃO (UNIFICADA) ---
 
@@ -154,8 +167,10 @@ export default function App() {
   if (!isDataLoaded) {
     return <div style={{display: 'flex', justifyContent:'center', alignItems:'center', height:'100vh', background:'#18181b', color:'#facc15'}}>Carregando seus dados...</div>;
   }
+  
+  const appProps = { username, slots, setSlots, coinBdg, claimableBdg, setRoute, route, status, setStatus, handleGameWin };
 
-  return <MainApp {...{username, slots, setSlots, coinBdg, claimableBdg, isTelegram, tonAddress, bnbAddress, isBnbConnected, connect, disconnectBnb, setRoute, route, status, setStatus, handleGameWin}} />;
+  return isTelegram ? <TonAppContent appProps={appProps} /> : <WebAppContent appProps={appProps} />;
 }
 
 
