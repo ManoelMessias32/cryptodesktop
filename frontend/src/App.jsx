@@ -148,6 +148,17 @@ export default function App() {
     }
   }, [gamesPlayedToday, lastGamePlayedDate]);
 
+  const handleBuyEnergyForAll = () => {
+    const cost = 10 * slots.length;
+    if (coinBdg >= cost) {
+      setCoinBdg(prev => prev - cost);
+      setSlots(slots.map(slot => ({ ...slot, repairCooldown: ONE_HOUR_IN_SECONDS })));
+      setStatus("Energia de todos os slots foi reabastecida!");
+    } else {
+      setStatus("Token Coins insuficientes para reabastecer a energia.");
+    }
+  };
+
   const handleUsernameSubmit = () => {
     const newUsername = tempUsername.trim();
     if (newUsername) {
@@ -167,14 +178,14 @@ export default function App() {
     return <div style={{display: 'flex', justifyContent:'center', alignItems:'center', height:'100vh', background:'#18181b', color:'#facc15'}}>Carregando seus dados...</div>;
   }
   
-  const appProps = { username, slots, setSlots, coinBdg, claimableBdg, setRoute, route, status, setStatus, handleGameWin };
+  const appProps = { username, slots, setSlots, coinBdg, setCoinBdg, claimableBdg, setRoute, route, status, setStatus, handleGameWin, handleBuyEnergyForAll };
 
   return isTelegram ? <TonAppContent appProps={appProps} /> : <WebAppContent appProps={appProps} />;
 }
 
 
 // --- Componente da Aplicação Principal ---
-function MainApp({ username, slots, setSlots, coinBdg, claimableBdg, isTelegram, tonAddress, bnbAddress, isBnbConnected, connect, disconnectBnb, setRoute, route, status, setStatus, handleGameWin }) {
+function MainApp({ username, slots, setSlots, coinBdg, setCoinBdg, claimableBdg, isTelegram, tonAddress, bnbAddress, isBnbConnected, connect, disconnectBnb, setRoute, route, status, setStatus, handleGameWin, handleBuyEnergyForAll }) {
 
   const navButtonStyle = (page) => ({ background: route === page ? '#5a67d8' : '#4a5568', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '10px 0', margin: '0 4px', fontSize: '1.5em', maxWidth: '60px' });
 
@@ -194,7 +205,7 @@ function MainApp({ username, slots, setSlots, coinBdg, claimableBdg, isTelegram,
       </header>
       <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#d4d4d8' }}><p>{status}</p></div>
       
-      {route === 'mine' && <MiningPage coinBdg={coinBdg} slots={slots} setSlots={setSlots} setStatus={setStatus} economyData={economyData} />}
+      {route === 'mine' && <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} setStatus={setStatus} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} />}
       {route === 'shop' && <ShopPage />}
       {route === 'rankings' && <RankingsPage />}
       {route === 'user' && (isTelegram ? <UserPage address={tonAddress} coinBdg={coinBdg} claimableBdg={claimableBdg} username={username} /> : <UserPage username={username} coinBdg={coinBdg} claimableBdg={claimableBdg} />)}
