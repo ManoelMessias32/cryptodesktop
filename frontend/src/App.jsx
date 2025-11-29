@@ -140,10 +140,9 @@ export default function App() {
     let currentGamesPlayed = lastGamePlayedDate === today ? gamesPlayedToday : 0;
     if (currentGamesPlayed < 9) {
       setCoinBdg(prev => prev + 5);
-      setClaimableBdg(prev => prev + 5);
       setGamesPlayedToday(currentGamesPlayed + 1);
       setLastGamePlayedDate(today);
-      setStatus(`Recompensa: +5 Token Coin e +5 BDG! (${currentGamesPlayed + 1}/9)`);
+      setStatus(`Recompensa: +5 Token Coin! (${currentGamesPlayed + 1}/9)`);
     } else {
       setStatus("Limite de recompensas diárias atingido.");
     }

@@ -353,10 +353,7 @@ var Game = /** @class */ (function () {
     var currentBlock = this.blocks[this.blocks.length - 1];
     var newBlocks = currentBlock.place();
     this.newBlocks.remove(currentBlock.mesh);
-    if (newBlocks.placed) {
-      window.parent.postMessage('gameWon', '*');
-      this.placedBlocks.add(newBlocks.placed);
-    }
+    if (newBlocks.placed) this.placedBlocks.add(newBlocks.placed);
     if (newBlocks.chopped) {
       this.choppedBlocks.add(newBlocks.chopped);
       var positionParams = {
@@ -407,6 +404,7 @@ var Game = /** @class */ (function () {
     if (this.blocks.length >= 5) this.instructions.classList.add("hide");
   };
   Game.prototype.endGame = function () {
+    window.parent.postMessage('gameWon', '*');
     this.updateState(this.STATES.ENDED);
   };
   Game.prototype.tick = function () {
