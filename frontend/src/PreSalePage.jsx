@@ -1,4 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+
+// Componente reutilizável para os anúncios da Adsterra
+const AdsterraAd = ({ atOptions }) => {
+  const adContainer = React.useRef(null);
+
+  useEffect(() => {
+    if (adContainer.current && !adContainer.current.hasChildNodes()) {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.innerHTML = `atOptions = ${JSON.stringify(atOptions)};`;
+
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = `//www.highperformanceformat.com/${atOptions.key}/invoke.js`;
+
+      adContainer.current.appendChild(script);
+      adContainer.current.appendChild(invokeScript);
+    }
+  }, [atOptions]);
+
+  return <div ref={adContainer} style={{ textAlign: 'center', margin: '20px auto' }} />;
+};
 
 // Dados dos lotes para a pré-venda
 const saleLots = [
@@ -41,6 +63,8 @@ export default function PreSalePage({ handleBuyBdg }) {
       <div style={styles.footer}>
         <p>As compras são finais. Os tokens BDG serão distribuídos em sua carteira conectada após a confirmação da transação na rede BNB.</p>
       </div>
+
+      <AdsterraAd atOptions={{ 'key': 'aa5093526197a9f66731eaa5facb698f', 'format': 'iframe', 'height': 90, 'width': 728, 'params': {} }} />
     </div>
   );
 }

@@ -2,6 +2,29 @@ import React, { useEffect, useMemo } from 'react';
 
 // --- COMPONENTES DE UI ---
 
+// Componente reutilizável para os anúncios da Adsterra
+const AdsterraAd = ({ atOptions }) => {
+  const adContainer = React.useRef(null);
+
+  useEffect(() => {
+    if (adContainer.current && !adContainer.current.hasChildNodes()) {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.innerHTML = `atOptions = ${JSON.stringify(atOptions)};`;
+
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = `//www.highperformanceformat.com/${atOptions.key}/invoke.js`;
+
+      adContainer.current.appendChild(script);
+      adContainer.current.appendChild(invokeScript);
+    }
+  }, [atOptions]);
+
+  return <div ref={adContainer} style={{ textAlign: 'center', margin: '20px auto' }} />;
+};
+
+
 // Círculo de Progresso para Mineração
 const MiningCircle = ({ balance, miningRate }) => {
   const size = 180;
@@ -12,9 +35,7 @@ const MiningCircle = ({ balance, miningRate }) => {
   return (
     <div style={styles.miningCircleContainer}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        {/* Círculo de fundo */}
         <circle cx={center} cy={center} r={radius} fill="none" stroke="#2d3748" strokeWidth={strokeWidth} />
-        {/* Círculo de progresso animado */}
         <circle cx={center} cy={center} r={radius} fill="none" stroke="#facc15" strokeWidth={strokeWidth} strokeLinecap="round" strokeDasharray={2 * Math.PI * radius} style={{ animation: 'spin 2s linear infinite' }} />
       </svg>
       <img src="/dog.png" alt="Mining Mascot" style={styles.dogImage} />
@@ -129,6 +150,8 @@ export default function MiningPage({ coinBdg, slots, economyData, handleBuyEnerg
           ))}
         </div>
       </div>
+
+      <AdsterraAd atOptions={{ 'key': 'aa5093526197a9f66731eaa5facb698f', 'format': 'iframe', 'height': 90, 'width': 728, 'params': {} }} />
     </div>
   );
 }

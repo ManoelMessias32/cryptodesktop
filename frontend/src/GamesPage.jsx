@@ -1,5 +1,27 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
+// Componente reutilizável para os anúncios da Adsterra
+const AdsterraAd = ({ atOptions }) => {
+  const adContainer = React.useRef(null);
+
+  useEffect(() => {
+    if (adContainer.current && !adContainer.current.hasChildNodes()) {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.innerHTML = `atOptions = ${JSON.stringify(atOptions)};`;
+
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = `//www.highperformanceformat.com/${atOptions.key}/invoke.js`;
+
+      adContainer.current.appendChild(script);
+      adContainer.current.appendChild(invokeScript);
+    }
+  }, [atOptions]);
+
+  return <div ref={adContainer} style={{ textAlign: 'center', margin: '20px auto' }} />;
+};
+
 const styles = {
   container: { textAlign: 'center', padding: '20px' },
   title: { marginBottom: '30px', color: '#e4e4e7', fontFamily: '"Press Start 2P", cursive' },
@@ -31,7 +53,6 @@ const GAMES = {
   minesweeper: { title: 'Minesweeper', src: '/games/Minesweeper/index.html' },
 };
 
-// CORREÇÃO: Lógica de abrir em iframe e escutar recompensas foi restaurada.
 export default function GamesPage({ onGameWin }) {
   const [selectedGame, setSelectedGame] = useState(null);
   const iframeRef = useRef(null);
@@ -40,7 +61,6 @@ export default function GamesPage({ onGameWin }) {
     const handleMessage = (event) => {
       if (event.data === 'gameWon') {
         onGameWin();
-        // Opcional: mostrar uma notificação de recompensa
         console.log('Recompensa de 5 Token Coins recebida!');
       } else if (event.data === 'goBack') {
         setSelectedGame(null);
@@ -50,7 +70,6 @@ export default function GamesPage({ onGameWin }) {
     return () => window.removeEventListener('message', handleMessage);
   }, [onGameWin]);
 
-  // Se nenhum jogo estiver selecionado, mostra o menu
   if (!selectedGame) {
     return (
       <div style={styles.container}>
@@ -66,11 +85,11 @@ export default function GamesPage({ onGameWin }) {
             </div>
           ))}
         </div>
+        <AdsterraAd atOptions={{ 'key': '76c30e6631e256ef38ab65c1ce40cee8', 'format': 'iframe', 'height': 250, 'width': 300, 'params': {} }} />
       </div>
     );
   }
 
-  // Se um jogo foi selecionado, mostra o iframe do jogo
   return (
     <div style={styles.fullScreenGameContainer}>
       <iframe 
@@ -78,9 +97,8 @@ export default function GamesPage({ onGameWin }) {
         src={selectedGame.src} 
         style={styles.gameIframe} 
         title={selectedGame.title}
-        sandbox="allow-scripts allow-same-origin" // Essencial para o postMessage funcionar
+        sandbox="allow-scripts allow-same-origin"
       ></iframe>
-      {/* O botão de voltar foi movido para dentro de cada jogo */}
     </div>
   );
 }
