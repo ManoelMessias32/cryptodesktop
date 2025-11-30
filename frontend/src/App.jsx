@@ -20,7 +20,7 @@ const STORAGE_VERSION = 'v42_unified_app';
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
-const YOUR_WALLET_ADDRESS = "0x1234..."; // SUBSTITUA PELO SEU ENDEREÇO DE CARTEIRA
+const YOUR_WALLET_ADDRESS = "0x35878269ef4051df5f82593b4819e518ba8903a3"; // SEU ENDEREÇO DE CARTEIRA
 
 // ===================================================================================
 // COMPONENTES DE CONTEÚDO ESPECÍFICO (para separar os hooks)
@@ -233,7 +233,7 @@ function MainApp({ username, slots, setSlots, coinBdg, setCoinBdg, claimableBdg,
       </header>
       <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#d4d4d8', background: '#1a1a1a' }}><p>{status}</p></div>
       
-      {route === 'mine' && <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} setStatus={setStatus} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} />}
+      {route === 'mine' && <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} setStatus={setStatus} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} setRoute={setRoute} />}
       {route === 'shop' && <ShopPage />}
       {route === 'presale' && <PreSalePage handleBuyBdg={handleBuyBdg} />}
       {route === 'rankings' && <RankingsPage />}
