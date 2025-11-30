@@ -11,6 +11,7 @@ import ShopPage from './ShopPage';
 import UserPage from './UserPage';
 import RankingsPage from './RankingsPage';
 import GamesPage from './GamesPage';
+import PreSalePage from './PreSalePage'; // Importa a nova página
 import { economyData } from './economy';
 
 // --- Constantes ---
@@ -23,13 +24,11 @@ const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', 
 // COMPONENTES DE CONTEÚDO ESPECÍFICO (para separar os hooks)
 // ===================================================================================
 
-// Conteúdo para o ambiente Telegram (usa TON)
 function TonAppContent({ appProps }) {
   const tonAddress = useTonAddress();
   return <MainApp {...appProps} isTelegram={true} tonAddress={tonAddress} />;
 }
 
-// Conteúdo para o ambiente Web (usa BNB)
 function WebAppContent({ appProps }) {
   const { address: bnbAddress, isConnected: isBnbConnected } = useAccount();
   const { connect } = useConnect();
@@ -58,7 +57,6 @@ export default function App() {
 
   // --- LÓGICA DE DADOS E MINERAÇÃO (UNIFICADA) ---
 
-  // Efeito para carregar dados e calcular ganhos offline
   useEffect(() => {
     if (username) {
       const savedState = localStorage.getItem(`gameState_${STORAGE_VERSION}_${username}`);
@@ -103,7 +101,6 @@ export default function App() {
     }
   }, [username]);
 
-  // Efeito para salvar os dados
   useEffect(() => {
     if (isDataLoaded) {
       const gameState = { slots, coinBdg, claimableBdg, gamesPlayedToday, lastGamePlayedDate, lastSaveTimestamp: Date.now() };
@@ -111,7 +108,6 @@ export default function App() {
     }
   }, [slots, coinBdg, claimableBdg, gamesPlayedToday, lastGamePlayedDate, isDataLoaded, username]);
 
-  // Efeito para o loop de mineração
   useEffect(() => {
     if (!isDataLoaded) return;
     const gameLoop = setInterval(() => {
@@ -136,7 +132,7 @@ export default function App() {
     }, 1000);
 
     return () => clearInterval(gameLoop);
-  }, [isDataLoaded, slots]); // Adicionado 'slots' como dependência
+  }, [isDataLoaded, slots]);
 
 
   const handleGameWin = useCallback(() => {
@@ -191,26 +187,43 @@ export default function App() {
 // --- Componente da Aplicação Principal ---
 function MainApp({ username, slots, setSlots, coinBdg, setCoinBdg, claimableBdg, isTelegram, tonAddress, bnbAddress, isBnbConnected, connect, disconnectBnb, setRoute, route, status, setStatus, handleGameWin, handleBuyEnergyForAll }) {
 
-  const navButtonStyle = (page) => ({ background: route === page ? '#5a67d8' : '#4a5568', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '10px 0', margin: '0 4px', fontSize: '1.5em', maxWidth: '60px' });
+  const navButtonStyle = (page) => ({
+    background: route === page ? '#0056b3' : '#007BFF',
+    color: 'white', 
+    border: 'none', 
+    borderRadius: '10px', 
+    cursor: 'pointer', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    flex: 1, 
+    padding: '10px 0', 
+    margin: '0 4px', 
+    fontSize: '1.5em', 
+    maxWidth: '60px',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+    transition: 'background-color 0.3s ease',
+  });
 
   const ConnectButton = () => (
     isTelegram ? <TonConnectButton /> : (
       isBnbConnected ?
         <button onClick={() => disconnectBnb()} style={{padding: '10px', borderRadius: '5px', border: 'none', background: '#4a5568', color: 'white'}}>{`${bnbAddress.substring(0, 6)}...${bnbAddress.substring(bnbAddress.length - 4)}`}</button> :
-        <button onClick={() => connect({ connector: injected() })} style={{padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#6366f1', color: 'white'}}>Conectar Carteira</button>
+        <button onClick={() => connect({ connector: injected() })} style={{padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#007BFF', color: 'white'}}>Conectar Carteira</button>
     )
   );
 
   return (
     <>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', color: '#f4f4f5' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', color: '#f4f4f5', background: '#1a1a1a' }}>
         <p>Bem-vindo, {username}!</p>
         <ConnectButton />
       </header>
-      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#d4d4d8' }}><p>{status}</p></div>
+      <div style={{ textAlign: 'center', padding: '10px', minHeight: '40px', color: '#d4d4d8', background: '#1a1a1a' }}><p>{status}</p></div>
       
       {route === 'mine' && <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} setStatus={setStatus} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} />}
       {route === 'shop' && <ShopPage />}
+      {route === 'presale' && <PreSalePage />}
       {route === 'rankings' && <RankingsPage />}
       {route === 'user' && (isTelegram ? <UserPage address={tonAddress} coinBdg={coinBdg} claimableBdg={claimableBdg} username={username} /> : <UserPage username={username} coinBdg={coinBdg} claimableBdg={claimableBdg} />)}
       {route === 'games' && <GamesPage onGameWin={handleGameWin} />}
@@ -219,6 +232,7 @@ function MainApp({ username, slots, setSlots, coinBdg, setCoinBdg, claimableBdg,
         <button onClick={() => setRoute('mine')} style={navButtonStyle('mine')} title="Minerar">⛏️</button>
         <button onClick={() => setRoute('shop')} style={navButtonStyle('shop')} title="Loja">🛒</button>
         {!isTelegram && <button onClick={() => setRoute('games')} style={navButtonStyle('games')} title="Jogos">🎮</button>}
+        <button onClick={() => setRoute('presale')} style={navButtonStyle('presale')} title="Pré-Venda">💲</button>
         <button onClick={() => setRoute('user')} style={navButtonStyle('user')} title="Perfil">👤</button>
         <button onClick={() => setRoute('rankings')} style={navButtonStyle('rankings')} title="Rankings">🏆</button>
       </nav>
@@ -233,7 +247,7 @@ function LoginScreen({ tempUsername, setTempUsername, handleUsernameSubmit }) {
       <h1 style={{ fontFamily: '"Press Start 2P", cursive', color: '#facc15' }}>CryptoDesk</h1>
       <p style={{ marginBottom: '30px' }}>Digite seu nome de usuário para começar</p>
       <input type="text" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} placeholder="Seu nome aqui" style={{ padding: '10px', borderRadius: '5px', border: '1px solid #4a5568', background: '#2d3748', color: 'white', marginBottom: '20px', width: '90%', maxWidth: '350px' }} />
-      <button onClick={handleUsernameSubmit} style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#6366f1', color: 'white', cursor: 'pointer', fontFamily: '"Press Start 2P", cursive' }}>Entrar</button>
+      <button onClick={handleUsernameSubmit} style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', background: '#007BFF', color: 'white', cursor: 'pointer', fontFamily: '"Press Start 2P", cursive' }}>Entrar</button>
     </div>
   );
 }
