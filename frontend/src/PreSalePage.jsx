@@ -11,7 +11,7 @@ const saleLots = [
 ];
 
 // Componente da Página de Pré-Venda
-export default function PreSalePage({ bnbBalance, buyBdgFunction }) {
+export default function PreSalePage({ handleBuyBdg }) {
   return (
     <div style={styles.pageContainer}>
       <div style={styles.header}>
@@ -30,7 +30,7 @@ export default function PreSalePage({ bnbBalance, buyBdgFunction }) {
             <p style={styles.lotPrice}>{lot.price} BNB</p>
             <button 
               style={styles.buyButton}
-              onClick={() => console.log(`Comprando Lote ${lot.id}`)} // A função de compra será implementada aqui
+              onClick={() => handleBuyBdg(lot.price)}
             >
               Comprar Agora
             </button>

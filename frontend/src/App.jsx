@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 // Hooks e componentes de bibliotecas externas
 import { TonConnectButton, useTonAddress } from '@tonconnect/ui-react';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useSendTransaction } from 'wagmi';
+import { parseEther } from 'viem';
 import { injected } from 'wagmi/connectors';
 
 // Páginas e dados do aplicativo
@@ -19,6 +20,7 @@ const STORAGE_VERSION = 'v42_unified_app';
 const ONE_HOUR_IN_SECONDS = 3600;
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 3600;
 const initialSlots = [{ name: 'Slot 1', filled: true, free: true, type: 'free', tier: 0, repairCooldown: ONE_HOUR_IN_SECONDS, durability: SEVEN_DAYS_IN_SECONDS }];
+const YOUR_WALLET_ADDRESS = "0x1234..."; // SUBSTITUA PELO SEU ENDEREÇO DE CARTEIRA
 
 // ===================================================================================
 // COMPONENTES DE CONTEÚDO ESPECÍFICO (para separar os hooks)
@@ -33,7 +35,9 @@ function WebAppContent({ appProps }) {
   const { address: bnbAddress, isConnected: isBnbConnected } = useAccount();
   const { connect } = useConnect();
   const { disconnect: disconnectBnb } = useDisconnect();
-  return <MainApp {...appProps} isTelegram={false} bnbAddress={bnbAddress} isBnbConnected={isBnbConnected} connect={connect} disconnectBnb={disconnectBnb} />;
+  const { sendTransaction } = useSendTransaction();
+
+  return <MainApp {...appProps} isTelegram={false} bnbAddress={bnbAddress} isBnbConnected={isBnbConnected} connect={connect} disconnectBnb={disconnectBnb} sendTransaction={sendTransaction} />;
 }
 
 
@@ -185,7 +189,15 @@ export default function App() {
 
 
 // --- Componente da Aplicação Principal ---
-function MainApp({ username, slots, setSlots, coinBdg, setCoinBdg, claimableBdg, isTelegram, tonAddress, bnbAddress, isBnbConnected, connect, disconnectBnb, setRoute, route, status, setStatus, handleGameWin, handleBuyEnergyForAll }) {
+function MainApp({ username, slots, setSlots, coinBdg, setCoinBdg, claimableBdg, isTelegram, tonAddress, bnbAddress, isBnbConnected, connect, disconnectBnb, setRoute, route, status, setStatus, handleGameWin, handleBuyEnergyForAll, sendTransaction }) {
+
+  const handleBuyBdg = (price) => {
+    if (!isBnbConnected) {
+      setStatus("Por favor, conecte sua carteira BNB primeiro.");
+      return;
+    }
+    sendTransaction({ to: YOUR_WALLET_ADDRESS, value: parseEther(String(price)) });
+  };
 
   const navButtonStyle = (page) => ({
     background: route === page ? '#0056b3' : '#007BFF',
@@ -223,7 +235,7 @@ function MainApp({ username, slots, setSlots, coinBdg, setCoinBdg, claimableBdg,
       
       {route === 'mine' && <MiningPage coinBdg={coinBdg} setCoinBdg={setCoinBdg} slots={slots} setSlots={setSlots} setStatus={setStatus} economyData={economyData} handleBuyEnergyForAll={handleBuyEnergyForAll} />}
       {route === 'shop' && <ShopPage />}
-      {route === 'presale' && <PreSalePage />}
+      {route === 'presale' && <PreSalePage handleBuyBdg={handleBuyBdg} />}
       {route === 'rankings' && <RankingsPage />}
       {route === 'user' && (isTelegram ? <UserPage address={tonAddress} coinBdg={coinBdg} claimableBdg={claimableBdg} username={username} /> : <UserPage username={username} coinBdg={coinBdg} claimableBdg={claimableBdg} />)}
       {route === 'games' && <GamesPage onGameWin={handleGameWin} />}
