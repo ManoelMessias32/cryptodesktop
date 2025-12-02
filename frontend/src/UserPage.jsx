@@ -29,7 +29,7 @@ const styles = {
   value: { fontSize: '1.2em', color: '#f4f4f5', fontWeight: 'bold', wordBreak: 'break-all', marginBottom: '15px' },
   addressValue: { fontSize: '1em', color: '#f4f4f5', wordBreak: 'break-all', marginBottom: '15px' },
   referralLink: { fontSize: '1em', color: '#facc15', wordBreak: 'break-all', padding: '10px', background: '#18181b', borderRadius: '5px', display: 'block', margin: '5px 0 15px 0' },
-  button: { background: '#6366f1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontSize: '1em' },
+  button: { background: '#007BFF', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontSize: '1em', fontFamily: '"Press Start 2P", cursive', width: '100%' },
   claimButton: { width: '100%', padding: '15px', fontSize: '1.2em' },
   disabledButton: { background: '#4a5568', cursor: 'not-allowed' },
   statusMessage: { marginTop: '20px', textAlign: 'center', fontSize: '1em', minHeight: '24px' },
@@ -88,7 +88,7 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
   return (
     <div style={styles.container}>
       <AdsterraAd atOptions={{ 'key': 'aa5093526197a9f66731eaa5facb698f', 'format': 'iframe', 'height': 90, 'width': 728, 'params': {} }} />
-      <h1 style={styles.title}>Perfil</h1>
+      <h1 style={styles.title}>Perfil de Usuário</h1>
       
       <div style={styles.card}>
         <p style={styles.label}>Usuário</p>
@@ -101,17 +101,15 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
           </>
         )}
 
-        <p style={styles.label}>Link de Referência</p>
+        <p style={styles.label}>Seu Link de Referência</p>
         <p style={styles.referralLink}>{referralLink}</p>
-        <button onClick={() => copyToClipboard(referralLink, 'Link de Referência')} style={styles.button}>Copiar</button>
+        <button onClick={() => copyToClipboard(referralLink, 'Link de Referência')} style={styles.button}>Copiar Link</button>
       </div>
 
       <div style={styles.card}>
-        {/* CORREÇÃO: Nome da moeda interna ajustado */}
         <p style={styles.label}>Saldo de Token Coin (Uso Interno)</p>
         <p style={styles.value}>{Math.floor(coinBdg)}</p>
 
-        {/* CORREÇÃO: Nome da moeda de saque ajustado */}
         <p style={{...styles.label, marginTop: '20px'}}>Saldo de BDG (para Saque)</p>
         <p style={styles.value}>{claimableBdg ? claimableBdg.toFixed(4) : '0.0000'}</p>
         
@@ -125,6 +123,13 @@ export default function UserPage({ username, coinBdg, claimableBdg }) {
         <p style={styles.label}>Contrato do Token BDG (BNB Chain)</p>
         <p style={styles.addressValue}>{BDG_TOKEN_CONTRACT_ADDRESS}</p>
         <button onClick={() => copyToClipboard(BDG_TOKEN_CONTRACT_ADDRESS, 'Endereço do Contrato')} style={styles.button}>Copiar Endereço</button>
+      </div>
+
+      {/* Card da Comunidade */}
+      <div style={styles.card}>
+        <p style={styles.label}>Comunidade Oficial</p>
+        <p style={{...styles.value, fontSize: '1em', marginBottom: '20px'}}>Fique por dentro das novidades e interaja com outros jogadores.</p>
+        <button onClick={() => window.open('https://t.me/cryptodeskotop', '_blank')} style={styles.button}>Entrar no Telegram</button>
       </div>
       
       {status && <p style={styles.statusMessage}>{status}</p>}
